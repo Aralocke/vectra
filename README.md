@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Vectra
 ======
 
@@ -22,9 +21,3 @@ the code was run in a stable platform environment for years until development st
 
 I have continued development as a side project and hope that this will be an educational project
 to teach up and comming bot makers or developers about sockets and protocol handling.
-=======
-vectra
-======
-
-The 'Vectra' project. culminating in over 5 years of work and more than 10,000 lines of code, the Vectra project was an IRC Stats bot based around the MMORPG game 'RuneScape'
->>>>>>> b0f46a4... Revert "Creating the basic structure of the file system."
