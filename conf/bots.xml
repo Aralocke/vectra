@@ -1,0 +1,154 @@
+<config>
+    <!--
+		By default the administrator connection
+		will be the first bot created. The
+		administrator block can be used to over
+		ride the default and create a custom 
+		connection. This could potentially be used
+		to seperate the main bots to another network
+		for logging purposes.
+	-->
+    <administrator>
+		<!--
+			An administrator block is identical to a <bot> block
+			except for it the logchannel which is a required option.
+			the staff channel and log channel are different options 
+			in that staff channel is a channel the bot will idle in
+			while as the logchannel will output all data messages
+			about bot activity.
+
+			Configurable options:
+		
+			Allowmodules   - A string of comma separated modules that this bot may use. Be warned,
+			                 this setting will force all bots of this class to ONLY use allowed
+			                 modules specificied by this setting, therefore it is an all or nothing 
+			                 setting. However the any admin level module will ONLY be accessible
+			                 to the Administrator connection.		
+			                 
+			Altnick        - This is the pattern that will be sent to the new
+			                 nickname generator when the primary nickname cannot 
+					         be used on IRC.
+			-->
+			<altnickname>Vectra_</altnickname>		         			                 
+			<!--
+			Autojoin       - One time, on-logon triggered event that will automatically join 
+						     to a comma separated valued list of channels, only triggered once
+						     (eg: #chan1,#chan2,#etc3). 
+			-->
+			<autojoin>#vectra</autojoin>
+			<!--			     
+			Automodes      - These modes are the user modes assigned to the bot when a successfull
+			                 read/write connection has been established to the server. This
+			                 must be a valid IRC (usually server specific) mode string.
+			-->
+			<automodes>+piBT</automodes>
+			<!--                 
+     		Bindip         - Network interface with which to connect to the server with. If
+			                 this is not specified the OS will be left to handle it on its
+			                 own. This option only allows for IPv4 or IPv4 IP's or hostnames.
+			                 If you specify a hostname, Java will use whatever the default DNS
+			                 settings are to attempt to resolve the hostname. This can also
+			                 be a named interface "block" specified in the interface config.
+			                 Settings in the interface block will be handled on their own, and 
+			                 the Configuration system will handle each interface as per the 
+			                 configuration.
+			                 
+			Clones         - Determines how many numeric copies should be spawned of this configuration.
+							 Please remember that most networks implement session controls, etc to stop
+							 exactly behavior like this... Note: This will not be read during an 
+							 Administrator block
+			
+			Custom         - This is used to pass a custom configuration directive to the Bot (group).
+			                 Because custom modules cannot be designed around the config file. The 
+			                 custom declaration can be used to pass run time level information to the 
+			                 config engine. a Module can then access this setting through the actual
+			                 configuration. Be aware that this directive requires a key<->value
+			                 representation and will be saved in a Map based on the specific key.
+			-->
+			<custom key="oper_pass">Vectra</custom>
+			<custom key="oper_name">685be750efa80c5830cec00aa7a32597</custom>
+			<!--     
+			Denymodules	   - This setting is independant of the Allowmodules because it is 
+			                 checked first. Anything disallowed in here will not be allowed 
+			                 during the processing of the ModuleHandler checking during the 
+			                 Module process. Great for controlling which bots have access to 
+			                 certain modules. 
+			
+			Ident          - The identity, also known as the ident. Used by the bot 
+			-->
+			<ident>Vectra</ident>
+			<!--
+			Logchannel     - This channel acts much like a StaffChannel, the difference is
+			                 it gives a separation between "Staff" and "Logging." The 
+			                 Administrator connection will output ALL logging information 
+			                 to this channel. If not set, it will default to the 
+			                 'StaffChannel'. This setting maintains the same locked channel
+			                 features that 'StaffChannel' has, therefore using both requires
+			                 at least two channels wirth of space on the administrator 
+			                 connection. This will not affect non-Administrators.
+			-->
+			<logchannel>#monitor</logchannel>
+			<!--
+			Maxchannels    - Override the maximum channels. This value will be used only when
+			                 it is smaller than the MAXCHANNELS value sent tin the RAW 005 
+			                 message by the IRCd. This number should take into account the 
+			                 StaffChannel and Logchannel especially for Administrator 
+			                 connections which require atleast 1 saved channel specifically.
+			-->
+			<maxchannels>30</maxchannels>
+			<!--		
+			Network        - This is set by requirement. This references the network 
+			                 settings to retrieve an initial server to connect to. Servers
+			                 are configured by network, not by bot. This allows the 
+			                 Reconnect settings to have a round robin of preset configurable 
+			                 servers to connect to.   
+			-->
+			<network>synIRC</network>
+			<!--                 
+			Nickname       - Set the primary nickname to connect to IRC with.
+			-->
+			<nickname>Vectra</nickname>
+			<!--
+			Password       - Password to identify to services with. This si different
+			                 from a required password to connect to the IRC server with.
+							 Only to identify to such services as NickServ.  
+			-->
+			<password>abcdefghijklmnopqrstuvwxyz</password>
+			<!--
+			Realname       - Identifiable realname. Sets the real name for the bot
+			                 adds a distinctive name. Can be changed at anytime 
+							 throughout the IRC session. 
+			-->
+			<realname>Eats Your Sharks</realname>
+			<!--
+			Server         - This property allows for an override of the round-robin server
+							 server configuration. This bot will expressly ONLY connect to
+							 this server and not any other server inside the round-robin 
+							 provided by the network block.
+							 
+			Staffchannel   - A StaffChannel is better known as a mass idle channel. Whether 
+			                 it is one bot or an entire botnet, all bots will stay in this 
+			                 channel. Events like Part and Kick do not affect it because the
+			                 bots will attempt to continually rejoin this channel. 					
+			-->
+			<staffchannel>#vectra</staffchannel>
+	</administrator>
+    <!-- 
+		A Bot block is used to configure one
+		individual bot for use on any network.
+		The system can support many individual 
+		bots or a few individual botnets.
+	-->
+	<bot id="2">
+	    <altnickname>Vectra_</altnickname>
+		<autojoin>#Vectra</autojoin>
+		<automodes>+piBT</automodes>
+		<ident>Vectra</ident>
+		<maxchannels>30</maxchannels>
+		<network>SwiftIRC</network>
+		<nickname>Vectra</nickname>
+		<password>abcdefghijklmnopqrstuvwxyz</password>
+		<realname>Vectra</realname>
+		<staffchannel>#vectra</staffchannel>
+	</bot>	
+</config>

@@ -1,0 +1,9 @@
+<config>
+    <interfaces>
+        <interface>1.2.3.4</interface>
+        <interface>1.2.3.5</interface>
+        <interface>1.2.3.6</interface>
+    	<interface>2001::6667:1</interface>
+		<interface>2001::6667:2</interface>
+    </interfaces>
+</config>

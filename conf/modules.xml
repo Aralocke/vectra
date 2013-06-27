@@ -1,0 +1,24 @@
+<config>
+	<!--
+		This file contains all the necesary information for the module
+		handler to facilitate startups and reloads of the module core.
+	-->
+    <modules>
+		<!-- 
+			The reload level is used in the command based reload. Each
+			BotAdmin must be logged in with an access level of at least 
+			default 10 to issue a hot reload of the Module Core
+		-->
+		<reloadlevel>10</reloadlevel>
+		<!-- 
+			To load a module, enclose the module name in a <module> 
+			property block. This list of Modules will be parsed on a 
+			call to reload and will be loaded accordingly.
+		-->
+		<module>ChannelStatusModule</module>
+		<module>NickServAuthModule</module>
+		<module>NickServAutoJoin</module>
+		<module>OperOnConnect</module>
+		<module>StatusModule</module>
+	</modules>
+</config>

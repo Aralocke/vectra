@@ -1,0 +1,20 @@
+<config>
+	<network>
+		<name>synIRC</name>
+		<session>3</session>
+		<servers>
+			<server ipv6="true">atlantis.synirc.net</server>
+			<server>destiny.synirc.net</server>
+		</servers>
+	</network>
+	<network>
+		<name>SwiftIRC</name>
+		<session>3</session>
+		<servers>
+			<server ipv6="true">intrepid.il.us.swiftirc.net</server>
+			<server ipv6="true">tripwire.uk.eu.swiftirc.net</server>
+			<server ipv6="true">lunas.fr.eu.swiftirc.net</server>
+			<server>hades.de.eu.swiftirc.net</server>
+		</servers>
+	</network>
+</config>

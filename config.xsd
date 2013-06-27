@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XML Schema for the Vectra IRC Framework Configuration System -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="config">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="definitions" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:complexContent>
+              <xs:extension base="common"/>
+            </xs:complexContent>
+            <!-- END complexContent="definitions" -->
+          </xs:complexType>
+          <!-- END complexType="definitions" --> 
+        </xs:element>
+        <!-- END element="definitions" -->
+        <!-- Element definition for "Bots" -->
+        <xs:element name="bots" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+                <!--
+                Required Elements: Ident, Logchannel, Network, Nickname, Staffchannel
+                Optional Elements: Allowmodules, Altnickname, Autojoin, Automodes, Bindip, Clones, Custom (key), Denymodules, Maxchannels, Password, Realname, Server
+                -->
+                <xs:element name="administrator" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:complexContent>
+                        <xs:extension base="Bot">
+                            <xs:sequence>
+                                <!-- IRC CHannels are by default 30 characters long with 1 additional for the [&#] -->
+                                <xs:element name="logchannel" type="IRCChannel" minOccurs="1" maxOccurs="1" />
+                                <!-- END element="logchannel" -->
+                            </xs:sequence>
+                            <!-- END sequence for element="Administrator" -->
+                        </xs:extension>
+                        <!-- END extension of Bot in Administrator -->
+                        </xs:complexContent>
+                        <!-- END ComplexContent inside element="Administrator" -->
+                    </xs:complexType>
+                    <!-- END complexType inside element="Administrator" -->
+                </xs:element>
+                <!-- END element="administrator" -->
+                <xs:element name="bot" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:complexContent>
+                            <xs:extension base="Bot">
+                                <xs:attribute name="id" use="required">
+                                    <xs:simpleType>
+                                        <xs:restriction base="xs:integer">
+                                            <xs:minInclusive value="0" />
+                                        </xs:restriction>
+                                    </xs:simpleType>
+                                </xs:attribute>
+                            </xs:extension>
+                        </xs:complexContent>
+                        <!-- END complexContent="Bots" -->                        
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+          <!-- END ComplexType="Bots" -->
+        </xs:element>
+        <!-- END element="Bots" -->
+        <!-- Element definition for "modules" -->
+        <xs:element name="modules" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:complexContent>
+              <xs:extension base="common">
+                <xs:sequence>
+                  <xs:element name="reloadlevel">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:integer">
+                        <xs:minInclusive value="0"/>
+                        <xs:maxInclusive value="10"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:element>
+                  <!-- END attribute name="reloadlevel" -->
+                  <xs:element name="module" type="NonEmptyString" maxOccurs="unbounded"/>
+                  <!-- END attribute name="module" -->
+                </xs:sequence>
+                <!-- END sequence -->
+              </xs:extension>
+              <!-- END extension base="common" -->
+            </xs:complexContent>
+            <!-- END complexCOntent="modules" -->
+          </xs:complexType>
+          <!-- END complexType="modules" -->
+        </xs:element>
+        <!-- END element for element="modules" -->
+        <!-- Element definition for "mysql" -->
+        <xs:element name="mysql" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="mysqlconfig" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="mysqlconfig"/>
+                  </xs:complexContent>
+                  <!-- END complexContent="mysqlconfig" -->
+                </xs:complexType>
+                <!-- END ComplexType="mysqlconfig" -->
+              </xs:element>
+              <xs:element name="pool" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:complexContent>
+                    <xs:extension base="poolSize"/>
+                  </xs:complexContent>
+                  <!-- END complexContent="pool" -->
+                </xs:complexType>
+                <!-- END ComplexType="pool" -->
+              </xs:element>
+              <!-- END element="pool" -->
+            </xs:all>
+            <!-- END sequence all -->
+          </xs:complexType>
+          <!-- END complexType="mysql" -->
+        </xs:element>
+        <!-- END element for element="mysql" -->
+        <xs:element name="networks" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="network" minOccurs="1" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:all>
+                    <xs:element name="name" minOccurs="1" maxOccurs="1" type="NonEmptyString"/>
+                    <xs:element name="config" minOccurs="1" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:complexContent>
+                          <xs:extension base="networkConfig"/>
+                        </xs:complexContent>
+                        <!-- END complexContent="config" -->
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="servers" minOccurs="1" maxOccurs="1">
+                      <xs:complexType>
+                        <xs:complexContent>
+                          <xs:extension base="common">
+                            <xs:sequence>
+                              <xs:element name="server" minOccurs="1" maxOccurs="unbounded">
+                                <xs:complexType>
+                                  <xs:simpleContent>
+                                    <xs:extension base="xs:string">
+                                      <xs:attribute name="ipv6" type="xs:boolean" default="false"/>
+                                      <xs:attribute name="primary" type="xs:boolean" default="false"/>
+                                      <xs:attribute name="primary6" type="xs:boolean" default="false"/>
+                                    </xs:extension>
+                                    <!-- END extension="xs:string" -->
+                                  </xs:simpleContent>
+                                  <!-- END simpleCOntent="server" -->
+                                </xs:complexType>
+                                <!-- END complexType="server"-->
+                              </xs:element>
+                              <!-- END element="server" -->
+                            </xs:sequence>
+                            <!-- END sequence-->
+                          </xs:extension>
+                          <!-- END extension="common" -->
+                        </xs:complexContent>
+                        <!-- END complexContent="servers" -->
+                      </xs:complexType>
+                      <!-- END complexType="servers" -->
+                    </xs:element>
+                    <!-- END element="servers" -->
+                  </xs:all>
+                  <!-- END all="network" -->
+                </xs:complexType>
+                <!-- END complexType="network" -->
+              </xs:element>
+              <!-- END element="network" -->
+            </xs:sequence>
+            <!-- END sequence="networks" -->
+          </xs:complexType>
+          <!-- END complexType="networks" -->
+        </xs:element>
+        <!-- END element="networks" -->
+        <xs:element name="pool" minOccurs="1" maxOccurs="1">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="config" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="maxbots" maxOccurs="1">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:integer">
+                          <xs:minInclusive value="0"/>
+                          <xs:maxInclusive value="128"/>
+                        </xs:restriction>
+                        <!-- END restriction="xs:integer" -->
+                      </xs:simpleType>
+                      <!-- END simpleType="maxbots" -->
+                    </xs:element>
+                    <!-- END element="maxbots" -->
+                  </xs:sequence>
+                  <!-- END sequence="config" -->
+                </xs:complexType>
+                <!-- END complexType="config" -->
+              </xs:element>
+              <!-- END element="config" -->
+              <xs:element name="interfaces" minOccurs="1" maxOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="group" minOccurs="1" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="interface" minOccurs="1" maxOccurs="unbounded" type="NonEmptyCollapsedString"/>
+                        </xs:sequence>
+                        <!-- END sequence="group" -->
+                        <xs:attribute name="id" use="required">
+                          <xs:simpleType>
+                            <xs:restriction base="NonEmptyCollapsedString"/>
+                          </xs:simpleType>
+                          <!-- END simpleType="id" -->
+                        </xs:attribute>
+                        <!-- END attribute="id"-->
+                      </xs:complexType>
+                      <!-- END complexType="group" -->
+                    </xs:element>
+                    <!-- END element="group" -->
+                  </xs:sequence>
+                  <!-- END sequence="interfaces" -->
+                </xs:complexType>
+                <!-- END complexType="interfaces" -->
+              </xs:element>
+              <!-- END element="interfaces" -->
+            </xs:all>
+            <!-- END all="pool" -->
+          </xs:complexType>
+          <!-- END complexType="pool" -->
+        </xs:element>
+        <!-- END element="pool" -->
+      </xs:all>
+      <!-- END sequence for config element -->
+    </xs:complexType>
+    <!-- END complexType for config element -->
+  </xs:element>
+  <!-- END element name="config" -->
+  <xs:complexType name="common">
+    <xs:sequence>
+      <!-- Element definition for "define" -->
+      <xs:element name="define" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <!-- Required Attributes: variable, reference -->
+          <xs:attribute name="variable" type="NonEmptyCollapsedString" use="required"/>
+          <!-- END attribute name="variable" -->
+          <xs:attribute name="reference" type="NonEmptyCollapsedString" use="required"/>
+          <!-- END attribute name="reference" -->
+        </xs:complexType>
+        <!-- END complexType for element="define" -->
+      </xs:element>
+      <!-- END element name="define"-->
+    </xs:sequence>
+  </xs:complexType>
+  <!-- Declartion of complexType for Bot block -->
+  <xs:complexType name="Bot">
+    <xs:complexContent>
+      <xs:extension base="common">
+        <xs:sequence>
+          <!--
+              Required Elements: Ident, Network, Nickname, Staffchannel
+              Optional Elements: Allowmodules, Altnickname, Autojoin, Automodes, Bindip, Clones, Custom (key), Denymodules, Logchannel, Maxchannels, Password, Realname, Server
+          -->
+          <xs:element name="allowmodules" type="csv" minOccurs="0" maxOccurs="1" />
+          <!-- END element="allowmodule" -->
+          <xs:element name="altnickname" type="IRCNickname" minOccurs="0" maxOccurs="1" default="Vectra_"/>
+          <!-- END element="altnickname" -->
+          <xs:element name="autojoin" type="csv" minOccurs="0" maxOccurs="1"/>
+          <!-- END element="autojoin" -->
+          <xs:element name="automodes" type="NonEmptyString" minOccurs="0" maxOccurs="1" default="+pB"/>
+          <!-- END element="automodes" -->
+          <xs:element name="bindip" type="NonEmptyString" minOccurs="0" maxOccurs="1"/>
+          <!-- END element="bindip" -->
+          <xs:element name="clones" minOccurs="0" maxOccurs="1" default="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="1"/>
+                <xs:maxInclusive value="100"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="clones" -->
+          <xs:element name="custom" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="xs:string">
+                  <xs:attribute name="key" type="xs:string"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+          <!-- END element="custom" -->
+          <xs:element name="denymodules" type="csv" minOccurs="0" maxOccurs="1" />
+          <!-- END element="denymodules" -->
+          <!-- IRC Idents are 1 <= x <= 9 characters long -->
+          <xs:element name="ident" minOccurs="1" maxOccurs="1" default="Vectra">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+                <xs:maxLength value="9"/>
+                <xs:minLength value="1"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="ident" -->
+          <xs:element name="maxchannels" minOccurs="0" maxOccurs="1" default="30">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0"/>
+              </xs:restriction>
+              <!-- END eretsriction="xs:integer" -->
+            </xs:simpleType>
+            <!-- END simpleType="xs:maxchannels" -->
+          </xs:element>
+          <!-- END element="maxChannels" -->
+          <xs:element name="network" minOccurs="1" maxOccurs="1" default="SwiftIRC">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+                <xs:minLength value="1"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="network" -->
+          <xs:element name="nickname" minOccurs="1" maxOccurs="1" default="Vectra">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+                <xs:minLength value="1"/>
+                <xs:maxLength value="30"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="nickname" -->
+          <xs:element name="password" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+                <xs:minLength value="1"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="password" -->
+          <xs:element name="realname" minOccurs="0" maxOccurs="1" default="Vectra">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:whiteSpace value="collapse"/>
+                <xs:minLength value="1"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <!-- END element="password" -->
+          <xs:element name="server" type="NonEmptyCollapsedString" minOccurs="0" maxOccurs="1" />
+          <xs:element name="serverport" type="port" minOccurs="0" maxOccurs="1" default="6667"/>
+          <xs:element name="staffchannel" type="IRCChannel" minOccurs="1" maxOccurs="1"/>
+          <!-- END element="staffchannel" -->
+        </xs:sequence>
+        <!-- Bot Block sequence -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- Bot Block complexType -->
+  <xs:simpleType name="port">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="65535"/>
+    </xs:restriction>
+    <!-- END extension="xs:integer" -->
+  </xs:simpleType>
+  <!-- END simpleType="port" -->
+  <xs:simpleType name="csv">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^,]+(,s*[^,]+)*"/>
+    </xs:restriction>
+    <!-- END extension="xs:string" -->
+  </xs:simpleType>
+  <!-- END simpleType="csv"-->
+  <xs:simpleType name="IRCChannel">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="200"/>
+    </xs:restriction>
+    <!-- END extension="xs:string" -->
+  </xs:simpleType>
+  <!-- END simpleType="IRCChannel" -->
+  <xs:simpleType name="IRCNickname">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="30"/>
+    </xs:restriction>
+    <!-- END extension="xs:string" -->
+  </xs:simpleType>
+  <!-- END simpleType="IRCNickname" -->
+  <xs:simpleType name="NonEmptyString">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="50"/>
+    </xs:restriction>
+    <!-- END extension="xs:string" -->
+  </xs:simpleType>
+  <!-- END simpleType="NonEmptyString" -->
+  <xs:simpleType name="NonEmptyCollapsedString">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:whiteSpace value="collapse"/>
+      <xs:maxLength value="50"/>
+    </xs:restriction>
+    <!-- END extension="xs:string" -->
+  </xs:simpleType>
+  <!-- END simpleType="NonEmptyCollapsedString" -->
+  <xs:complexType name="mysqlconfig">
+    <xs:all>
+      <xs:element name="hostname" type="xs:string"/>
+      <xs:element name="database" type="xs:string"/>
+      <xs:element name="username" type="xs:string"/>
+      <xs:element name="password" type="xs:string"/>
+      <xs:element name="port" type="port"/>
+    </xs:all>
+    <!-- END all="mysqlconfig" -->
+  </xs:complexType>
+  <!-- END complexType="mysqlconfig" -->
+  <xs:complexType name="poolSize">
+    <xs:complexContent>
+      <xs:extension base="common">
+        <xs:sequence>
+          <xs:element name="size">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0"/>
+                <xs:maxInclusive value="10"/>
+              </xs:restriction>
+              <!-- END restriction="xs:integer" -->
+            </xs:simpleType>
+            <!-- END simpleType="size" -->
+          </xs:element>
+          <!-- END element="size" -->
+        </xs:sequence>
+        <!-- END sequence="common" -->
+      </xs:extension>
+      <!-- END extension="common" -->
+    </xs:complexContent>
+    <!-- END complexContent="poolSize" -->
+  </xs:complexType>
+  <!-- END complexType="poolSize" -->
+  <xs:complexType name="networkConfig">
+    <xs:complexContent>
+      <xs:extension base="common">
+        <xs:sequence>
+          <xs:element name="maxchannels" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0"/>
+              </xs:restriction>
+              <!-- END restriction="xs:integer" -->
+            </xs:simpleType>
+            <!-- END simpleType="maxchannels" -->
+          </xs:element>
+          <!-- END element="maxchannels" -->
+          <xs:element name="session" minOccurs="0" maxOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:integer">
+                <xs:minInclusive value="0"/>
+              </xs:restriction>
+              <!-- END restriction="xs:integer" -->
+            </xs:simpleType>
+            <!-- END simpleType="session" -->
+          </xs:element>
+          <!-- END element="session" -->
+        </xs:sequence>
+        <!-- END sequence="networkConfig" -->
+      </xs:extension>
+      <!-- END extension="common" -->
+    </xs:complexContent>
+    <!-- END complexCOntent="networkConfig" -->
+  </xs:complexType>
+  <!-- END complexType="networkConfig" -->
+  <!-- IncludeDirective block -->
+</xs:schema>

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<configuration>
+        <!-- Inside the bots block contains all network specific information regarding the bots -->
+        <bots>
+                <!-- 
+                        Default setttings block. Just in case scenarios when a value is called and 
+                        not specified in network specific bot block 
+                -->
+                <default>
+                    <!-- comma seperated values -->
+                        <autojoin>#DevVectra</autojoin>
+                        <automodes>+pB</automodes>
+                        <ident>Vectra</ident>
+                        <ircd>unreal32</ircd>
+                        <maxbots>1</maxbots>    
+                        <maxchannels>30</maxchannels>
+                        <nick>PhantomScript</nick>
+                        <port>6667</port>
+                        <realname>PhantomScript</realname>
+                        <staffchannel>#DevVectra</staffchannel>
+                </default>
+                <bot network="SwiftIRC">
+                        <!-- comma seperated values -->
+                        <autojoin>#!*</autojoin>
+                        <ident>Intrepid</ident>
+                        <nick>Intrepid</nick>  
+                        <realname>Intrepid</realname>
+                        <staffchannel>#!*</staffchannel>      
+                        <maxbots>1</maxbots>    
+                </bot>
+        </bots>
+        <settings>
+                <!-- Network configuration -->
+                <networks>
+                        <!-- Each network should be enclosed in a <network> block and contain <server> blocks -->
+                        <network name="SwiftIRC">
+                                <server>72.37.227.150</server>
+                        </network>
+                </networks>
+                <interfaces>
+                    <!-- Interface block is for IP addresses -->
+                    <interface device="intrepid">2001:470:1f0e:ba7::300:1</interface>
+                </interfaces>
+        </settings>
+        <!-- 
+                Database settings               
+        -->
+        <database type="MySQL">
+                <dbname>JavaIRCframework</dbname>
+                <dbuser>Arconiaprime</dbuser>
+                <dbpass>test123abc</dbpass>
+                <dbhost>127.0.0.1</dbhost>
+                <dbport>3306</dbport>
+        </database>
+        <!-- 
+                Staff and rank settings
+        -->
+        <staff>
+                <!-- Each rank should be included in a <rank> block -->
+                <ranks>
+                    <rank level="10">Administrator</rank>
+                </ranks>
+                <!-- Each staff member must have their login name added here with a coresponding level -->
+                <member rank="10">Arconiaprime</member>
+        </staff>
+        <!-- 
+                Each module to load should be listed inside of a <module></module> block 
+                The module name must match exactly the actual class name as each module is loaded dynamically
+        -->
+        <modules>
+                <!-- Each module name needs to be added as a module block -->
+				<module>AutoJoin</module>
+                <module>NickServAuthModule</module>
+        </modules>
+</configuration>

@@ -1,0 +1,59 @@
+<project name="Vectra" default="createjar" basedir=".">
+        <description>Ant build file</description>
+        
+        <target name="initialise" description="init startup">  					
+			<ant dir="common" target="initialise" output="build.log" />	
+			<ant dir="config" target="initialise" output="build.log" />	
+			<ant dir="database" target="initialise" output="build.log" />	
+            <ant dir="tools" target="initialise" output="build.log" />			
+			<ant dir="connection-handler" target="initialise" output="build.log" />	
+			<ant dir="irc-handler" target="initialise" output="build.log" />			
+			<ant dir="core" target="initialise" output="build.log" />			
+			<ant dir="command-handler" target="initialise" output="build.log" />			
+        </target>
+        
+        <target name="compile" description="Compile files">                
+			<ant dir="common" target="createjar" output="build.log" />	
+			<ant dir="config" target="createjar" output="build.log" />	
+			<ant dir="database" target="createjar" output="build.log" />
+            <ant dir="tools" target="createjar" output="build.log" />	
+			<ant dir="connection-handler" target="createjar" output="build.log" />		
+			<ant dir="irc-handler" target="createjar" output="build.log" />
+			<ant dir="core" target="createjar" output="build.log" />
+			<ant dir="command-handler" target="compile" output="build.log" />
+        </target>
+        
+        <target name="createjar" description="Compile files" depends="compile">	
+			<ant dir="command-handler" target="createjar" output="build.log" />
+        </target>
+        
+        <target name="clean" description="clean java directories">
+			<!-- Clean the directories of all build related files -->
+			<ant dir="command-handler" target="clean" />
+			<ant dir="common" target="clean" />
+			<ant dir="config" target="clean" />
+			<ant dir="core" target="clean" />
+			<ant dir="connection-handler" target="clean" />
+			<ant dir="database" target="clean" />
+			<ant dir="irc-handler" target="clean" />
+			<ant dir="tools" target="clean" />
+			<!-- Delete the build.log -->
+			<delete file="command-handler/build.log" />
+			<delete file="common/build.log" />
+			<delete file="config/build.log" />
+			<delete file="tools/build.log" />
+			<delete file="core/build.log" />
+			<delete file="connection-handler/build.log" />
+			<delete file="database/build.log" />
+			<delete file="irc-handler/build.log" />
+			<!-- Delete the jars -->
+			<delete file="command-handler.jar" />
+			<delete file="common.jar" />
+			<delete file="config.jar" />
+			<delete file="tools.jar" />
+			<delete file="core.jar" />
+			<delete file="connection-handler.jar" />
+			<delete file="database.jar" />
+			<delete file="irc-handler.jar" />
+        </target>
+</project>

@@ -1,0 +1,238 @@
+<!--
+	Root Config file
+	The configuration system requires that the base file
+	be a config.xml
+	
+	From config.xml any secondary files can be included
+-->
+<config>
+	<definitions>
+		<!-- Set the base directory -->
+		<define variable="baseDir" reference=".." />
+		<!-- Set the config directory -->
+		<define variable="configDir" reference="{baseDir}\conf" />
+		<!-- Set the log directory -->
+		<define variable="logDir" reference="{baseDir}\logs" />
+	</definitions>
+	<modules>
+		<!-- 
+			The reload level is used in the command based reload. Each
+			BotAdmin must be logged in with an access level of at least 
+			default 10 to issue a hot reload of the Module Core
+		    
+			A value of 0 (zero) will disable dynamic reloading
+		-->
+		<reloadlevel>10</reloadlevel>
+		<!-- 
+			To load a module, enclose the module name in a <module> 
+			property block. This list of Modules will be parsed on a 
+			call to reload and will be loaded accordingly.
+		-->
+		<module>ChannelStatusModule</module>
+		<module>NickServAuthModule</module>
+		<module>NickServAutoJoin</module>
+		<module>OperOnConnect</module>
+		<module>StatusModule</module>
+	</modules>
+	<!--
+		The MySQL config for the entire bot system. This will create
+		a mysql connection pool for use by any bot. If the pool does 
+		not have a valid hostname it will be considered that the pool
+		is not in use and will not be initialized by the Startup 
+		threads.
+	-->
+    <mysql>
+		<mysqlconfig>
+			<!--
+				The hostname we attempt to create the mysql connections to.
+				If this value is null or length zero, or after set number of
+				retries it fails to connect we will assume that it is not 
+				valid, and not start initialize the MySQL pool.
+			-->
+			<hostname>localhost</hostname>
+			<username>Vectra</username>		
+			<database>Vectra</database>		
+			<password>d6d4266573ce4c5be550ac9df5d55dd1</password>		
+			<port>3306</port>
+		</mysqlconfig>
+		<pool>
+			<size>4</size>
+		</pool>
+	</mysql>
+	<!-- 
+	-->
+    <networks>
+		<network>
+			<name>synIRC</name>
+			<config>
+				<session>2</session>
+			</config>
+			<servers>
+				<server ipv6="true">atlantis.synirc.net</server>
+				<server>destiny.synirc.net</server>
+			</servers>
+		</network>
+		<network>
+			<name>SwiftIRC</name>
+			<config>
+				<session>3</session>
+			</config>
+			<servers>
+				<server ipv6="true" primary="true">intrepid.il.us.swiftirc.net</server>
+				<server ipv6="true">tripwire.uk.eu.swiftirc.net</server>
+				<server ipv6="true">lunas.fr.eu.swiftirc.net</server>
+			</servers>
+		</network>
+	</networks>
+	<!-- Pool block controls the Platform  -->
+	<pool>
+		<config>
+			<!-- 
+				Maximum allowed number of bots on the platform
+				Remember that the platform requires about 17MB of RAM and each bot requires 
+				around 800kb of RAM per bot.
+				17408 + (800n) = TOTAL RAM USAGE in KB/ram
+			-->
+			<maxbots>5</maxbots>
+		</config>
+	    <!-- 
+		   Interfaces block house all bindable target groups and their IP Addresses
+		-->
+		<interfaces>
+		   <group id="default">
+		     <interface>2001::4</interface>
+		   </group>
+		</interfaces>
+	</pool>
+    <!-- 
+		A Bot block is used to configure one
+		individual bot for use on any network.
+		The system can support many individual 
+		bots or a few individual botnets.
+	-->
+	<bots>
+		<!--
+			By default the administrator connection
+			will be the first bot created. The
+			administrator block can be used to over
+			ride the default and create a custom 
+			connection. This could potentially be used
+			to seperate the main bots to another network
+			for logging purposes.
+
+			An administrator block is identical to a <bot> block
+			except for it the logchannel which is a required option.
+			the staff channel and log channel are different options 
+			in that staff channel is a channel the bot will idle in
+			while as the logchannel will output all data messages
+			about bot activity.
+
+			Configurable options:
+		
+			Allowmodules   - A string of comma separated modules that this bot may use. Be warned,
+							 this setting will force all bots of this class to ONLY use allowed
+							 modules specificied by this setting, therefore it is an all or nothing 
+							 setting. However the any admin level module will ONLY be accessible
+							 to the Administrator connection.								 
+			Altnick        - This is the pattern that will be sent to the new
+							 nickname generator when the primary nickname cannot 
+							 be used on IRC.
+			Autojoin       - One time, on-logon triggered event that will automatically join 
+							 to a comma separated valued list of channels, only triggered once
+							 (eg: #chan1,#chan2,#etc3). 
+			Automodes      - These modes are the user modes assigned to the bot when a successfull
+							 read/write connection has been established to the server. This
+							 must be a valid IRC (usually server specific) mode string.
+			Bindip         - Network interface with which to connect to the server with. If
+							 this is not specified the OS will be left to handle it on its
+							 own. This option only allows for IPv4 or IPv4 IP's or hostnames.
+							 If you specify a hostname, Java will use whatever the default DNS
+							 settings are to attempt to resolve the hostname. This can also
+							 be a named interface "block" specified in the interface config.
+							 Settings in the interface block will be handled on their own, and 
+							 the Configuration system will handle each interface as per the 
+							 configuration.			                 
+			Clones         - Determines how many numeric copies should be spawned of this configuration.
+							 Please remember that most networks implement session controls, etc to stop
+							 exactly behavior like this... Note: This will not be read during an 
+							 Administrator block			
+			Custom         - This is used to pass a custom configuration directive to the Bot (group).
+							 Because custom modules cannot be designed around the config file. The 
+							 custom declaration can be used to pass run time level information to the 
+							 config engine. a Module can then access this setting through the actual
+							 configuration. Be aware that this directive requires a key<->value
+							 representation and will be saved in a Map based on the specific key.
+			Denymodules	   - This setting is independant of the Allowmodules because it is 
+							 checked first. Anything disallowed in here will not be allowed 
+							 during the processing of the ModuleHandler checking during the 
+							 Module process. Great for controlling which bots have access to 
+							 certain modules. 		
+			Ident          - The identity, also known as the ident. Used by the bot 
+			Logchannel     - This channel acts much like a StaffChannel, the difference is
+							 it gives a separation between "Staff" and "Logging." The 
+							 Administrator connection will output ALL logging information 
+							 to this channel. If not set, it will default to the 
+							 'StaffChannel'. This setting maintains the same locked channel
+							 features that 'StaffChannel' has, therefore using both requires
+							 at least two channels wirth of space on the administrator 
+							 connection. This will not affect non-Administrators.
+			Maxchannels    - Override the maximum channels. This value will be used only when
+							 it is smaller than the MAXCHANNELS value sent tin the RAW 005 
+							 message by the IRCd. This number should take into account the 
+							 StaffChannel and Logchannel especially for Administrator 
+							 connections which require atleast 1 saved channel specifically.
+			Network        - This is set by requirement. This references the network 
+							 settings to retrieve an initial server to connect to. Servers
+							 are configured by network, not by bot. This allows the 
+							 Reconnect settings to have a round robin of preset configurable 
+							 servers to connect to. 
+			Nickname       - Set the primary nickname to connect to IRC with.
+			Password       - Password to identify to services with. This si different
+							 from a required password to connect to the IRC server with.
+							 Only to identify to such services as NickServ. 
+			Port           - Server port to be used as the remote port to connect to.
+			Realname       - Identifiable realname. Sets the real name for the bot
+							 adds a distinctive name. Can be changed at anytime 
+							 throughout the IRC session. 
+			Server         - This property allows for an override of the round-robin server
+							 server configuration. This bot will expressly ONLY connect to
+							 this server and not any other server inside the round-robin 
+							 provided by the network block.							 
+			Staffchannel   - A StaffChannel is better known as a mass idle channel. Whether 
+							 it is one bot or an entire botnet, all bots will stay in this 
+							 channel. Events like Part and Kick do not affect it because the
+							 bots will attempt to continually rejoin this channel. 
+		-->
+		<administrator>	        	
+			<altnickname>Vectra</altnickname>		         			                 
+			<autojoin>#vectra</autojoin>
+			<automodes>+piBT</automodes>
+			<custom key="oper_pass">Vectra</custom>
+			<custom key="oper_name">685be750efa80c5830cec00aa7a32597</custom>
+			<ident>Vectra</ident>		
+			<maxchannels>30</maxchannels>
+			<network>SwiftIRC</network>
+			<nickname>Vectra</nickname>
+			<password>abcdefghijklmnopqrstuvwxyz</password>
+			<realname>Eats Your Sharks</realname>
+			<staffchannel>#vectra</staffchannel>
+			<!-- We define logchannel last as it is the only "Administrator specific"
+			configuration directive -->
+			<logchannel>#monitor</logchannel>
+		</administrator>
+		<bot id="1">
+			<altnickname>Vectra</altnickname>
+			<autojoin>#vectra</autojoin>
+			<automodes>+piBT</automodes>
+			<clones>30</clones>
+			<ident>Vectra</ident>
+			<maxchannels>30</maxchannels>
+			<network>synIRC</network>
+			<nickname>Vectra</nickname>
+			<password>abcdefghijklmnopqrstuvwxyz</password>
+			<realname>Vectra</realname>
+			<staffchannel>#vectra</staffchannel>		
+		</bot>
+		</bot>
+	</bots>
+</config>

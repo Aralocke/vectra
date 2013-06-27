@@ -1,0 +1,23 @@
+<config>
+	<!--
+		The MySQL config for the entire bot system. This will create
+		a mysql connection pool for use by any bot. If the pool does 
+		not have a valid hostname it will be considered that the pool
+		is not in use and will not be initialized by the Startup 
+		threads.
+	-->
+    <mysql>
+		<!--
+			The hostname we attempt to create the mysql connections to.
+			If this value is null or length zero, or after set number of
+			retries it fails to connect we will assume that it is not 
+			valid, and not start initialize the MySQL pool.
+		-->
+		<hostname>127.0.0.1</hostname>
+		<username>vectra</username>		
+		<database>vectra</database>		
+		<password>d6d4266573ce4c5be550ac9df5d55dd1</password>		
+		<port>3306</port>		
+		<size>5</size>
+	</mysql>
+</config>

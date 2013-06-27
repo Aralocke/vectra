@@ -1,0 +1,18 @@
+package net.phantomnet.events;
+
+import org.vectra.irc.IRCChannel;
+import org.vectra.irc.IRCEvent;
+
+public class IRCPartEvent 
+	extends IRCChannelEvent {
+	
+    /**
+	 * Unique ID
+	 */
+	private static final long serialVersionUID = -6227965675644520341L;
+
+	public IRCPartEvent(final IRCEvent event, final IRCChannel channel)
+		throws IllegalArgumentException {
+		super(event, channel) ;
+	}
+}
