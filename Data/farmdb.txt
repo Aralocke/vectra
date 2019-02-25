@@ -1,0 +1,62 @@
+Potato|1|35 mins|8|9 per|N/A|2 Buckets of Compost
+Onions|5|35 mins|9.5|10.5 per|N/A|1 Sack of Potatoes
+Cabbage|7|35 mins|10|11.5 per|N/A|1 Sack of Onions
+Tomatoes|12|35 mins|12.5|14 per|N/A|2 Sacks of Cabbage
+Sweetcorn|20|55 mins|17|19 per|N/A|10 Jute Fibres
+Strawberries|31|55 mins|26|29 per|N/A|1 Basket of Apples
+Watermelon|47|75 mins|48.5|54.5 per|N/A|10 Curry Leaves
+Marigold|2|17.5 mins|8.5|47|N/A|N/A
+Rosemary|11|17.5 mins|12|66.5|N/A|N/A
+Nasturtium|24|17.5 mins|19.5|111|N/A|N/A
+Woad|25|17.5 mins|20.5|115.5|N/A|N/A
+Limpwurt Plant|26|17.5 mins|21.5|120|N/A|N/A
+White Lily|52|120 mins|55|230|N/A|N/A
+Redberry Bush|10|90 mins|11.5|4.5 per|64|4 Sacks of Cabbage
+Cadavaberry Bush|22|110 mins|18|7 per|102.5|3 Baskets of Tomatoes
+Dwellberry Bush|36|130 mins|31.5|12 per|177.5|3 Baskets of Strawberries
+Jangerberry Bush|48|150 mins|50.5|19 per|284.5|6 Watermelons
+Whiteberry Bush|59|150 mins|78|29 per|437.5|8 Mushrooms
+Poison Ivy Bush|70|150 mins|120|45|674|N/A
+Oak Tree|15|140 mins|14|N/A|467.3|1 Basket of Tomatoes
+Willow Tree|30|220 mins|25|N/A|1,456.3|1 Basket of Apples
+Maple Tree|45|300 mins|45|N/A|3,403.4|1 Basket of Oranges
+Yew Tree|60|380 mins|81|N/A|7,069.9|10 Cactus Spines
+Magic Tree|75|460 mins|145.5|N/A|13,768.3|25 Coconuts
+Apple Tree|27|880 mins|22|8.5 per|1,199.5|9 Raw Sweetcorn
+Banana Tree|33|880 mins|28|10.5 per|1,750.5|4 Baskets of Apples
+Orange Tree|39|880 mins|35.5|13.5 per|2,470.2|3 Baskets of Strawberries
+Curry Tree|42|880 mins|40|15 per|2,906.9|5 Baskets of Bananas
+Pineapple Tree|51|880 mins|57|21.5 per|4,605.7|10 Watermelons
+Papaya Tree|57|880 mins|72|27 per|6,146.4|10 Pineapples
+Palm Tree|68|880 mins|110.5|42 per|10,150.1|15 Papayas
+Barley|3|35 mins|8.5|9.5 per|N/A|3 Buckets of Compost
+Hammerstone Hops|4|35 mins|9|10 per|N/A|1 Bunch of Marigolds
+Asgarnian Hops|8|45 mins|10.5|12 per|N/A|1 Sack of Onions
+Jute Plant|13|45 mins|13|14.5 per|N/A|6 Handfuls of Barley Malt
+Yanillian Hops|16|55 mins|14.5|16 per|N/A|1 Basket of Tomatoes
+Krandorian Hops|21|65 mins|17.5|19.5 per|N/A|3 Sacks of Cabbage
+Wildblood Hops|28|75 mins|23|26 per|N/A|1 Nasturtium
+Guam Leaf|9|70+ mins|11|12.5 per|N/A|N/A
+Marrentill|14|70+ mins|13.5|15 per|N/A|N/A
+Tarromin|19|70+ mins|16|18 per|N/A|N/A
+Harralander|26|70+ mins|21.5|24 per|N/A|N/A
+Goutweed|29|70+ mins|105|45|N/A|N/A
+Ranarr Seed|32|70+ mins|27|30.5 per|N/A|N/A
+Spirit Weed|36|70+ mins|32|36 per|N/A|N/A
+Toadflax|38|70+ mins|34|38.5 per|N/A|N/A
+Irit Leaf|44|70+ mins|43|48.5 per|N/A|N/A
+Wergali|46|70+ mins|52.8|52.8 per|N/A|N/A
+Avantoe|50|70+ mins|54.5|61.5 per|N/A|N/A
+Kwuarm|56|70+ mins|69|78 per|N/A|N/A|
+Snapdragon|62|70+ mins|87.5|98.5 per|N/A|N/A
+Cadantine|67|70+ mins|106.5|120 per|N/A|N/A
+Lantadyme|73|70+ mins|134.5|151.5|N/A|N/A
+Dwarf Weed|79|70+ mins|170.5|192|N/A|N/A
+Torstol|85|70+ mins|199.5|224.5|N/A|N/A
+Evil Turnip|42|5 mins|41|46|N/A|N/A
+Bittercap Mushroom|53|220 mins|61.5|57.7 per|N/A|N/A
+Cactus|55|520 mins|66.5|25 per|374|N/A
+Nightshade|63|280 mins|91|512|N/A|N/A
+Calquat Tree|72|1,200 mins|129.5|48.5 per|12,096|8 Poison ivy berries
+Spirit Tree|83|3,680 mins|199.5|N/A|19,301.8|1 Ground Suqah tooth, 5 Monkey nuts, 1 Monkey bar
+Jade Vine|53|2,040 mins|50|N/A|1,500|10 Wildblood Hops

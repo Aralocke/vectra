@@ -1,0 +1,51 @@
+Man|8|1|1
+Woman|8|1|1
+Farmer|14.5|10|1
+Female H.A.M. member|18.5|15|1
+Male H.A.M. member|22.5|20|1
+H.A.M Guard|22.5|20|1
+Warrior woman|26|25|1
+Al-Kharid Warrior|26|25|1
+Rogue|35.5|32|1
+Cave goblin|40|36|1
+Master Farmer|43|38|1
+Guard|46.5|40|1
+Fremennik Citizen|65|45|1
+Bearded Pollnivnian Bandit|65|45|1
+Desert Bandit|79.5|53|1
+Pollnivian Bandit|84|55|1
+Knight of Ardougne|84.3|55|1
+Yanille Watchman|137.5|65|1
+Menaphite Thug|137.5|65|1
+Paladin|151.75|70|1
+Gnome|198.5|75|1
+Hero|275|80|1
+Elf|353|85|1
+Dwarf Trader|556.5|90|1
+Vegetable stall|10|2|1
+Baker's stall|16|5|1
+Crafting stall|16|5|1
+Monkey Food stall|16|5|1
+Monkey general store|16|5|1
+Tea stall|16|5|1
+Silk stall|24|20|1
+Wine stall|27|22|1
+Seed stall|10|27|1
+Fur stall|36|35|1
+Fish stall|42|42|1
+Crossbow stall|52|49|1
+Silver stall|54|50|1
+Customs evidence files|75|63|1
+Spice stall|81|65|1
+Magic stall|100|65|1
+Scimitar stall|100|65|1
+Gem stall|16|75|1
+10-coin chest|7|13|1
+Ogre coffin|27|20|1
+Nature-rune chest|25|28|1
+50-coin chest|125|43|1
+Arrowtip chest|150|47|1
+Dorgesh-Kaan (Average chests)|200|52|1
+Blood rune chest|250|59|1
+Paladin chests (2)|500|72|1
+Dorgesh-Kaan (Rich chests)|650|78|1

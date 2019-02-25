@@ -1,0 +1,21 @@
+hashcache cache hcache hashcache -1
+exe exe -1
+blacklist addblack addblacklist delblack deleteblacklist -1
+reason reason -1
+ignore ignore -1
+login login 60
+whoami whoami -1
+logout loggout logout -1
+status status -1
+set setting settings set -1
+set public global -1
+set autovoice -1
+set autocmb autocombat -1
+set autostats autooverall -1
+set autoclan -1
+set voicelock -1
+set gemsg grandexchangeamsg grandexchangealert grandexchangeglobal gealert geglobal -1
+rsstats stats rsstats -1
+mycolor setcolor mycol setcol mycolor -1
+defname setname defrsn setrsn defname -1
+privacy priv privacy private -1

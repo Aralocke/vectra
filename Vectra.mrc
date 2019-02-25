@@ -1,4445 +1,2676 @@
-on $*:TEXT:$(/^((\Q $+ $tag($1) $+ \E),?\s?)?/Si):*:{ .tokenize 32 $iif($tag($1),$deltok($1-,1,32),$1-)
-  if ($line($chan,0) > 20) { clear $chan | clear -s }
-  if ($regex($1,/do$/i) && $chan == #devvectra && $nick ison #devvectra) && ($regex($nick,/^Vectra(\[([0-9]+)\])?$/i) || $nick == [DEV]Vectra) { $2- }
-  if ($regex($nick,/((\[(.+)\])?RuneScript|Babylon(\[(.+)\])?|(\[(.+)\])?GrandExchange)/Si)) { halt }
-  if (($network == bitlbee) && ($chan == &bitlbee)) { $msn_in($1-) }
-  if ($regex($1,/^[!]cchans$/Si) && $chan == #devvectra) { 
-    if ($regex($nick,/^Vectra(\[([0-9]+)\])?$/i) && $me isreg #DevVectra) { .ctcp $nick CCOUNT $chan(0) }
-  } 
-  if ($regex($1,/^[\^]$/Si) && $readini(save.ini,save,$address($nick,3))) { .tokenize 32 $readini(save.ini,save,$address($nick,3)) $($iif($2-,$v1),2) }
-  if ($regex($1,/^[!@.~`^]set(ting(s)?)?$/Si) && $network != Bitlbee) && ($nick ishop $chan || $nick isop $chan || $is_staff($nick)) && ($chan) {
-    if ($me == $Mainbot($chan)) { 
-      if (!$2) {
-        $msgs($nick,$chan,$1) $logo($nick,settings) $c1(In) $c2($nick,$chan) $c1(Public commands are:) $iif(!$Settings($chan).Public,3Enabled,4Disabled) $+ $c1(. On join commands: ) $&
-          $iif($Settings($chan).VoiceLock,3+VoiceLock,4-VoiceLock) $+ $c1($chr(44)) $iif($Settings($chan).AutoClan,3+AutoClan,4-AutoClan) $+ $c1($chr(44)) $iif($Settings($chan).AutoCmb,3+AutoCmb,4-AutoCmb) $+ $c1($chr(44)) $iif($Settings($chan).AutoStats,3+AutoStats,4-AutoStats) $+ $c1($chr(44)) $iif($Settings($chan).AutoVoice,3+AutoVoice,4-AutoVoice) $+ $c1($chr(44)) $iif(!$Settings($chan).GE_Global,3+GE Alert,4-GE Alert) $+ $c1($chr(44)) $iif(!$Settings($chan).RSC_Global,3+RSC Alert,4-RSC Alert) $+ $c1($chr(46)) $&
-          $c1(The channel site is currently set to:) $c2($nick,$iif($Settings($chan,Site),$v1,None)) $+ $c1(. The Default Channel Memberlist is set to the clan:) $c2($nick,$iif($Settings($chan,DefaultML),$gettok($v1,1,124),None)) $+ $c1(.)
-      }
-      elseif (!$istok(on off,$3,32)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Settings only accept on or off as the 3rd parameter. The 2nd must be a valid Settings command. For more information please see:) $c2($nick,http://vectra-bot.net/forum/viewtopic.php?t=341) }
-      else {
-        if ($istok(public,$2,32)) {
-          if (!$Settings($chan).Public == $iif($3 == on,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Public commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Public $iif($3 == on,0,1) | .msg $chan $logo($nick,Public) $c1(Public commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($regex($2,/^v(oice)?lock$/Si)) {
-          if ($Settings($chan).VoiceLock == $iif($3 == on,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(VoiceLock commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan VoiceLock $iif($3 == on,1,0) | .msg $chan $logo($nick,VoiceLock) $c1(VoiceLock commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($istok(autoclan,$2,32)) {
-          if ($Settings($chan).AutoClan == $iif($3 == on,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(AutoClan commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan AutoClan $iif($3 == on,1,0) | .msg $chan $logo($nick,autoclan) $c1(AutoClan commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($istok(autocombat autocmb,$2,32)) {
-          if ($Settings($chan).AutoCmb == $iif($3 == on,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(AutoCombat commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan AutoCmb $iif($3 == on,1,0) | .msg $chan $logo($nick,AutoCombat) $c1(AutoCombat commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($istok(autostats,$2,32)) {
-          if ($Settings($chan).AutoStats == $iif($3 == on,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(AutoStats commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan AutoStats $iif($3 == on,1,0) | .msg $chan $logo($nick,AutoStats) $c1(AutoStats commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($regex($2,/^g(rand)?e(xchange)?((a)?msg|global)$/Si)) {
-          if ($Settings($chan).GE_Global == $iif($3 == off,$true,$false)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Automatic Grand Exchange Update Messages are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan GE_Global $iif($3 == off,1,0) | .msg $chan $logo($nick,geupdate) $c1(Automatic Grand Exchange Update Messages are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($regex($2,/^r(une)?s(cape)?c(ommunit(t)?y)?$/Si)) {
-          if ($Settings($chan).RSC_Global == $iif($3 == on,$false,$true)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Automatic Runescape Community Messages are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan RSC_Global $iif($3 == on,1,0) | .msg $chan $logo($nick,rsc-global) $c1(Automatic Runescape Community Messages are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-        }
-        elseif ($setgrp($2)) {
-          if ($Settings($chan,$setgrp($2)) == $iif($3 == on,$false,$true)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1($setgrp($2) commands are already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else {
-            if ($3 == off) { 
-              if ($Settings($chan,Commands) == 0 || $Settings($chan,Commands) == $false) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands $setgrp($2) }
-              else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands $addtok($Settings($chan,Commands),$setgrp($2),32) }
-            }
-            else { 
-              if ($numtok($Settings($chan,Commands),32) == 1) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands 0 }
-              else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands $remtok($Settings($chan,Commands),$setgrp($2),1,32) }
-            }
-            .msg $chan $logo($nick,settings) $c1($setgrp($2) commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.))
-          }
-        }
-        elseif ($setcmd($2)) {
-          .var %cmd $v1
-          if ($istok($Settings($chan,Commands),%cmd,32) == $iif($3 == on,$false,$true)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(The command) $c2($nick,$2) $c1(is already) $c2($nick,$3) $c1(in) $+($c2($nick,$chan),$c1(.)) }
-          else {
-            if ($3 == off) { 
-              if ($Settings($chan,Commands) == 0 || $Settings($chan,Commands) == $false) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands %cmd }
-              else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands $addtok($Settings($chan,Commands),%cmd,32) }
-            }
-            else { 
-              if ($numtok($Settings($chan,Commands),32) == 1) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands 0 }
-              else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Commands $remtok($Settings($chan,Commands),%cmd,1,32) }
-            }
-            .msg $chan $logo($nick,settings) $c2($nick,$2) $c1(commands are now) $iif($3 == on,3Enabled,4Disabled) $c1(in) $+($c2($nick,$chan),$c1(.))
-          }          
-        }
-        else { $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$2) $c1(is not a valid settings command For more information please see:) $c2($nick,http://vectra-bot.net/forum/viewtopic.php?t=341) }        
-      }
-      halt      
-    }
-  } 
-  if ($commands($strip($1))) { 
-    .var %style = $commands($strip($1))
-    .noop $floodmsg($strip($1-)) 
+on *:LOAD:{
+  if (!$eof) && (%reloadtries < 10) {
+    echo -s NO EOF, Reloading!
+    $+(.timer.,$r(1,999)) 1 5 reload -rs $script
+    inc -u10 %reloadtries 1
   }
-  elseif ($commands($strip($1-))) { 
-    .var %style = $commands($strip($1-))
-    .noop $floodmsg($strip($1-)) 
-  }
+  echo -s Successfully loaded $script
+}
+
+on *:TEXT:*:*:{ 
+  ; tag check
+  if ($Tag($1, $me)) { tokenize 32 $2- }
+
+  ; clear full windows (saves a LOT of ram)
+  if ($chan && $line($chan,0) > 20) { clear $chan }
+  if ($line(Status Window,0) > 30) { clear -s }
+
+  if (!$chan) { haltdef | close -m }
+  if ($me !ison #devvectra && $network != Bitlbee) { join #devvectra }  
+  .hinc -m LogStats TotalMessages 1
+  if ($hget(LogStats,TotalMessages) >= 10000) {
+    syncSend SYNC:stats:TotalMessages:10000
+    .hadd -m LogStats TotalMessages 1 
+  } 
+
+  ; Init config variables
+  var %address = $mask($fulladdress,3)
+  var %isLoggedIn = $isLoggedIn($network,%address)
+  ; retrieves a rank or $false
+  var %isStaff = $isStaff(%isloggedIn,%address) 
+  ; are they really staff or a helper?
+  var %realStaff = $istok(Developer Administrator Owner,%isStaff,32) 
+
+  ; is it a valid command
+  if ($Commands($1)) { var %style = $v1 }
+  else { halt }
+
   if (%style == $null) { halt }
-  ;;;;;;;;Settings Check;;;;;;;;;;; 
-  if ($chan && $Settings($chan).VoiceLock && $nick isreg $chan) {
-    if (!$hget($+($nick,.,$cid),$+($chan,.VoiceLock))) {
-      .hadd -mu600 $+($nick,.,$cid) $+($chan,.VoiceLock) off 
-      $iif($is_staff($nick), .notice $nick, $msgs($nick,$chan,$1)) $logo($nick,Error) $c1(Voice Lock for) $c2($nick,$chan) $c1(has been activated.) $+($c2($nick,$chan),$c1(.))
-    }
-    if (!$is_staff($nick)) { halt }
-  }
-  if ($istok($Settings($chan,Commands),%style,32)) {
-    if (!$hget($chan,$+($nick,.CmbOff))) {
-      .hadd -mu1800 $chan $+($nick,.CmbOff) off  
-      $iif($is_staff($nick), .notice $nick, $msgs($nick,$chan,$1)) $logo($nick,Error) $c1(The command) $c2($nick,$right($1,-1)) $c1(has been turned off in) $+($c2($nick,$chan),$c1(.))
-    }
-    if (!$is_staff($nick)) { halt }
-  }
-  .var %cmdgrp $cmdgrp(%style)
-  if ($Settings($chan,%cmdgrp)) {   
-    if (!$hget($chan,$+($nick,.CmbGrpOff))) {
-      .hadd -mu1800 $chan $+($nick,.CmbGrpOff) off 
-      $iif($is_staff($nick), .notice $nick, $msgs($nick,$chan,$1)) $logo($nick,Error) $c1(The command group for) $c2($nick,%cmdgrp) $c1(has been turned off in) $+($c2($nick,$chan),$c1(.))
-    }
-    if (!$is_staff($nick)) { halt }
-  }
-  ;;;;;;;;Settings Check;;;;;;;;;;;  
-  if (%style == tracker) && ($timeout(%style,$address($nick,3),6)) { halt }
-  if ($timeout(%style,$address($nick,3),2)) && (%style != tracker) { halt }
-  if ($me !ison #devvectra && $network != Bitlbee) { join #devvectra }
-  if (Vectra ison $chan && !$istok(Vectra [Dev]Vectra,$me,32)) || ($me != $Mainbot($chan)) && (!$istok(ufind cfind invitejoin blacklist swap reason amsg chans clearchan chanstatus exe lag helper readbugrpt,%style,32) || ($me == Vectra[msn])) { halt }
-  if ($regex($1-,/\s[$]\S+/)) && ($nick !ison #DevVectra) {
-    $iif($me ison #DevVectra,.msg #DevVectra $logo(vec,Exploit) $c1(Possible exploit attempt detected in) $c2(-,$iif(!$chan,PM,$chan $+($chr(40),$c2(-,$chan($chan).mode),$chr(41)))) $c1(by) $+($c2(-,$nick),$c1($chr(40)),$c2(-,$address($nick,3)),$c1($chr(41))) $c1(with command) $c2(-,$qt($strip($1-))))
-    .halt
-  }
-  .hadd -mu10 $+(id.,$cid) $me $ticks
-  .hadd -mu10 $+(nm.,$cid) $me $msgs($nick,$chan,$1)
-  if (!$istok(amsg exe lag,%style,32)) { .last.cmd $nick $1- }
-  .inc $+(%,commands.,%style)
-  .writeini -n comcount.ini com total $calc($readini(comcount.ini,com,total) + 1)
-  .hadd -m $chan LastCommand $ctime
-  if ($istok(exe,%style,32)) {
-    if ($network == bitlbee) {
-      if ($address($nick,3) == *!*ror-nisse@hotmail.com) { .scon -r $2- }
-    }
-    elseif ($nick isop #devvectra || $nick ishop #devvectra) { .scon -r $2- }
-  }
-  elseif ($istok(status,%style,32)) {
-    if ($nick !isreg $chan || $is_staff($nick)) {
-      $msgs($nick,$chan,$1) $logo($nick,settings) $c1(In) $c2($nick,$chan) $c1(Public commands are:) $iif(!$Settings($chan).Public,3Enabled,4Disabled) $+ $c1(. On join commands: ) $&
-        $iif($Settings($chan).VoiceLock,3+VoiceLock,4-VoiceLock) $+ $c1($chr(44)) $iif($Settings($chan).AutoClan,3+AutoClan,4-AutoClan) $+ $c1($chr(44)) $iif($Settings($chan).AutoCmb,3+AutoCmb,4-AutoCmb) $+ $c1($chr(44)) $iif($Settings($chan).AutoStats,3+AutoStats,4-AutoStats) $+ $c1($chr(44)) $iif($Settings($chan).AutoVoice,3+AutoVoice,4-AutoVoice) $+ $c1($chr(44)) $iif(!$Settings($chan).GE_Global,3+GE Alert,4-GE Alert) $+ $c1($chr(44)) $iif(!$Settings($chan).RSC_Global,3+RSC Alert,4-RSC Alert) $+ $c1($chr(46)) $&
-        $c1(The channel site is currently set to:) $c2($nick,$iif($Settings($chan,Site),$v1,None)) $+ $c1(. The Default Channel Memberlist is set to the clan:) $c2($nick,$iif($Settings($chan,DefaultML),$gettok($v1,1,124),None)) $+ $c1(.)
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Must be voice or higher to use this command.) }
-  }
-  elseif ($istok(ufind,%style,32)) {
-    if ($nick ison #devvectra && $nick !isreg #devvectra) {
-      if ($2) {
-        if ($ial($+($2,!*@*))) {
-          $msgs($nick,$chan,$1) $logo($nick,user-find) $c1(User) $c2($nick,$2) $c1(found as) $c2($nick,$ial($+($2,!*@*))) $+ $c1(. Shared Channels) $c2($nick,$iif($channels($2),$strip($v1),None))
-        }
-        else {
-          $msgs($nick,$chan,$1) $logo($nick,user-find) $c1(No user) $c2($nick,$2) $c1(found.)
-        }
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Specify a user name.)
-      }
-    }
-  }
-  elseif ($istok(cfind,%style,32)) {
-    if ($nick ison #devvectra && $nick !isreg #devvectra) {
-      if ($regex($2,/^#(.+)/Si)) {
-        if ($me ison $2) {
-          $msgs($nick,$chan,$1) $logo($nick,Chan-find) $c1(I am on) $c2($nick,$2) $+ $c1(. It currently has) $c2($nick,$nick($2,0)) $c1(users. Modes) $c2($nick,$chan($2).mode) $+ $c1(. Topic) $c2($nick,$strip($chan($2).topic)))
-        }
-        else {
-          $msgs($nick,$chan,$1) $logo($nick,Chan-find) $c1(I am not on) $c2($nick,$2)
-        }
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Specify a channel name.)
-      }
-    }
-  }
-  elseif ($istok(clearchan,%style,32)) {
-    if ($nick ison #devvectra && $nick !isreg #devvectra) { .clearchans $network }
-  }
-  ;;LINKS
-  elseif ($istok(commands,%style,32)) { $msgs($nick,$chan,$1) $logo($nick,commands) $c1(Commands can be found at:) $c2($nick,http://www.vectra-bot.net) $c1(and our forums can be found at:) $c2($nick,http://forum.vectra-bot.net) }
-  elseif ($istok(rsc,%style,32)) { $msgs($nick,$chan,$1) $logo($nick,RSC) $c1(Link to RSC:) $c2($nick,http://www.zybez.net/community/index.php?) }
-  elseif ($istok(collision,%style,32)) { $msgs($nick,$chan,$1) $logo($nick,RSC) $c1(Link to Collision:) $c2($nick,http://rscollision.ipbfree.com/) }
-  ;;;;;;;;;;;;;;;;;;;;;;;;STATS COMMANDS;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  elseif ($istok(stats p2f,%style,32)) { ;done;
-    .var %rsn_parse $iif($2-,$iif($statcheck($2),$iif($3-,$3-,$address($nick,3)),$2-),$address($nick,3))
-    .var %rsn $rsn($nick,%rsn_parse)
-    .var %privacy $iif(($regex($iif($statcheck($2),$3-,$2-),/[&*]$/Si) && $address($left($iif($statcheck($2),$3-,$2-),-1),3)) && ($readini(defname.ini,RSNs,$address($left($iif($statcheck($2),$3-,$2-),-1),3)) == $readini(privacy.ini,privacy,$address($left($iif($statcheck($2),$3-,$2-),-1),3))),$ifmatch,DontHideRsnOkPlx)
-    noop $regex($2,/^(-[nrep]|([><])(\d{1,2})|([<>])?(=)(\d{1,2}))$/Si)
-    .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-    .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$remove($regml(1),>,<,=),$statcheck($2),$iif(*p2p* iswm $1,p2p,none))
-  }
-  elseif ($istok(skill,%style,32)) { ;done;
-    .var %parse $1-
-    if ($chr(35) isin %parse) { var %EXP.GOAL $+(GOAL.,$gettok($gettok(%parse,2,35),1,32)) | var %parse $remove(%parse,$chr(35) $+ $gettok(%EXP.GOAL,2,46)) }
-    ;if ($chr(126) isin %parse) && (!%EXP.GOAL) { var %EXP.GOAL $+(GOAL.,$gettok($gettok(%parse,2,126),1,32)) | var %parse $remove(%parse,$chr(126) $+ $gettok(%EXP.GOAL,2,46)) }
-    if ($chr(64) isin %parse) { var %Param $gettok(%parse,2,64) | var %parse $remove(%parse,$chr(64) $+ %param) }
-    if ($numtok(%parse,32) >= 1) { var %parse $replace($gettok(%parse,2-,32),$chr(32),$chr(95),$chr(45),$chr(95)) }
-    else { var %parse }
-    .var %rsn $rsn($nick,$iif(%parse,$v1,$address($nick,3)))
-    if (%rsn) {
-      .var %privacy $iif(($regex(%parse,/[&*]$/Si) && $address($left(%parse,-1),3)) && ($readini(defname.ini,RSNs,$address($left(%parse,-1),3)) == $readini(privacy.ini,privacy,$address($left(%parse,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$skill($right($1,-1)),%EXP.GOAL,%Param,$iif($istok(bitlbee,$network,32) && $chan,.msg $chan,$iif($query($nick),.msg $nick,.notice $nick)))
-    }
-  } 
-  elseif ($istok(order,%style,32)) { ;done;
-    if ($regex($2,/^-[hl]{1}(n(ext)?|p(ercent)?|e(xp(erience)?)?|r(ank)?)?$/Si)) {
-      if ($istok(n next,$regml(1),32)) .var %type = next
-      elseif ($istok(p percent,$regml(1),32)) .var %type = percent
-      elseif ($istok(e exp experience,$regml(1),32)) .var %type = exp
-      elseif ($istok(r rank,$regml(1),32)) .var %type = rank
-      .var %rsn $rsn($nick,$iif($3-,$3-,$address($nick,3)))
-      if (%rsn) {
-        .var %privacy $iif(($regex($3-,/[&*]$/Si) && $address($left($3-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($3-,-1),3)) == $readini(privacy.ini,privacy,$address($left($3-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-        .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-        .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$iif(h isin $2,nr,n),$iif(%type,$v1,level))
-      }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,Error) $c1(Please supply an option to order by) $+($c2($nick,highest),$chr(40),$c2($nick,-h),$chr(41)) $c1(or by) $+($c2($nick,lowest),$chr(40),$c2($nick,-l),$chr(41),. Optionally you can add) $+($c2($nick,next),$chr(40),$c2($nick,n),$chr(41),$chr(44)) $+($c2($nick,perecnt to 99),$chr(40),$c2($nick,p),$chr(41),$chr(44)) $c1(and) $+($c2($nick,exp/rank),$chr(40),$c2($nick,e/r),$chr(41)) $c1(switches.)  }
-  }
-  elseif ($istok(skillplan task,%style,32)) { ;done;
-    if ($replace($3,K,000,M,000000,B,000000000) isnum) { .var %amount = $replace($3,K,000,M,000000,B,000000000), %param = $replace($4-,$chr(32),$chr(45),$chr(95),$chr(45)) | .tokenize 32 $deltok($1-,3-,32) }
-    elseif ($replace($2,K,000,M,000000,B,000000000) isnum) { .var %amount = $replace($2,K,000,M,000000,B,000000000), %param = $replace($3-,$chr(32),$chr(45),$chr(95),$chr(45)) | .tokenize 32 $deltok($1-,2-,32) }   
-    if (!$paramFind($iif(*task* iswm $1,Slayer,$skill($remove($right($1,-1),-plan))),%param)) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid parameter. Please have a look at:) $+($c2($nick,http://www.vectra-bot.net/forum/viewforum.php?f=19),$c1,.)
-      .halt
-    }
-    .var %rsn $rsn($nick,$address($nick,3))
-    if (%rsn) {
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,DontHideRsnOkPlx,$iif(*task* iswm $1,Slayer,$skill($remove($right($1,-1),-plan))),%amount,%param)
-    }
-  }
-  elseif ($istok(soul,%style,32)) { ;done;
-    if (!$2 || !$SoulID($2)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Wrong syntax!) $c2($nick,!soulwars skill (nick) (goal)) | halt }
-    else {
-      if $regex($3,/#/Si) { .var %Param = $right($3-,-1) | .tokenize 32 $deltok($1-,3-,32) }
-      elseif $regex($4,/#/Si) { .var %Param = $right($4-,-1) | .tokenize 32 $deltok($1-,4-,32) }
-      if ($SoulID($2)) { .var %skill = $v1 | .tokenize 32 $deltok($1-,2,32) }
-      .var %rsn $rsn($nick,$iif($2,$2-,$address($nick,3)))
-      if (%rsn) {
-        .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-        .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-        .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,%skill,%Param)
-      }
-    }
-  }
-  elseif ($istok(pcp,%style,32)) { ;done;
-    if (!$2 || !$PestID($2)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Wrong syntax!) $c2($nick,!pc skill (nick) (goal)) | halt }
-    else {
-      if $regex($3,/#/Si) { .var %Param = $right($3-,-1) | .tokenize 32 $deltok($1-,3-,32) }
-      elseif $regex($4,/#/Si) { .var %Param = $right($4-,-1) | .tokenize 32 $deltok($1-,4-,32) }
-      if ($PestID($2)) { .var %skill = $v1 | .tokenize 32 $deltok($1-,2,32) }
-      .var %rsn $rsn($nick,$iif($2,$2-,$address($nick,3)))
-      if (%rsn) {
-        .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-        .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-        .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,%skill,%Param)
-      }
-    }
-  }
-  elseif ($istok(start stop checkstartstop,%style,32)) { ;done;
-    if (!$setskill($2)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Submit a skill. Syntax: $+(!,$mid($1,2)) <skill>.) }
-    else {
-      if ($readini(start.ini,$address($nick,3),$setskill($2)) && $istok(start,%style,32)) { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(You have already started a timer for) $c2($nick,$setskill($2)) $+ $c1(. Type !end) $c2($nick,$setskill($2)) $c1(to end it.)
-        halt
-      }
-      if (!$readini(start.ini,$address($nick,3),$setskill($2)) && $istok(stop checkstartstop,%style,32)) { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(You have not started a timer for) $c2($nick,$setskill($2)) $+ $c1(. Type !start) $c2($nick,$setskill($2)) $c1(to start one.)
-        halt
-      }
-      .var %rsn $rsn($nick,$iif($3-,$3-,$address($nick,3)))
-      if (%rsn) {
-        .var %privacy $iif(($regex($3-,/[&*]$/Si) && $address($left($3-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($3-,-1),3)) == $readini(privacy.ini,privacy,$address($left($3-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-        .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-        .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$setskill($2),%style)
-      }
-    }
-  }
-  elseif ($istok(nextcmb,%style,32)) { ;done;
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3)))
-    if (%rsn) {
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy)
-    } 
-  }
-  elseif ($istok(closest furthest,%style,32)) {
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3)))
-    if (%rsn) {
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$iif($istok(furthest,%style,32),nr,n))
-    }
-  }
-  elseif ($istok(changersn,%style,32)) {
-    if ($chr(44) !isin $2-) {
-      $msgs($nick,$chan,$1) $logo($nick,change) $c1(Sorry, couldn't find the second nickname) $c2($nick,!changersn old rsname $+ $chr(44) new rsname)
-      .halt
-    }
-    else {
-      .var %nameline = $replace($2-,$+($chr(44),$chr(32)),$chr(44),$chr(32),+)
-      .var %name1 = $gettok(%nameline,1,44),%name2 = $gettok(%nameline,2,44)
-      .sockopen $+(rsnchange.,$hget($+(id.,$cid),$me)) runetracker.org 80
-      .sockmark $+(rsnchange.,$hget($+(id.,$cid),$me)) $+($nick,:,$msgs($nick,$chan,$1),:,oldname=,%name1,&newname=,%name2)
-    }
-  }
-  elseif ($istok(invitejoin,%style,32)) {
-    if ($chan == #devvectra && $nick == Vectra && !$istok([Dev]Vectra,$me,32)) {
-      .notice $nick Channel count: $chan(0)
-      if ($regex($strip($1-),/Bot joining: (.*)/Si)) {
-        if ($regml(1) == $me) {
-          tokenize 32 $strip($1-)
-          if (#* iswm $4) {
-            .mode $v2
-            .hadd -mu10 $+(invite.,$cid) $4 $7
-          }
-        }
-      }
-    }
-  }
-  elseif ($istok(clantrack,%style,32)) {
-    if ($2 == $null) {
-      $msgs($nick,$chan,$1) $logo(%n,error) $c1(Wrong syntax,) $c2(%n,!clantrack <clan name> <@1day/@1week/@1month>)
-      halt
-    }
-    if (@* iswm $3) { var %clanname = $2, %time = $3 }
-    elseif (@* iswm $4) { var %clanname = $replace($2-3,$chr(32),_), %time = $4 }
-    elseif (@* iswm $5) { var %clanname = $replace($2-4,$chr(32),_), %time = $5 }
-    elseif (@* iswm $6) { var %clanname = $replace($2-5,$chr(32),_), %time = $6 }
-    else { var %clanname = $replace($2-,$chr(32),_) }
-    if (!%time) { var %time = @1month }
-    sockopen $+(clantrack,$hget($+(id.,$cid),$me)) rodb.nl 80
-    sockmark $+(clantrack,$hget($+(id.,$cid),$me)) $+(%clanname,:,%time,:,$nick,:,$msgs($nick,$chan,$1))
-  }
-  elseif ($istok(cmbP skillP,%style,32)) { ;done;
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3)))
-    if (%rsn) {
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy)
-    }
-  }
-  elseif ($istok(highlow,%style,32)) { ;done;
-    if ($regex($2,/#(.*)/Si)) { .var %number = $regml(1) | .tokenize 32 $deltok($1-,2,32) }
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3)))
-    if (%rsn) {
-      .var %privacy $iif(($regex($iif($regex($2,/#(.*)/Si),$3-,$2-),/[&*]$/Si) && $address($left($iif($regex($2,/#(.*)/Si),$3-,$2-),-1),3)) && ($readini(defname.ini,RSNs,$address($left($iif($regex($2,/#(.*)/Si),$3-,$2-),-1),3)) == $readini(privacy.ini,privacy,$address($left($iif($regex($2,/#(.*)/Si),$3-,$2-),-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy,$iif(%number,$v1,none),$right($1,-1))
-    }
-  } 
-  elseif ($istok(cmb,%style,32)) { ;done;
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3))) 
-    if (%rsn) {
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-      .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,%privacy)
-    }
-  }
-  elseif ($istok(setgoal delgoal goal,%style,32)) {
-    .var %skill $Skill($2)
-    if (!%skill) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(The correct syntax is) $c2($nick,$1 <skill>) $+ $c1(. To use this feature you must have a defname set!) }
-    elseif ($istok(delgoal,%style,32)) { 
-      if ($readini(goal.ini, n,$address($nick,3),%skill)) {
-        .remini -n goal.ini $address($nick,3) %skill
-        .msg #devvectra .do .remini -n goal.ini $address($nick,3) %skill
-        $msgs($nick,$chan,$1) $logo($nick,goal) $c1(Your goal in) $c2($nick,%skill) $c1(has been deleted. To set a new one type) $c2($nick,!setgoal %skill) $+ $c1(.)
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(You do not currently have a goal set for) $c2($nick,%skill) $+ $c1(.)
-      }
-    }
-    elseif ($istok(goal,%style,32)) {
-      if ($readini(goal.ini, n,$address($nick,3),%skill)) {
-        .var %rsn $rsn($nick,$address($nick,3)) 
-        if (%rsn) {        
-          .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-          .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,DontHideRsnOkPlx,%skill,-)
-        }
-      }
-      else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You do not currently have a goal set for) $c2($nick,%skill) $+ $c1(.) }
-    }
-    else {
-      .var %goal -
-      if ($regex($3,/^#(\d{1,2})$/Si)) { .var %goal $regml(1) | .tokenize 32 $deltok($1-,2-3,32) }
-      else { .tokenize 32 $deltok($1-,2,32) }
-      .var %rsn $rsn($nick,$address($nick,3)) 
-      if (%rsn) {        
-        .sockopen $+(stats.,$hget($+(id.,$cid),$me),.,%style) hiscore.runescape.com 80
-        .sockmark $+(stats.,$hget($+(id.,$cid),$me),.,%style) $stats_sockmake(%rsn,$msgs($nick,$chan,$1),$nick,DontHideRsnOkPlx,%skill,%goal)
-      }
-    }
-  }
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  elseif ($istok(skillcost,%style,32)) {
-    .noop $regex($1,/^[!@.~`^](.*)-cost/Si)
-    .var %skill = $skill($regml(1))
-    if ($istok(Crafting Herblore Prayer Farming Construction Cooking Fletching Smithing,%skill,32)) {
-      if ($left($2,1) == $chr(35) && $right($2,-1) isnum 2-99) { .var %goal = GOAL. $+ $right($2,-1) | .tokenize 32 $deltok($1-,2,32) }
-      .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3))) 
-      if (%rsn) {
-        .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-        .sockopen $+(skillcost.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-        .sockmark $+(skillcost.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,%skill,:,%rsn,:,$iif(%goal,$v1,None),:,%privacy)
-      }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c3(%nick,%skill) $c1(is not a valid skill-cost skill.) }   
-  }
-  elseif ($istok(maxbuy,%style,32)) { 
-    $msgs($nick,$chan,$1) $logo($nick,maxbuy) $+($c1([Per),$chr(32),$c2($nick,4),$chr(32),$c1(hours]:)) $+($c1($chr(40)),$c2($nick,WC),$c1($chr(41))) Logs: $&
-      $c2($nick,25k) $+ $chr(44) Ashes: $c2($nick,10k) $(|,) $+($c1($chr(40)),$c1(Mine),$c2($nick,&),$c1(Smith),$c1($chr(41))) Ore: $c2($nick,25k) $+ $chr(44) $&
-      Bar: $c2($nick,10k) $(|,) $+($c1($chr(40)),$c2($nick,Craft),$c1($chr(41))) Clay: $c2($nick,10k) $+ $chr(44) Hides: $c2($nick,10k) $+ $chr(44) $&
-      Gem/Jewellerry: $c2($nick,5k) $+ $chr(44) B.Staff $c2($nick,100) $(|,) $+($c1($chr(40)),$c2($nick,Pray),$c1($chr(41))) Bones: $c2($nick,10k) $(|,) $&
-      $+($c1($chr(40)),$c2($nick,Con),$c1($chr(41))) Flatpack: $c2($nick,100) $(|,) $+($c1($chr(40)),$c1(Fish),$c2($nick,&),$c1(Cook),$c1($chr(41))) Raw: $&
-      $c2($nick,20k) $+ $chr(44) Food: $c2($nick,10k) $(|,) $+($c1($chr(40)),$c2($nick,Herb),$c1($chr(41))) Herb/Potion/Vial: $c2($nick,10k) $(|,) $&
-      $+($c1($chr(40)),$c2($nick,RC),$c1($chr(41)))) Ess: $c2($nick,25k) $+ $chr(44) Talis: $c2($nick,5k) $(|,) $+($c1($chr(40)),$c2($nick,Summ),$c1($chr(41))) $&
-      Shards: $c2($nick,10k) $+ $chr(44) Proboscis: $c2($nick,100)
-    $msgs($nick,$chan,$1) $logo($nick,maxbuy) $+($c1([Per),$chr(32),$c2($nick,4),$chr(32),$c1(hours]:)) $+($c1($chr(40)),$c2($nick,Fletch),$c1($chr(41))) $&
-      Arrows/Tips/Unstrung-Bows/Feather/Strings: $c2($nick,10k) $+ $chr(44) Flax: $c2($nick,25k) $+ $chr(44) Bows: $c2($nick,5k) $(|,) $&
-      $+($chr(40),Armour,$c2($nick,&),Weapons,$chr(41)) Armour: $c2($nick,100) $+ $chr(44) $+(Barrows,$c2($nick,&),Dragon Armour,$c2($nick,/),Weapons:) $&
-      $c2($nick,10) $+ $chr(44) God Wars Equip.: $c2($nick,10) $+ $chr(44) T.T. Armour/Discontinued: $c2($nick,2) $(|,) $+($chr(40),$c2($nick,Farming),$chr(41)) $&
-      Seeds: $c2($nick,1k)
-  }
-  elseif ($istok(translate,%style,32)) { 
-    .var %o $msgs($nick,$chan,$1), %L1 auto
-    if ($numtok($2,45) == 2) { .var %L1 $gettok($2,1,45), %L2 $gettok($2,2,45) }
-    elseif ($2) { .var %L2 $2 }
-    if (%L2) && ($3) {
-      if ($lang(%L1) || %L1 == auto) && ($lang(%L2)) { 
-        .sockopen $+(translate.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-        .sockmark $+(translate.,$hget($+(id.,$cid),$me)) $+(%o,:,$nick,:,$iif(%L1 == auto,$v1,$lang(%L1)),:,$lang(%L2),:,$urlencode($3-))
-      }
-      else { %o $logo($nick,error) $c1(The language) $c2($nick,$iif(!$lang(%L2),%L2,%L1)) $c1(is invalid.) }
-    }
-    else { %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!translate present language-desired language text) $+ $c1(.) }  
-  }
-  elseif ($istok(clanrank,%style,32)) { 
-    .var %o $msgs($nick,$chan,$1), %skill Overall
-    .tokenize 32 $remove($1-,$chr(35))
-    if ($skill($2) && $2 !isnum) { .var %skill $skill($2) | .tokenize 32 $2- }
-    if ($2 isnum) && ($3) { 
-      .sockopen $+(clanrank.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(clanrank.,$hget($+(id.,$cid),$me)) $+(%o,:,$nick,:,%skill,:,$2,:,$replace($3,$chr(32),_))
-    }   
-    else { %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!clanrank [skill] <rank> <clan>) $+ $c1(.) }
-  }
-  elseif ($istok(toptrack,%style,32)) { 
-    var %o $msgs($nick,$chan,$1)
-    if (!$skill($2) && $2 !isnum) { %o $logo($nick,ERROR) $c1(The correct syntax is) $c2($nick,!toptrack <skill> $+([,day,$chr(44),week,$chr(44),month,])) $+ $c1(.) }
-    else {
-      if ($regex($3,/^(@)?(d(ay)?|w(eek)?|m(onth)?)$/Si)) { .var %time $replace($left($remove($3,@),1),d,day,w,week,m,month) } 
-      .sockopen $+(toptrack.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(toptrack.,$hget($+(id.,$cid),$me)) $+(%o,:,$nick,:,$numskill($skill($2)),:,$iif(%time,$v1,day))
-    }
-  }
-  elseif ($istok(kbase,%style,32)) {
-    .var %o $msgs($nick,$chan,$1)
-    if (!$2) { %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!kbase <search>) $+ $c1(.) }
-    else {
-      .sockopen $+(kbase.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(kbase.,$hget($+(id.,$cid),$me)) $+(%o,:,$nick,:,$2-)
-    }
-  }
-  elseif ($istok(spotifyL,%style,32)) {
-    .sockopen $+(SpotifyL.,$hget($+(id.,$cid),$me)) open.spotify.com 80
-    noop $regex($1-,/open\.spotify\.com\/track\/(\S+)/Si)
-    .sockmark $+(SpotifyL.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,@),:,$nick,:,$regml(1))
-  }
-  elseif ($istok(imdb,%style,32)) { 
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please supply a movie to search. Syntax:) $c2($nick,!imdb movie name) $c1(If you have an imdb id simply search that.) | halt }
-    elseif ($left($2,2) == tt && $len($2) == 9) { 
-      .sockopen $+(imdb.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(imdb.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,/Parsers.php?type=imdb&movie=,$2)
-    }
-    else { 
-      .sockopen $+(imdb.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(imdb.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,/Parsers.php?type=imdb&titlesearch=,$replace($2-,$chr(32),+))
-    }
-  }
-  elseif ($istok(potion,%style,32)) { 
-    .var %o $msgs($nick,$chan,$1)
-    if (!$2)  {
-      %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!potion <potion>) $+ $c1(.)
-    }
-    elseif ($read(potions.txt,w,$+(*,$2-,*))) {
-      .tokenize 124 $v1
-      %o $logo($nick,potion) $c1(Item:) $c2($nick,$1) $c1($chr(124) Herblore Level:) $c2($nick,$2) $c1($chr(124) Herb:) $c2($nick,$3) $c1($chr(124) Ingredient:) $c2($nick,$4) $c1($chr(124) Exp:) $c2($nick, $5) $c1($chr(124) Effect:) $c2($nick,$6)
-    }
-    else { 
-      %o $logo($nick,error) $c1(The potion ") $+ $c2($nick,$2-) $+ $c1(" was not found in our database.)
-    }
-  }
-  elseif ($istok(herbinfo,%style,32)) { 
-    .var %o $msgs($nick,$chan,$1)
-    if (!$2)  {
-      %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!herbinfo <herb>) $+ $c1(.)
-    }
-    elseif ($read(herbs.txt,w,$+(*,$2-,*))) {
-      .tokenize 124 $v1
-      %o $logo($nick,herbinfo) $c1(Item:) $c2($nick,$1) $c1($chr(124) Level to Clean:) $c2($nick,$2) $c1($chr(124) Cleaning Exp:) $c2($nick,$3) $c1($chr(124) Used In:) $c2($nick,$replace($4,$chr(44),$+($chr(44),$chr(32))))
-    }
-    else { 
-      %o $logo($nick,error) $c1(The herb ") $+ $c2($nick,$2-) $+ $c1(" was not found in our database.)
-    }
-  }
-  elseif ($istok(farminfo,%style,32)) {
-    .var %o $msgs($nick,$chan,$1)
-    if (!$2)  {
-      %o $logo($nick,error) $c1(The correct syntax is) $c2($nick,!farminfo <name>) $+ $c1(.)
-    }   
-    elseif ($read(farmdb.txt,w,$+(*,$2-,*))) {
-      .tokenize 124 $v1
-      %o $logo($nick,farminfo) $c1(Crop:) $c2($nick,$1) $c1($chr(124) Level:) $c2($nick,$2) $c1($chr(124) Growing Time:) $iif($duration($remove($3,$chr(44))) >= 3600,$c2($nick,$gettok($duration($v1),1-3,32)),$c2($nick,$3))  $&
-        $c1($chr(124) Planting Exp:) $c2($nick,$4) $c1($chr(124) Harvest Exp:) $c2($nick,$5) $c1($chr(124) Check-Health Exp:) $c2($nick,$6) $c1($chr(124) Farmer Care Price:) $c2($nick,$7) 
-    }
-    else { 
-      %o $logo($nick,error) $c1(The crop ") $+ $c2($nick,$2-) $+ $c1(" was not found in our database.)
-    }
-  }
-  elseif ($istok(alog,%style,32)) {
-    .var %rsn $rsn($nick,$iif($2-,$2-,$address($nick,3)))
-    if (%rsn) { 
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(alog.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(alog.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),~,$nick,~,%rsn,~,%privacy)
-    }
-  }
-  elseif ($istok(defml,%style,32)) { 
-    if (!$2 || $istok(-d,$2,32))  {
-      if ($Settings($chan,DefaultML)) {
-        if ($istok(-d,$2,32) && ($nick isop $chan || $nick ishop $chan)) {
-          .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan DefaultML 0
-          $msgs($nick,$chan,$1) $logo($nick,default-ml) $c1(The current Default Runehead Clan memberlist for) $c2($nick,$chan) $c1(has been unset.)
-        }
-        else { $msgs($nick,$chan,$1) $logo($nick,default-ml) $c1(The current Default Runehead Clan memberlist for) $+($c2($nick,$chan),$c1(:)) $c2($nick,$gettok($Settings($chan,DefaultML),1,124)) $+($c1($chr(40)),$c2($nick,$gettok($Settings($chan,DefaultML),2,124)),$c1($chr(41))) $+ $c1(. To unset this type:) $c2($nick,!defml -d) $+ $c1(.) }
-      }
-      else { $msgs($nick,$chan,$1) $logo($nick,default-ml) $c1(The correct syntax is:) $c2($nick,!defml <clan>) $c1(to set a new Default ML. To view the Default ML type:) $c2($nick,!defml) $c1(and to unset it type:) $c2($nick,!defml -d) $+ $c1(.) }
-    }
-    else { 
-      .sockopen $+(defml.,$hget($+(id.,$cid),$me)) www.runehead.com 80
-      .sockmark $+(defml.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),~,$nick,~,$chan,~,$replace($2-,$chr(32),_))
-    }
-  }
-  elseif ($istok(trank,%style,32)) { 
-    .var %rsn $rsn($nick,$iif($iif($Skill($2),$3-,$2-),$v1,$address($nick,3)))
-    if (%rsn) { 
-      if ($Skill($2)) { .var %skill $numskill($v1) | .tokenize 32 $deltok($1-,2,32) }
-      else { .var %skill 0 }
-      .var %privacy $iif(($regex($2-,/[&*]$/Si) && $address($left($2-,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2-,-1),3)) == $readini(privacy.ini,privacy,$address($left($2-,-1),3))),$ifmatch,DontHideRsnOkPlx)      
-      .sockopen $+(trank.,$hget($+(id.,$cid),$me)) rscript.org 80
-      .sockmark $+(trank.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),~,$nick,~,%rsn,~,%privacy,~,%skill)     
-    }
-  }
-  elseif ($istok(activity pvp lootshare,%style,32)) {
-    if (!$2 && !$istok(pvp lootshare,%style,32)) {
-      $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(Please specify a valid activity.)
-    }
-    else {
-      .var %act $iif($activity($replace($iif($istok(pvp,%style,32),pvp,$iif($istok(lootshare,%style,32),lootshare,$2-)),$chr(32),$chr(95))),$v1,$false)
-      if (!%act) {
-        $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(The activity ") $+ $c2($nick,$2-) $+ $c1(" is not a valid activity.)
-      }
-      else {
-        .var %p2p $replace($readini(activity.ini,n,%act,p2p),$chr(95),$chr(32))
-        .var %f2p $replace($readini(activity.ini,n,%act,f2p),$chr(95),$chr(32))
-        $msgs($nick,$chan,$1) $logo($nick,ACTIVITY) $c1(Type:) $c2($nick,$replace(%act,$chr(95),$chr(32))) $iif(%f2p == None,$null,$c1($chr(124) F2P:) $c2($nick,%f2p)) $iif(%p2p == None,$null,$c1($chr(124) P2P:) $c2($nick,%p2p))  
-      }
-    }
-  }
-  elseif ($istok(actadd,%style,32)) {
-    if ($is_staff($nick)) {
-      if (!$2) {
-        $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(The correct syntax is) $c2($nick,!actadd [-a] <activity> <f2p/p2p> <worlds>) $+ $c1(. (underscores are needed in the activity))
-      }
-      else {
-        if ($istok($2,-a -add,32)) {
-          if (!$3) || (!$4) || (!$5) {
-            $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(The correct syntax is) $c2($nick,!actadd -a <activity> <f2p/p2p> <worldstoadd>) $+ $c1(.)
-          }
-          else {
-            .var %y $sorttok($addtok($readini(activity.ini,n,$activity($3),$4),$replace($5-,$chr(32),$chr(95)),95),95,n)
-            .writeini -n activity.ini $activity($3) $4 %y
-            $iif($me ison #devvectra, .msg $v2 .do .writeini -n activity.ini $activity($3) $4 %y)
-            $msgs($nick,$chan,$1) $logo($nick,ACT-ADD) $c1(The) $c2($nick,$4) $c1(worlds for) $c2($nick,$activity($3)) $c1(have been updated.)
-          } 
-        }
-        else {
-          if (!$3) || (!$4) {
-            $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(The correct syntax is) $c2($nick,!actadd <activity> <f2p/p2p> <worlds>) $+ $c1(. (underscores are needed in the activity))
-          }
-          else {
-            .var %y $sorttok($replace($4-,$chr(32),$chr(95)),95,n)
-            .writeini -n activity.ini $2 $3 %y
-            $iif($me ison #devvectra, .msg $v2 .do .writeini -n activity.ini $2 $3 %y)
-            $msgs($nick,$chan,$1) $logo($nick,ACT-ADD) $c1(The activity) $c2($nick,$2) $c1(has been added to the activity.ini file.)
-          }
-        }
-      }
-    }
-  }
-  elseif ($istok(wave,%style,32)) {
-    if ($2 isnum 1-63) {
-      $msgs($nick,$chan,$1) $logo($Nick,Wave) $+($c1,[,$c2($nick,$2),$c1,]) $c2($nick,$readini(wave.ini,Waves,$2))
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($Nick,Wave) $c1(To get a fight cave wave please supply a number 1-63. Syntax) $c2($nick,!wave 28)
-    }
-  }
-  elseif ($istok(swap,%style,32)) {
-    if (($nick ison #devvectra) && ($nick !isreg #devvectra)) {
-      if ($3 == $null) {
-        if (($chan != #vectra) && ($chan != #devvectra)) {
-          if (($bottag($2) != $null) && ($bottag($2) != $me)) { 
-            .part $chan $bottag($2) will be replacing me in $chan $+ , requested by $nick
-            .ctcp $bottag($2) enter $chan $nick
-            .msg #devvectra $logo(vec,swap) $c3(Swapping) $c4($chan) $c3(with) $c4($bottag($2)) $+ $c3($chr(44) requested by) $c4($nick) $+ $c3(.)
-          }
-        }
-      }
-      elseif (($3 != $null) && ($me ison $2)) {
-        if (($bottag($3) != $null) && ($bottag($3) != $me)) { 
-          if (($2 != #vectra) && ($2 != #devvectra)) {
-            .part $2 $bottag($3) will be replacing me in $2 $+ , requested by $nick
-            .ctcp $bottag($3) enter $2 $nick
-            .msg #devvectra $logo(vec,swap) $c3(Swapping) $c4($2) $c3(with) $c4($bottag($3)) $+ $c3($chr(44) requested by) $c4($nick) $+ $c3(.)
-          }
-        }
-      }
-    }
-  }
-  elseif ($istok(charm,%style,32)) {
-    if ($3) {
-      if ($2 isnum) && ($3 > 0) {
-        if ($4 && ($4 < 0 || $4 !isnum)) || ($5 && ($5 < 0 || $5 !isnum)) || ($6 && ($6 < 0 || $6 !isnum)) { 
-          $msgs($nick,$chan,$1) $logo($nick,Error) $c1(All numbers must be whole numbers. All charm numbers must be greater than or equal to) $c2($nick,0) $+ $c1(.) $&
-            $c1(Your level or exp can not equal) $c2($nick,0) $c1(and you must specify atleast the number of) $c2($nick,gold charms) $+ $c1(.)  $&
-            $c1(Syntax:) $c2($nick,!charm <summoning level> [gold] [crimson] [green] [blue])            
-        }
-        else { 
-          .var %level = $iif($2 isnum 1-99,$v1,$undoexp($2))
-          .var %gold = $3, %gold_mon $summ_return(Gold,%level) 
-          .var %crim = $iif($4,$v1,0)
-          .var %green = $iif($5,$v1,0)
-          .var %blue = $iif($6,$v1,0)
 
-          if (%crim > 0) { .var %crim_mon $iif($4,$summ_return(Crimson,%level),0) } 
-          else { .var %crim_mon O|0|0|0 }
-          if (%green > 0) { .var %green_mon $iif($4,$summ_return(Green,%level),0) } 
-          else { .var %green_mon O|0|0|0 }
-          if (%blue > 0) { .var %blue_mon $iif($4,$summ_return(Blue,%level),0) } 
-          else { .var %blue_mon O|0|0|0 }
-          .var %total_exp $calc(($gettok(%gold_mon,4,124) * %gold) + ($gettok(%crim_mon,4,124) * %crim) + ($gettok(%green_mon,4,124) * %green) + ($gettok(%blue_mon,4,124) * %blue)), $&
-            %total_shard $calc(($gettok(%gold_mon,2,124) * %gold) + ($gettok(%crim_mon,2,124) * %crim) + ($gettok(%green_mon,2,124) * %green) + ($gettok(%blue_mon,2,124) * %blue)), $& 
-            %total_cost $calc(%total_shard * 25),%exp = $calc(%total_exp + $iif($2 isnum 1-99,$exp($v1),$v1))
-          $msgs($nick,$chan,$1) $logo($nick,Charms) $+($c1([Best efficiency for level:),$chr(32),$c2($nick,%level),$c1(])) 7Gold: %gold $c1($chr(124)) $iif(%crim > 0,5Crimson: %crim $c1($chr(124))) $iif(%green > 0,3Green: %green $c1($chr(124))) $iif(%blue > 0,12Blue: %blue $c1($chr(124))) $&
-            $c1(Total Exp:) $c2($nick,$comma($ceil(%total_exp))) $c1($chr(124)) $c1(Total Shards:) $c2($nick,$comma(%total_shard)) $c1($chr(124)) $c1(Shard Cost:) $c2($nick,$comma(%total_cost)) $c1($chr(124)) $c1(Expected Level:) $c2($nick,$exp2(%exp)) $+($c1($chr(40)),$c2($nick,$bytes($ceil(%exp),bd)),$c1($chr(41)))
-          $msgs($nick,$chan,$1) $logo($nick,Charms) $+(7,$gettok(%gold_mon,1,124),:,) %gold $+($c1($chr(40)),$c2($nick,$comma($calc($gettok(%gold_mon,4,124) * %gold))),$c1($+($chr(32),exp,$chr(41)))) $+($c1($+($chr(40),Shards:)),$chr(32),$c2($nick,$comma($calc($gettok(%gold_mon,2,124) * %gold))),$c1($chr(41))) $+($c1($+($chr(40),Cost:)),$chr(32),$c2($nick,$comma($calc(($gettok(%gold_mon,2,124) * %gold) * 25))),$c1($chr(41))) $&
-            $iif(%crim > 0,$c1($chr(124)) $+(5,$gettok(%crim_mon,1,124),:,) %crim $+($c1($chr(40)),$c2($nick,$comma($calc($gettok(%crim_mon,4,124) * %crim))),$c1($+($chr(32),exp,$chr(41)))) $+($c1($+($chr(40),Shards:)),$chr(32),$c2($nick,$comma($calc($gettok(%crim_mon,2,124) * %crim))),$c1($chr(41))) $+($c1($+($chr(40),Cost:)),$chr(32),$c2($nick,$comma($calc(($gettok(%crim_mon,2,124) * %crim) * 25))),$c1($chr(41)))) $&
-            $iif(%green > 0,$c1($chr(124)) $+(3,$gettok(%green_mon,1,124),:,) %green $+($c1($chr(40)),$c2($nick,$comma($calc($gettok(%green_mon,4,124) * %green))),$c1($+($chr(32),exp,$chr(41)))) $+($c1($+($chr(40),Shards:)),$chr(32),$c2($nick,$comma($calc($gettok(%green_mon,2,124) * %green))),$c1($chr(41))) $+($c1($+($chr(40),Cost:)),$chr(32),$c2($nick,$comma($calc(($gettok(%green_mon,2,124) * %green) * 25))),$c1($chr(41)))) $&
-            $iif(%blue > 0,$c1($chr(124)) $+(12,$gettok(%blue_mon,1,124),:,) %blue $+($c1($chr(40)),$c2($nick,$comma($calc($gettok(%blue_mon,4,124) * %blue))),$c1($+($chr(32),exp,$chr(41)))) $+($c1($+($chr(40),Shards:)),$chr(32),$c2($nick,$comma($calc($gettok(%blue_mon,2,124) * %blue))),$c1($chr(41))) $+($c1($+($chr(40),Cost:)),$chr(32),$c2($nick,$comma($calc(($gettok(%blue_mon,2,124) * %blue) * 25))),$c1($chr(41))))
-        }
-      }
-      else { 
-        %return $logo($nick,Error) $c1(All numbers must be whole numbers. All charm numbers must be greater than or equal to) $c2($nick,0) $+ $c1(.) $&
-          $c1(Your level or exp can not equal) $c2($nick,0) $c1(and you must specify atleast the number of) $c2($nick,gold charms) $+ $c1(.)  $&
-          $c1(Syntax:) $c2($nick,!charm <summoning level> [gold] [crimson] [green] [blue])          
-      }
-    }
-    else { 
-      $msgs($nick,$chan,$1) $logo($nick,Error) $c1(All numbers must be whole numbers. All charm numbers must be greater than or equal to) $c2($nick,0) $+ $c1(.) $&
-        $c1(Your level or exp can not equal) $c2($nick,0) $c1(and you must specify atleast the number of) $c2($nick,gold charms) $+ $c1(.)  $&
-        $c1(Syntax:) $c2($nick,!charm <summoning level> [gold] [crimson] [green] [blue])  
-    }
-  }
-  elseif ($istok(chanstatus,%style,32)) {
-    if ($nick ison #devvectra) {
-      .notice $nick $+($chan(0),:,$calc($mid($regsubex($str(~,$comchan($me,0)),/(.)/g,$+(+,$nick($comchan($me,\n),0))),2)),:,$ceil($calc(($mid($regsubex($str(~,$comchan($me,0)),/(.)/g,$+(+,$nick($comchan($me,\n),0))),2)) / $comchan($me,0))))
-    }
-  }
-  elseif ($istok(tracktop,%style,32)) {
-    if (!$skill($2)) {
-      $msgs($nick,$chan,$1) $logo($nick,ERROR) $c1(The correct syntax is) $c2($nick,!toptrack <skill> $+([,day,$chr(44),week,$chr(44),month,])) $+ $c1(.)
-    }
-    else {
-      sockopen $+(toptrack.,$ticks) runetracker.org 80
-      sockmark $+(toptrack.,$ticks) $+($msgs($nick,$chan,$1),~,$nick,~,$numskill($skill($2)),~,$iif(!$3,day,$3))
-    } 
-  }
-  elseif ($istok(delsoul,%style,32)) {
-    if ($nick !isop $chan) && ($nick !ishop $chan) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need atleast) $c2($nick,halfop) $c1(to delete the Soul Wars World.) 
-    }
-    else {
-      if (!$hget(sww.info,$chan)) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(No Soul Wars World set for) $+($c2($nick,$chan),$c1,.)
-      }
-      else {
-        $iif($me ison #Devvectra, .msg #DevVectra do hdel sww.info $chan)
-        .hdel sww.info $chan
-        $msgs($nick,$chan,$1) $logo($nick,Del-SW) $c1(Soul Wars World for) $c2($nick,$chan) $c1(is now deleted.)
-      }
-    }
-  }
-  elseif ($istok(setsoul,%style,32)) {
-    if ($query($nick)) {
-      if (!$3) || ($2 !isnum 1-169) || ($2 !isnum) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please give the Soul Wars World you want to set and the channel it should be set for) $c2(!setsw 64 #channel)
-        halt 
-      }
-      elseif ($nick !isop $3) && ($nick !ishop $3) || ($me !ison $3) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(You are not half-op+ on that channel or I am not there.) 
-        halt
-      } 
-      else {
-        $iif($me ison #Devvectra, .msg #DevVectra do hadd -m sww.info $3 $2 $nick $ctime)
-        .hadd -m sww.info $3 $2 $nick $ctime
-        .msg $3 $logo(vec,Soul Wars) $c1(The Soul Wars World for) $c2(vec,$3) $c1(has been set to) $c2(vec,$2) $c1(type) $c2(vec,!sww) $c1(to view the world!)
-        $msgs($nick,$chan,$1) $logo($nick,Soul Wars) $c1(World) $c2($nick,$2) $c1(has been set for) $c2($nick,$3) $+ $c1(.)
-        halt
-      }
-    }
-    if ($nick !isop $chan) && ($nick !ishop $chan) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need atleast) $c2($nick,halfop) $c1(to set a Soul Wars World.)
-      halt
-    }
-    if ($2 !isnum 1-169) || ($2 !isnum) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$iif($2,$v1,Nothing)) $c1(is not a valid Runescape world.) 
-    }
-    else {
-      $iif($me ison #Devvectra, .msg #DevVectra do hadd -m sww.info $chan $2 $nick $ctime)
-      .hadd -m sww.info $chan $2 $nick $ctime
-      .msg $chan $logo(vec,Soul Wars) $c1(The Soul Wars World for) $c2(vec,$chan) $c1(has been set to) $c2(vec,$2) $c1(type) $c2(vec,!sww) $c1(to view the world!)
-    }
-  }
-  elseif ($istok(sww,%style,32)) {
-    if ($nick isreg $chan) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need to be atleast) $c2($nick,voice) $c1(to check the Soul Wars World.)
-    }
-    else {
-      if (!$hget(sww.info,$chan)) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(No Soul Wars World set for) $+($c2($nick,$chan),$c1,.)
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,Soul Wars) $c1(The Soul Wars World for) $c2($nick,$chan) $c1(is) $+($c2($nick,$gettok($hget(sww.info,$chan),1,32)),$c1,$chr(44)) $c1(set by) $+($c2($nick,$gettok($hget(sww.info,$chan),2,32)),$c1,$chr(44)) $c2($nick,$duration($calc($ctime - $gettok($hget(sww.info,$chan),3,32)),1)) $c1(ago.)
-      }
-    }
-  }
-  elseif ($istok(gecompare,%style,32)) {
-    if ($3 == $null) || ($2 == $3) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(please give 2 different items to compare) $c2($nick,!gecompare rune scimitar $+ $chr(44) rune kiteshield) }
-    elseif ($gettok($2-,2,44)) { 
-      .var %item1 = $replace($gettok($replace($2-,$chr(44) $+ $chr(32),$chr(44)),1,44),$chr(32),+), %item2 = $replace($gettok($replace($2-,$chr(44) $+ $chr(32),$chr(44)),2,44),$chr(32),+) 
-      .sockopen $+(gecompare.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(gecompare.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$iif(%item1 != $null,%item1,$2),:,$iif(%item1 != $null,%item2,$3))
-    }
-  }
-  elseif ($istok(zybezL,%style,32)) {
-    if ($regex($1-,/forums\.zybez\.net\/index.php\?showtopic=(\d+)/Si)) { 
-      .sockopen $+(zybezL.,$hget($+(id.,$cid),$me)) noep.info 80
-      .sockmark $+(zybezL.,$hget($+(id.,$cid),$me)) $+(.msg $chan,:,$regml(1),:,$nick)
-    }
-  }
-  elseif ($istok(paramadd,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,Parameters) $c1(Syntax to check if a paramter exists for a skill:) $c2($nick,!param SKILL object) 
-    }
-    elseif ($skillnonum($2)) {
-      .var %return $msgs($nick,$chan,$1)
-      if ($paramFind($skillnonum($2),$3-)) {
-        .tokenize 124 $v1
-        %return $logo($nick,Parameters Check) $c1(Best result for) $c2($nick,$qt($2)) $c1(in skill) $c2($nick,$skillnonum($1)) $c1(returned) $c2($nick,$3) $c1(at) $c2($nick,$4) $c1(exp each.)
-      }
-      else {
-        %return $logo($nick,Parameters Check) $c1(No results, please check our website for the proper syntax.)
-      }
-    }
-    elseif ($nick ishop #DevVectra) || ($nick isop #DevVectra) {
-      if ($istok(-a -add,$2,32)) {
-        if ($paramFind($skillnonum($3),$4-)) {
-          $msgs($nick,$chan,$1) $logo($nick,Parameter Add) $c1(A paramter that already exists)
-        }
-        elseif ($skillnonum($3)) && (*|* iswm $4-) && ($gettok($4-,2,124) isnum) {
-          .paramFind -a $skillnonum($3) $4-
-          $msgs($nick,$chan,$1) $logo($nick,Parameter Add) $c1(Added) $c2($nick,$qt($4-)) $c1(to skill) $c2($nick,$skillnonum($3))
-        }
-        else {
-          $msgs($nick,$chan,$1) $logo($nick,Parameter Add) $c1(Syntax ->) $c2($nick,!param -a SKILL name|exp)
-        }
-      }
-      elseif ($istok(-d -del -delete,$2,32)) {
-        .var %return $msgs($nick,$chan,$1)
-        if ($paramFind($skillnonum($3),$4-)) {
-          .tokenize 124 $v1
-          .paramFind -d $skillnonum($1) $+($3,|,$4-)
-          %return $logo($nick,Parameter Delete) $c1(The paramter) $c2($nick,$qt($+($3,|,$4-))) $c1(has been deleted.)
-        }
-        else {
-          %return $logo($nick,Parameter Delete) $c1(Your search does not exist)
-        }
-      }
-    }
-  } 
-  elseif ($istok(gamercard,%style,32)) {
-    if ($2- == $null) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You must specify a gamertag to look up.) $+($c2($nick,!gamercard <gamertag>),$c1,.)
-      .halt
-    }
-    else {
-      .sockopen $+(gamercard.,$hget($+(id.,$cid),$me)) profile.mygamercard.net 80
-      .sockmark $+(gamercard.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$urlencode($2-),:,$nick)
-    }
-  }
-  elseif ($istok(coinshare,%style,32)) {
-    if (!$2 || $remove($2,$chr(35)) !isnum) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You must specify a number representing the players and the name of the item.) $+($c2($nick,!coinshare #<players> <item>),$c1,.)
-      .halt
-    }
-    else {
-      .sockopen $+(ge.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(ge.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($3-,$chr(45),+,$chr(95),+,$chr(32),+),:,$upper($left($2-,1)),:,coinshare,:,$nick,:,$remove($2,$chr(35)))
-    }
-  }
-  elseif ($istok(alch-loss,%style,32)) {
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!alch-loss <item>),$c1,.) }   
-    else { 
-      .sockopen $+(alchloss.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(alchloss.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(45),+,$chr(95),+,$chr(32),+),:,$nick)
-    }
-  }
-  elseif ($istok(ge,%style,32)) {
-    if ($2 == $null) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!ge <item>,[<item2>,<item3>,<item4>]),$c1,.)
-      halt
-    }
-    if ($gettok($2-,2,44)) {
-      if ($numtok($2-,44) > 4) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please dont check more than 4 items at the same time!) 
-        halt
-      }
-    }
-    .sockopen $+(ge.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(ge.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($remove($2-,$chr(35)),$+($chr(44),$chr(32)),;,$chr(44),;,$chr(45),+,$chr(95),+,$chr(32),+),:,$upper($left($remove($2,$chr(44)),1)),:,wildcard,:,$nick)
-  }
-  elseif ($istok(spec,%style,32)) { 
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please specified a weapon) $c2(!spec Abyssal whip) | halt
-    } 
-    else { 
-      .sockopen $+(spec.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(spec.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($iif($istok(-s,$2,32),$3-,$2-),$chr(32),+),:,$nick,$iif($istok(-s,$2,32),:s))
-    } 
-  }
-  elseif ($istok(rsmusic,%style,32)) {
-    .sockopen $+(rsmusic.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(rsmusic.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(noburn,%style,32)) { 
-    if (!$2) { 
-      $msgs($nick,$chan,$1) $noburnfull($2-)
-    } 
-    elseif (!$noburn($2-)) { 
-      $msgs($nick,$chan,$1) $logo($nick,ERROR) $c2($nick,$2-) $c1(is not a valid fish.) 
-    } 
-    elseif (1) { 
-      $msgs($nick,$chan,$1) $noburn($2-) 
-    } 
-  }
-  elseif ($istok(pouch,%style,32)) { 
-    if (!$2) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please enter the pouch name you want to look up.)
-      halt
-    } 
-    else { 
-      .sockopen $+(pouch.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(pouch.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($2-,$chr(32),+,-,+))
-    } 
-  }
-  elseif ($istok(istat,%style,32)) {
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,istat) $c1(No item search specified. Syntax:) $c2($nick,!istat <Item>) | halt }
-    else {
-      .sockopen $+(istat.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(istat.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($remove($2-,$chr(35)),$chr(32),_))
-    }
-  }
-  elseif ($istok(item,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,Item) $c1(No item search specified. Syntax:) $c2($nick,!item <Item>)
-    }
-    else {
-      .sockopen $+(item.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(item.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($remove($2-,$chr(35)),$chr(32),_))
-    }
-  }
-  elseif ($istok(bugrpt,%style,32)) {
-    if ($2 == $null) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax:) $c2($nick,!bug-report <Info>)
-      halt
-    }
-    write bugreport.txt $address($nick,5) $2-
-    $iif($me ison #Devvectra, .msg #DevVectra $logo($nick,BUG) $c1(Bug report added by) $c2($nick,$nick) $c1(in) $c2($nick,$chan))
-    $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Thanks for submitting your bug report $+ $chr(44) it will be looked at soon.)
-  }
-  elseif ($istok(readbugrpt,%style,32) && $chan == #devvectra) && ($nick isop #devvectra || $nick ishop #devvectra) {
-    if ($2 == $null) { 
-      $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Invalid syntax:) $c2($nick,!readbugreport #<bugnumber>)
-    }
-    elseif ($chr(35) isin $2-) && ($remove($2-,$chr(35)) isnum 1-) { 
-      if ($read(bugreport.txt,$remove($2-,$chr(35)))) { 
-        $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Bug report $chr(35)) $+ $c2($nick,$remove($2-,$chr(35))) $c1(reported by) $c2($nick,$gettok($read(bugreport.txt,$remove($2-,$chr(35))),1,32)) $+ $c1(:) $c2($nick,$gettok($read(bugreport.txt,-n,$remove($2-,$chr(35))),2-,32))
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Bug report) $c2($nick,$2) $c1(was not found.)
-      }
-    }
-    elseif $regex($2,/-r$/Si) && ($chr(35) isin $3-) && ($remove($3-,$chr(35)) isnum 1-) {
-      if ($read(bugreport.txt,$remove($3-,$chr(35)))) {
-        write -dl $+ $remove($3-,$chr(35)) bugreport.txt
-        $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Bug report $chr(35)) $+ $c2($nick,$remove($3-,$chr(35))) $c1(was deleted.)
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,BUG REPORT) $c1(Bug report) $c2($nick,$3) $c1(was not found.)
-      }
-    }
-  }
-  elseif ($istok(convert,%style,32)) { 
-    if ($regex($2-,/\d+ .+-.+/Si)) { 
-      .sockopen $+(convert.,$hget($+(id.,$cid),$me)) www.vectra-bot.net 80 
-      .sockmark $+(convert.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$remove($2,$chr(44)),:,$replace($gettok($3-,1,45),$chr(32),+),:,$replace($gettok($3-,2,45),$chr(32),+),:,$nick) 
-    } 
-    else { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Syntax:) $c2($nick,!Convert <ammount> <Type1> - <Type2>) 
-    } 
-  } 
-  elseif ($istok(temper,%style,32)) {
-    if ($remove($2,$chr(44)) isnum) {
-      $msgs($nick,$chan,$1) $logo($nick,Convert) $temperaturemeasure($right($gettok($1,1,45),-1),$remove($2,$chr(44)),$gettok($1,2,45))
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(The second parameter must be a number.)
-    }
-  }
-  elseif ($istok(topc,%style,32)) && ($nick ison #devvectra || $nick isop #spamtest) {
-    $msgs($nick,$chan,$1) $logo($nick,top 10) $c1(Top commands:) $c2($nick,$topc(10,$nick))
-  }
-  elseif ($istok(geupdate,%style,32)) {
-    sockopen $+(Geupdate.,$hget($+(id.,$cid),$me)) parsers.vectra-bot.net 80
-    sockmark $+(Geupdate.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(drop,%style,32)) {
-    .var %logotcs $iif($regex($1,/^[!@.~`^]((c(ommon)?)drops?)),common drops,top drops)
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,%logotcs) $c1(Invalid syntax. Syntax:) $c2($nick,!drop/cdrop <monster/NPC>)
-    } 
-    else {     
-      .sockopen $+(drop.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(drop.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($remove($2-,$chr(35)),$chr(32),_),:,$regex($1,/^[!@.~`^]((c(ommon)?)drops?)))
-    }
+  .hinc -m LogStats %style 1
+  if ($hget(LogStats,%style) >= 10) {
+    syncSend $+(SYNC:stats:,%style,:,10) 
+    .hadd -m LogStats %style 1 
   }  
-  elseif ($istok(qfc,%style,32)) {
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!qfc <qfc>),$c1,.) }
-    elseif (!$regex($2,/^(?:\d+[-,]){3}\d+/Si)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid Quick find code!) }
+
+  ; Init config variables
+  var %except = $ChanExcepts($network,$chan)
+  var %Mainbot = $iif(%except,$Mainbot($chan),$me)
+  var %ticks = $ticks
+  var %output = $msgs($nick,$chan,$1)
+  var %hash = $+($network,:,%address)
+
+  ; antiflood
+  noop $floodcheck(Command, $nick, $iif($chan,$v1,-), %address, %isLoggedIn, %Mainbot, $1-) 
+
+  if (%style == exe) {
+    if ($istok(Administrator Owner,%isStaff,32)) { scon -r $2- }
+    halt 
+  }
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;    Global channel Stuff  ;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+  if ($chan) {
+    ; check for channel settings
+    var %cmd.group = $CommandGroup(%style)
+
+    ; Staff commands cannot be turned off
+    if ((%cmd.group && $v1 != Staff) && ($Settings($chan, commands, %cmd.group) || $Settings(#DevVectra, commands, %cmd.group))) || ((%cmd.group != Staff) && ($Settings($chan, commands, %style) || $Settings(#DevVectra, commands, %style))) {
+      if (!%realStaff) { return }
+      else { .notice $Nick $col(%address,override).logo The command " $+ $col(%address,%style) $+ " is shut off in $+($col(%address,$chan),.) }
+    }
+  }
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;     Main bot enforced    ;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+  if ($me != %Mainbot) { halt } 
+  ; Exploit detection
+  if ($regex($1-,/\s[%\$]\S+/) && !%realStaff) { monitorLog $col($null,EXPLOIT).logo Possible exploit attempt detected in $col($null,$iif(!$chan,PM,$chan)) by $+($Rank,$col($null,$nick),$chr(40),$col($null,%address),$chr(41)) with command: $col($null,$strip($1-)) | halt }
+  if (%style == youtubeLink) {
+    var %Link = $wildtok($1-, *youtube.com*, 1, 32)
+    noop $regex(%Link, m@(?:(?:http://)?www\.|http://)youtube\.com/watch\?v=([-\w]+)@Si)
+    if ($regml(0) == 0) {
+      if (/user/ isin %Link) { var %VCode = $token($v2, -1, 47) }
+    }
+    else { var %VCode = $regml(1) }
+    if (%VCode) { noop $Sockmake(YoutubeLink, parsers.vectra-bot.net, 80, /Parsers/index.php?type=Youtube&q= $+ %VCode, $+($iif($Settings($chan,Public), .msg $chan, .notice $nick),,%address,,%VCode)) | return }
+    else { return }
+  }
+  elseif (%style == zybezl) { 
+    var %linkid = $regml(trigger, 1) 
+    if (%linkid) { noop $sockmake(ZybezL,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=ZybezLink&link=,%linkid),$+($iif($Settings($chan,Public), .msg $chan, .notice $nick),,%address,,%linkid)) }
+    return
+  }
+  elseif (%style == quickfindcode) {
+    var %linkid = $regml(trigger, 1)     
+    if (!%linkid) { 
+      if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!qfc <quick-find-code>),.) }
+      else { var %query = $regsubex($2-,/(_|\s|-)/Sig,$chr(44)) }
+    }
+    if (!$regex($1,/^[!@.~`^](r(une)?s(cape)?)?(quickfind(code)?|qfc)$/Si)) { 
+      var %output = $iif($Settings($chan,Public), .msg $chan, .notice $nick) 
+    }
+    if ((%linkid) || (%query)) { noop $Sockmake(Qfc,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=RSforum&query=,$iif(%linkid,$v1,%query)),$+(%output,,%address,,$iif(%linkid,$v1,%query),,$iif(%linkid,$true,$false)))  }
+    return
+  }
+  elseif (%style == spotifyLINK) { noop $sockmake(SpotifyLink, sselessar.net, 80, $+(/parser/spotify.php?id=,$regml(trigger,1)), $+($iif($Settings($chan,Public), .msg $chan, .notice $nick),,%address,:,$regml(trigger,1)),$false) | return }
+  elseif (%style == geupdate) { 
+    var %mark = $+(%output,$chr(16),%address)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Geupdate&full=
+    noop $Sockmake(Geupdate,%host,80,%uri,%mark,$false)
+    return
+  }
+  elseif (%style == ge) {
+    var %lim = 0, %regName = matches $+ %address, %_regName = switch $+ %address
+    if (-? iswm $2 || -?? iswm $2 || -??? iswm $2) {
+      var %string = $3-, %sType = $replace($v2, -e, 1, -efp, 1, -epf, 1, -pef, 1, -fep, 1, -fpe, 1, -pfe, 1, -f, 2, -p, 3, -ef, 4, -fe, 4, -ep, 5, -pe, 5, -pf,, -fp,)
+    }
     else {
-      .sockopen $+(qfc.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(qfc.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($2,$chr(44),-))
+      var %string = $2-
     }
-  }
-  elseif ($istok(info,%style,32) && $nick ison #devvectra) {
-    .var %z = 1, %c $ticks
-    while (%z <= $script(0)) {
-      if ($ticks > $calc(%c + 2000)) { break } 
-      .inc %lines $lines($script(%z)) 
-      .inc %size $lof($script(%z)) 
-      .inc %z 
+    if (%sType !isnum 1-5 && $v1 != $null) {
+      %output $col(%address,error).logo $col(%address,Invalid switch combination).fullcol The only switches available for use are $&
+        $qt($col(%address,$+(e, $chr(44) $chr(32), f, $chr(44) $chr(32), p))) (Any combination of said switchs are available.)
+      return
     }
-    $msgs($nick,$chan,$1) $logo($nick,Scriptinfo) $c1(Total scripts loaded:) $c2($nick,$script(0)) $c1($chr(124),Total script lines:) $c2($nick,$bytes(%lines,db)) $+($c1,$chr(40),$c2($nick,%size bytes),$c1,$chr(41))
-    .unset %lines | .unset %size
-  }
-  elseif ($istok(weather,%style,32)) {
-    if (!$2-) && (!$readini(defname.ini,weather,$address($nick,3))) {
-      $msgs($nick,$chan,$1) $logo($nick,Error) $c1(You must add a location or zipcode to look up. You can also set a default location or zipcode: !weather -d[us/uk/ca] <Location/zipcode> [Example: !weather -d 10001].)
-      halt
+    noop $regex(%regName, %string, m@\s?(.+?)(?:\x2C|$)@g)
+    if ($regml(%regName, 0) == 0) {
+      %output $col(%address,error).logo $col(%address,Missing arguments).fullcol (EX:  $col(%address,$1- %switch $+(Item 1, $chr(44) Item2, $chr(44) ..., $chr(44)) Item N).fullcol $+ )
+      %output $col(%address,error).logo $col(%address,No more than 6 items may be passed. If you exceed this limit $+ $chr(44) the first 6 items will be used [1]­only.)
     }
-    if ($istok(-d -dus -duk -dca,$2,32)) {
-      if ($3 == $null) { $msgs($nick,$chan,$1) $logo($nick,Error) $c1(You must add a location or zipcode to set as default lookup. [Example: !weather -dUK London]) | halt }
-      .writeini -n defname.ini Weather $address($nick,3) $iif($2 == -d,INT,$remove($2,-d)) $replace($3-,$chr(32),+)
-      $msgs($nick,$chan,$1) $logo($nick,Weather) $c1(Your default weather $iif($3- isnum,code,location) has been set to) $c2($nick,$up($3-)) | halt
-    }
-    .sockopen $+(weather.,$hget($+(id.,$cid),$me)) www.accuweather.com 80
-    if (!$2) && ($readini(defname.ini,weather,$address($nick,3))) {
-      .sockmark $+(weather.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$gettok($readini(defname.ini,weather,$address($nick,3)),2-,32),:,$iif($gettok($readini(defname.ini,weather,$address($nick,3)),2-,32) isnum && $len($gettok($readini(defname.ini,weather,$address($nick,3)),2-,32)) == 5,$gettok($readini(defname.ini,weather,$address($nick,3)),2-,32),NOTHING),:,$iif($istok(UK US CA,$gettok($readini(defname.ini,weather,$address($nick,3)),1,32),32),$gettok($readini(defname.ini,weather,$address($nick,3)),1,32),INT),:,$nick))
-    } 
-    if ($2) && (!$istok(-d -dus -duk -dca,$2,32)) {
-      if (!$istok(-uk -ca -us,$2,32)) {
-        .sockmark $+(weather.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$regsubex($replace($2-,-,$chr(32)),/(\W)/g,% $+ $base($asc(\1),10,16)),:,$iif($2 isnum && $len($2) == 5,$2,NOTHING),:,INT,:,$nick))
+    else {
+      var %iter = 1, %max = $iif($regml(%regName, 0) > 6, 6, $v1), %single = $iif(%max == 1, $true, $false), %sockList
+      while (%iter <= %max) {
+        var %sockList = $addtok(%sockList, $urlencode($remove($regml(%regName, $v1), $chr(35))), 58)
+        inc %iter
       }
-      else {
-        if ($istok(-uk -ca -us,$2,32)) && ($3) {
-          .sockmark $+(weather.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$regsubex($replace($3-,-,$chr(32)),/(\W)/g,% $+ $base($asc(\1),10,16)),:,$iif($3 isnum && $len($3) == 5,$3,NOTHING),:,$remove($2,-),:,$nick))
+      noop $sockMake(GE, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Ge&track=H3LLY3S&item=, %sockList, &stype=, %sType) , $+(%output,,%address,,%single))
+    }
+    return 
+  }
+  elseif (%style == skill) {
+    ; Parse out $1[0]
+    tokenize 32 $right($1-,-1)
+
+    var %skill = $Skill($1)
+    tokenize 32 $deltok($1-,1,32)    
+    if (%skill != Overall) {
+      ; Parse the parameters
+
+      if ($pos($1-, @, $count($1-, @)) > 0) { 
+        var %string = $mid($1-, $calc(1+$v1)) 
+        tokenize 32 $replace($replace($1-,$+(@,$mid($1-,$calc(1+$v1))),$null),$chr(44),$chr(32))
+        var %this = 1, %count = $numtok(%string,44), %params 
+        while (%this <= %count && %this <= 5) {
+          var %obj = $trim($gettok(%string,%this,44))
+          if ($regex(%obj, /((?:f(?:ree)?|p(?:ay)?)(?:2|too?)p(?:lay)?|mem(?:ber)?s?)/Si)) { 
+            var %param.type = $iif(f* iswm %obj, 0, 1)
+          }
+          else { var %params = $+(%params,$chr(124),$replace(%obj,$chr(32),_)) }
+          inc %this
         }
-      }
-    }
-  }
-  elseif ($istok(quest,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!quest <quest>),$c1,.)
-      .halt
-    }
-    if ($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_))) {
-      $msgs($nick,$chan,$1) $logo($nick,quest) $c2($nick,$up($replace($2-,_,$chr(32)))) $c1($chr(40)) $+ $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),1,124)) $+ $c1($chr(41)) $c1($chr(124) QP:) $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),2,124)) $c1($chr(124) Reward:) $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),3,124))
-      $msgs($nick,$chan,$1) $logo($nick,quest) $c1(Guides:) $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),4,124)) $c1($chr(124)) $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),5,124)) $c1($chr(124)) $c2($nick,$gettok($readini(questdatabase.ini, Quests, $replace($2-,$chr(32),_)),6,124))
-    }
-    else { 
-      $msgs($nick,$chan,$1) $logo($nick,error) The quest $up($replace($2-,_,$chr(32))) was not found in our database.
-    }
-  }
-  elseif ($istok(wow,%style,32)) {
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You must add a character's name to look up.) | halt }
-    if (!$3) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You must add a realm the character is located on.) | halt }
-    if $regex($right($1,-1),/^(euarmory)$/Si) {
-      .sockopen $+(armorylookup.,$hget($+(id.,$cid),$me)) eu.wowarmory.com 80
-      .sockmark $+(armorylookup.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$up($urlencode($2)),:,EU,:,eu.wowarmory.com,:,$nick,:,$up($urlencode($remove($3-,@))))
-    } 
-    elseif $regex($right($1,-1),/^((us)?armory)$/Si) { 
-      .sockopen $+(armorylookup.,$hget($+(id.,$cid),$me)) us.wowarmory.com 80
-      .sockmark $+(armorylookup.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$up($urlencode($2)),:,US,:,us.wowarmory.com,:,$nick,:,$up($urlencode($remove($3-,@))))
-    }
-  }
-  elseif ($istok(cyborg,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!cyborg <name>),$c1,.)
-      .halt
-    }
-    elseif ($len($2-) > 10) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Length cant be longer than) $+($c2($nick,10),$c1,.)
-    }
-    else {
-      .sockopen $+(cyborg.,$hget($+(id.,$cid),$me)) cyborg.namedecoder.com 80
-      .sockmark $+(cyborg.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(45),+,$chr(95),+,$chr(32),+),:,$nick)
-    }
-  }
-  elseif ($istok(fact,%style,32)) {
-    .sockopen $+(fact.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(fact.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(spellcheck,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!spellcheck <word>),$c1,.)
-      .halt
-    }
-    .sockopen $+(spellcheck.,$hget($+(id.,$cid),$me)) www.spellcheck.net 80
-    .sockmark $+(spellcheck.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(45),+,$chr(95),+,$chr(32),+),:,$nick)
-  }
-  elseif ($istok(slap,%style,32)) {
-    if ($2 == $me) || (*Vectra iswm $2-) || ($2 ison #devvectra) { .describe $chan slaps $c2($nick,$nick) $c1(with) $c2($nick,$readini(items.ini,Item,$r(1,1378))) }
-    else { .describe $chan slaps $c2($nick,$iif(!$2,$nick,$2)) $c1(with) $c2($nick,$readini(items.ini,Item,$r(1,1372))) }
-  }
-  elseif ($istok(site,%style,32)) {
-    if ($Settings($chan,Site)) { $msgs($nick,$chan,$1) $logo($nick,website) $c1(The channel site for) $c2($nick,$chan) $c1(is:) $c2($nick,$Settings($chan,Site)) }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(No website has been set for) $+($c2($nick,$chan),$c1,.) }
-  }
-  elseif ($istok(delsite,%style,32)) {
-    if ($nick isop $chan || $is_staff($nick)) {
-      if (!$Settings($chan,Site)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(No website has been set for) $+($c2($nick,$chan),$c1,.) }
-      else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Site 0 | $msgs($nick,$chan,$1) $logo($nick,website) $c1(The channel site for) $c2($nick,$chan) $c1(has been deleted.) }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need to be) $c2($nick,op) $c1(to delete the URL for) $+($c2($nick,$chan),$c1,.) }
-  }
-  elseif ($istok(setsite,%style,32)) {
-    if ($nick isop $chan || $is_staff($nick)) {
-      if (www* iswm $2-) || (http* iswm $2-) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Site $2 | $msgs($nick,$chan,$1) $logo($nick,website) $c1(The website for) $c2($nick,$chan) $c1(has been set to:) $c2($nick,$Settings($chan,Site)) }
-      else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(The URL needs to contain:) $c2($nick,"www") $c1(or) $+($c2($nick,"http"),$c1,.) }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need to be) $c2($nick,op) $c1(to change/set the channel URL for) $+($c2($nick,$chan),$c1,.) }
-  }
-  elseif ($istok(event,%style,32)) {
-    if (!$Settings($chan,Event)) && ($nick !isreg $chan) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(The event has not been set for) $c2($nick,$chan) $+ $c1(.) }
-    elseif ($nick !isreg $chan) { .var %event $Settings($chan,Event) | $msgs($nick,$chan,$1) $logo($nick,event) $c1(Current event for) $c2($nick,$chan) $c1(is:) $c2($nick,$gettok(%event,3-,32)) $+ $c1(. Set by) $c2($nick,$gettok(%event,1,32)) $c1(on) $c2($nick,$gettok(%event,2,32)) $+ $c1(.) }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need atleast) $c2($nick,voice) $c1($chr(40)) $+ $c2($nick,+v) $+ $c1($chr(41)) $c1(to use this command.) }
-  }
-  elseif ($istok(delevent,%style,32)) {
-    if (!$Settings($chan,Event)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(No event has been set for) $c2($nick,$chan) $+ $c1(.) }
-    elseif ($nick ishop $chan) || ($nick isop $chan) || ($is_staff($nick)) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Event 0 | $msgs($nick,$chan,$1) $logo($nick,event) $c1(The event for) $c2($nick,$chan) $c1(has been deleted!) }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need atleast) $c2($nick,halfop) $c1($chr(40)) $+ $c2($nick,+h) $+ $c1($chr(41)) $c1(to use this command.) }
-  }
-  elseif ($istok(setevent,%style,32)) {
-    if ($nick ishop $chan || $nick isop $chan || $is_staff($nick)) {
-      if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add an event to save.) }
-      else { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Event $nick $date $2- | $msgs($nick,$chan,$1) $logo($nick,event) $c1(The event for) $c2($nick,$chan) $c1(has been set to:) $c2($nick,$gettok($Settings($chan,Event),3-,32)) }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(You dont have permission to use this command) }
-  }
-  elseif ($istok(autovoice,%style,32)) {
-    if ($nick isop $chan || $nick ishop $chan || $is_staff($nick)) {
-      if ($me isreg $chan || $me isvoice $chan) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(I have to be Op or halfop to voice anyone.) }
-      elseif ($2 == on) {
-        if (!$Settings($chan).AutoVoice) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Autovoice 1 | .msg $chan $logo($nick,autovoice)) $c1(Auto voice for) $c2($nick,$chan) $c1(has been enabled.) }
-        else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Autovoice for) $c2($nick,$chan) $c1(is already enabled.) }
-      }
-      elseif ($2 == off) {
-        if ($Settings($chan).AutoVoice) { .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) $chan Autovoice 0 | .msg $chan $logo($nick,autovoice) $c1(Auto voice for) $c2($nick,$chan) $c1(has been disabled.) }
-        else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Autovoice for) $c2($nick,$chan) $c1(is not enabled.) }
-      }
-      else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Only options are on or off.) }
-    }
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Must be Op or halfop to use this command.) }
-  }
-  elseif ($istok(abotnews,%style,32)) {
-    if ($nick isop #devvectra || $nick ishop #devvectra) && ($me == vectra || $me == [dev]vectra) {
-      $iif($me ison #Devvectra, .msg #DevVectra do writeini -n System.ini Botnews Botnews $2-)
-      .writeini -n System.ini Botnews Botnews $2-
-      $msgs($nick,$chan,$1) $logo($nick,botnews) $c1(The bot news message has been set to) $c2($nick,$readini(system.ini,botnews,botnews))
-    }
-  }
-  elseif ($istok(dbotnews,%style,32)) {
-    if ($nick isop #devvectra || $nick ishop #devvectra) && ($me == vectra || $me == [dev]vectra) {
-      $iif($me ison #Devvectra, .msg #DevVectra do remini -n System.ini Botnews)
-      .remini -n System.ini Botnews
-      $msgs($nick,$chan,$1) $logo($nick,botnews) $c1(The bot news message has been unset.)
-    }
-  }
-  elseif ($istok(lame,%style,32)) {
-    if (!$2) {
-      .msg $chan $logo($nick,lame) Lamest person in $chan is... 
-      .msg $chan $logo($nick,lame) $nick($chan,$rand(1,$nick($chan,0)))
-    }
-    elseif ($2) {
-      .var %lame. $rand(1,2)
-      if (%lame. == 1) { .msg $chan $logo($nick,lame) $2- is NOT lame }
-      if (%lame. == 2) { .msg $chan $logo($nick,lame) $2- IS lame }
-    }
-  }
-  elseif ($istok(Guessoff,%style,32)) {
-    if ($nick isop $chan || $nick ishop $chan) {
-      if (!%guess [ $+ [ $chan ] ]) { $msgs($nick,$chan,$1) $logo($nick,guess) $c1(The guess game has not been enabled for) $c2($nick,$chan) }
-      else {
-        .unset %guess [ $+ [ $chan ] ]
-        .msg $chan $logo($nick,guess) $c1(Guess has been turned off $+ $chr(44) the number was:) $c2($nick,%guess. [ $+ [ $chan ] ]) $+ $c1(.)
-        .unset %guess. [ $+ [ $chan ] ]
-      }
-    }
-  }
-  elseif ($istok(Guess,%style,32)) {
-    if (%guess [ $+ [ $chan ] ] == on) {
-      if (!$2) { 
-        msg $chan $logo($nick,guess) $c1(Enter a number between 1 - 10.000) 
-        halt 
-      }
-      if ($2 == %guess. [ $+ [ $chan ] ]) {
-        .msg $chan $logo($nick,guess) $c1(Thats right! Good Job) $c2($nick,$nick) $+ $c1(!)
-        .msg $chan $logo($nick,guess) $c1(Oke, Next round!)
-        .set %guess. [ $+ [ $chan ] ] $rand(1,10000)
-        .msg $chan $logo($nick,guess) $c1(Type) $c2($nick,!guess <number>) $c1(pick a number between 1 - 10.000)
-        .msg $chan $logo($nick,guess) $c1(Type) $c2($nick,!guessoff) $c1(to stop)
-        .halt
+        var %params = $mid(%params,2)
+        if (%params == $null) { var %params = $false }
+        if (%param.type == $null) { var %param.type = $false }
       }
 
-      if ($2 > %guess. [ $+ [ $chan ] ]) { .msg $chan $logo($nick,guess) $c1($2 was wrong $+ $chr(44) Try to guess a bit lower.) | halt }
-      if ($2 < %guess. [ $+ [ $chan ] ]) { .msg $chan $logo($nick,guess) $c1($2 was wrong $+ $chr(44) Try to guess a bit higher.) | halt }
+      else { var %params = $false, %param.type = $false }
+
+      ; Parse the opts
+      if ($regex(one, $1-,/((?:[~?])?(?:l(?:(?:evel|vl)(?:one|1)?)?|e(?:xp(?:erience)?)?)(?:[: ]?)?(\d+([MmKk])?))/Si)) {
+        tokenize 32 $deltok($1-, $findtok($1-,$regml(one, 1),1,32), 32)
+        if ($regex(two, $1-,/((?:[~?])?(?:l(?:(?:evel|vl)(?:two|2)?)?|e(?:xp(?:erience)?)?)(?:[: ]?)?(\d+([MmKk])?))/Si)) {
+          ; range to calculate between
+          ; calculate the exp before the level
+          var %exp = $iif(e isin $regml(one, 1),$iif($stringToNum($regml(one, 2)) isnum 1-200000000,$v1,200000000),$lvl($iif($regml(one, 2) isnum 2-126,$v1,99)))
+          var %to.exp = $iif(e isin $regml(two, 1),$iif($stringToNum($regml(two, 2)) isnum 1-200000000,$v1,200000000),$lvl($iif($regml(two, 2) isnum 2-126,$v1,99)))
+          if (%exp > %to.exp) { var %exp = $v2, %to.exp = $v1 }
+
+          ; get the level
+          var %level = $exp(%exp), %to.lvl = $exp(%to.exp)
+          var %tolvl.exp = %to.exp - %exp
+
+          var %swpoint = $SWpoint(%skill,$iif(%level > 99,$v2,$v1)), %pcpoint = $PCpoint(%skill,$iif(%level > 99,$v2,$v1)), %tripexp = $Tripexp(%hash,%skill), %effigy = $Effigy($iif(%level > 99,$v2,$v1))
+          %output $col(%address,%skill).logo $+([,$col(%address,%skill),]) Level: $col(%address,%level).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $(|) Exp to level $+($col(%address,%to.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol $iif($round($calc((%exp - $lvl(%level)) / ($lvl(%to.lvl) - $lvl(%level)) * 100),2) > 0,$+($chr(40),$col(%address,$v1).fullcol,% to $col(%address,%to.lvl).fullcol,$chr(41))) $&
+            $iif(%tripexp > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp / %tripexp))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($Penguin(%level,%tolvl.exp),db)).fullcol $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp / %effigy))).fullcol ( $+ $col(%address,$numToString(%effigy)).fullcol $+ xp) $&
+            $iif(%swpoint > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp / %swpoint)),db)).fullcol) $iif(%pcpoint > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp / %pcpoint)),db)).fullcol)
+          $iif(*.msg* iswm %output && $chr(35) !isin %output, .msg $nick, .notice $nick) $col(%address) For $col(%address,$bytes(%tolvl.exp,db) %skill).fullcol exp: $item2lvl(%address, %skill, %level, %exp, %tolvl.exp, %param.type)
+          return
+        }
+        if (e isin $regml(one, 1)) { var %goal = $iif($stringToNum($regml(one, 2)) isnum 1-200000000,$+(EXP.,$v1),$false) }
+        else { var %goal = $+(LEVEL.,$iif($regml(one, 2) isnum 2-126,$v1,99)) }
+      }
+      elseif ($regex(goal, $1-,/(#(\d+))/Si) == 1) { var %goal = $+(LEVEL.,$iif($regml(goal, 2) isnum 2-126,$v1,99)) }
+      elseif ($regex(goal, $1-,/([~\^](\d+(?:[mMkK])?))/Si) == 1) { var %goal = $iif($stringToNum($regml(goal, 2)) isnum 1-200000000,$+(EXP.,$v1),$false) }
+      else { var %goal = $false }
+      if ($regml(goal,1)) { tokenize 32 $iif($calc($regml(goal, 1).pos -2) > 0,$mid($1-, 0, $v1)) $mid($1-, $calc($regml(goal, 1).pos + $len($regml(goal, 1)))) }
     }
+    else { var %goal = $false, %params = $false, %param.type = $false }    
+
+    ; Find the rsn
+    if ($1) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $1- ison $chan,$+($trim($1-),&),$trim($1-))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($token(%rsn,1,58),%output,%address,$1-).error
+    if (!$regex($gettok(%rsn,1,58),/^[A-Za-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$1-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%goal,,%param.type,,%params,,$gettok(%rsn,2,58))
+
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
   }
-  elseif ($istok(Guesson,%style,32)) {
-    if ($nick isop $chan || $nick ishop $chan) {
-      if (%guess [ $+ [ $chan ] ] == on) { $msgs($nick,$chan,$1) $logo($nick,guess) $c1(The guess game has already been enabled for) $c2($nick,$chan) }
+  elseif (%style == rsstats) { 
+    var %switch = $iif($regex(switch, $1-, /\s-([ner]|p(\d+)?)/) == 1, $regml(switch, 1), a)
+    if ($regml(switch, 1)) { tokenize 32 $regsubex($1-, /\s-([ner]|p(\d+)?)/g,$null) }
+
+    ; Find the filter in the command
+    var %filter = >, %filternumber = 0
+    if ($regex(filter,$1-,/([<>=]=?) ?(\d+([mMkK])?)/) == 1) {
+      var %filter = $regml(filter,1), %filternumber = $iif($regml(filter,2) isnum,$v1,$stringToNum($v1))
+      tokenize 32 $regsubex($1-, /([<>=]=?) ?(\d+([mMkK])?)/g,$null)
+    }
+
+    if ($regex($2-,/@(p[t2]p|f[t2]p)/Si) == 1) {
+      var %modifier = $iif(p* iswm $regml(1),&ptp=1,&ftp=1)
+      tokenize 32 $regsubex($1-, /(@(p[t2]p|f[t2]p))/g,$null)
+    } 
+
+    ; Find the rsn
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%switch,,%filter,,%filternumber,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58)) $+ %modifier
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }
+  elseif (%style == compare) {
+    if (!$2) { %output $col(%address,error).logo Please add two nicknames to compare. Syntax: $+($col(%address,$1 [skill] $+(User1[&],$chr(44),<User2[&]>)),.) | halt }
+
+    if ($Skill($2)) { var %skill = $v1 | tokenize 32 $1 $3- }
+    else { var %skill = Overall }
+
+    noop $regex(comp, $2-, /^([^,]*)(?:\s+)?(?:,(?:\s+)?(.*))?$/)) 
+    var %user1 = $Username(Defname, %address, 12, $nick, $iif($chan && $regml(comp, 1) ison $chan,$+($trim($regml(comp, 1)),&),$trim($regml(comp, 1))))
+    if ($regml(comp, 2)) { var %user2 = $Username(Defname, %address, 12, $nick, $iif($chan && $regml(comp, 2) ison $chan,$+($trim($regml(comp, 2)),&),$trim($regml(comp, 2)))) } 
+    else { var %user2 = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%user1,1,58), %output, %address, $regml(comp, 1)).error
+    if (!$regex($gettok(%user1,1,58),/^[A-Za-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG, %output, %address, $regml(comp, 1)).error
+    }
+
+    noop $Username($gettok(%user2,1,58), %output, %address, $regml(comp, 2)).error
+    if (!$regex($gettok(%user2,1,58),/^[A-Za-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG, %output, %address, $regml(comp, 2)).error
+    }
+
+    if (%user1 == %user2) { %output $col(%address,error).logo Both supplied RSNs are the same. | halt }
+
+    var %mark = $+(%output,,%address,,%skill,,$gettok(%user1,1,58),,$gettok(%user2,1,58),,$gettok(%user1,2,58),,$gettok(%user2,2,58))
+    var %uri = $+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%user1,1,58)),&compare=,$urlencode($gettok(%user2,1,58)))
+    noop $sockmake($+(RSstats.,%style), parsers.vectra-bot.net, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == skillplan || %style == task) {
+    if ($2 == $null) { %output $col(%address, ERROR).logo Invalid parameter(s) (EX: $col(%address, $1 ITEM_AMOUNT ITEM) $+ ). | return }
+    var %skill = $iif(%style == task, Slayer, $Skill($regml(trigger, 1))), %rsn = $Username(Defname, %address, 12, $nick)
+    if ($istok(Overall Dungeoneering,%skill,32)) { %output $col(%address,error).logo The skill $col(%address,%skill) is not a valid skill to use in the planner. | return }
+    if (%rsn == $null || $2 == $null || $3- == $null) { %output $col(%address, ERROR).logo Missing parameter(s) (EX: $col(%address, $1 ITEM_AMOUNT ITEM) $+ ) }
+    else {
+      if ($stringToNum($2) !isnum) { %output $col(%address, ERROR).logo Invalid parameter(s) (EX: $col(%address, $1 ITEM_AMOUNT ITEM) $+ ). }
       else {
-        .set %guess [ $+ [ $chan ] ] on
-        .set %guess. [ $+ [ $chan ] ] $rand(1,10000)
-        .msg $chan $logo($nick,guess) $c1(Type) $c2($nick,!guess <number>) $c1(pick a number between 1 - 10.000)
-        .msg $chan $logo($nick,guess) $c1(Type) $c2($nick,!guessoff) $c1(to stop)
+        var %Skills = 0.72.72.72.373.372.74.73.75.76.77.78.79.80.81.82.83.84.85.86.87.209.361.88.108.0
+        var %num = $stringToNum($2), %item = $3-
+        if ($istok(Attack Defence Strength Range,%skill,32)) { var %info = $skillParam(Melee, %item, 1) }
+        else { var %info = $skillParam(%skill, %item, 1) }
+        if (%info == $null) { %output $col(%address, ERROR).logo " $+ $col(%address, %item).fullcol $+ " not found in our $col(%address, %skill) database. Please have a look at: $+($col(%address,http://forum.vectra-bot.net/viewtopic.php?f=19 $+ $iif($token(%Skills,$Numskill(%skill),46) != 0,$+(&t=,$v1),$null)),.) }
+        else { noop $sockMake($+(RSstats.,%style), parsers.vectra-bot.net, 80, /Parsers/index.php?type=Stats&rsn= $+ $urlencode($token(%rsn,1,58)), $+(%output,,%address,,$token(%rsn,1,58),,%num,,%skill,,%info,,$token(%rsn,2,58))) | return }
       }
     }
+    return
   }
-  elseif ($istok(8ball,%style,32)) {
-    if ($2) {
-      .var %8ball $rand(1,10)
-      if (%8ball == 1) .msg $chan $logo($nick,8Ball) $c1(No.)
-      if (%8ball == 2) .msg $chan $logo($nick,8Ball) $c1(Yes.)
-      if (%8ball == 3) .msg $chan $logo($nick,8Ball) $c1(Yep.)
-      if (%8ball == 4) .msg $chan $logo($nick,8Ball) $c1(Are you crazy?!)
-      if (%8ball == 5) .msg $chan $logo($nick,8Ball) $c1(Why not.)
-      if (%8ball == 6) .msg $chan $logo($nick,8Ball) $c1(Not at all.)
-      if (%8ball == 7) .msg $chan $logo($nick,8Ball) $c1(I don't think so!)
-      if (%8ball == 8) .msg $chan $logo($nick,8Ball) $c1(Yeah.)
-      if (%8ball == 9) .msg $chan $logo($nick,8Ball) $c1(You wish.)
-      if (%8ball == 10) .msg $chan $logo($nick,8Ball) $c1(Nope!)
+  elseif (%style == combat) {
+    ; Find the goal
+    var %goal = 0
+    if ($regex($2-,/#(\d+)/Si) == 1) { var %goal = $iif($regml(1) isnum 1-138,$v1,0) }
+
+    ; Find the rsn
+    var %nick = $nick
+    if ($regsubex($2-,/(#(\d+))/g,$null) != $null) { 
+      var %v1 = $v1 
+      var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && %v1 ison $chan,$+($trim(%v1),&),$trim(%v1)))) 
+      tokenize 32 $1 $regsubex($2-,/(#(\d+))/g,$null)
     }
-    else $msgs($nick,$chan,$1) $logo($nick,error) $c1(8Balls require questions.)
-  }
-  elseif ($istok(rape,%style,32)) {
-    if (!$2) { 
-      if ($Settings($chan).Public) { halt }
-      .describe $chan drags $c2($nick,$nick) $+($c1,around the corner,$chr(44), and rapes) $c2($nick,$nick) $c1(to death with a) $+($c2($nick,stick),$c1,!!)
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
     }
-    elseif ($2 ison #DevVectra && $me ison #DevVectra) {
-      .msg $chan $c2($nick,$2) $c1(is to gangsta to rape.)
-    } 
-    else {
-      if ($Settings($chan).Public) { halt }
-      .describe $chan drags $c2($nick,$2) $+($c1,around the corner,$chr(44), and rapes) $c2($nick,$2-) $c1(to death with a) $+($c2($nick,stick),$c1,!!)
-    }
-  }
-  elseif ($istok(noob,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    if ($2) {
-      .describe $chan starts the noobtest... 
-      .msg $chan $c1(The noobtest reveals) $c2($nick,$2-) $c1(is) $c2($nick,$iif($nick ison #devvectra && $left($1,1) == `,100,$r(0,100))) $+ $c1(% noob!)
-    }
-    else {
-      .describe $chan starts the noobtest for $chan $+ ... 
-      .var %random = $nick($chan,$r(1,$nick($chan,0))), %c $ticks
-      while ($istok(%random,$me,32)) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        .var %random = $nick($chan,$r(1,$nick($chan,0)))
-      }
-      .msg $chan $c1(The noobtest reveals) $c2($nick,%random) $c1(is) $c2($nick,$iif($nick ison #devvectra && $left($1,1) == `,100,$r(0,100))) $+ $c1(% noob!)
-    }
-  }
-  elseif ($istok(gay,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    if ($2) {
-      .describe $chan starts the gaytest... 
-      .msg $chan $c1(The gaytest reveals) $c2($nick,$2-) $c1(is) $c2($nick,$iif($nick ison #devvectra && $left($1,1) == `,100,$r(0,100))) $+ $c1(% gay!)
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%goal,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = $+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58)),&cmb=,%goal)
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }  
+  elseif ($istok(rsworld lootshare,%style,32)) { 
+    if (%style == lootshare) { tokenize 32 $1 ls $2- }
+    if ($2 == $null) {
+      %output $col(%address, ERROR).logo Please submit a world to look up
     }
     else {
-      .describe $chan starts the gaytest for $chan $+ ... 
-      .var %random = $nick($chan,$r(1,$nick($chan,0))), %c $ticks
-      while ($istok(%random,$me,32)) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        .var %random = $nick($chan,$r(1,$nick($chan,0)))
-      }
-      .msg $chan $c1(The gaytest reveals) $c2($nick,%random) $c1(is) $c2($nick,$iif($nick ison #devvectra && $left($1,1) == `,100,$r(0,100))) $+ $c1(% gay!)
-    }    
-  }
-  elseif ($istok(fu,%style,32)) {
-    if (!$2) {
-      if ($Settings($chan).Public) { halt }
-      .describe $chan fucks $+($c2($nick,$nick),$chr(3)) to death with a stick!!!
-    }
-    else {
-      if ($Settings($chan).Public) { halt }
-      .describe $chan fucks $+($c2($nick,$2-),$chr(3)) to death with a stick!!!
-    }
-  }
-  elseif ($istok(ss,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    .describe $chan gives $+($c2($nick,$iif($2,$2,$nick)),$chr(3)) a skittle
-  }
-  elseif ($istok(mm,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    .describe $chan gives $+($c2($nick,$iif($2,$2,$nick)),$chr(3)) some M&M's 1,0(0,4m1,0)1,0(0,12m1,0)1,0(0,3m1,0)1,0(0,8m1,0)1,0(0,7m1,0)1,0(0,5m1,0)
-    .msg $chan 10They melt in your mouth, not in your hand!
-  }
-  elseif ($istok(cookie,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    .describe $chan gives $iif($2,$2,$nick) a cookie, coated with hot chocolate sauce which melts only at a temperature of 80 degrees celsius, filed with yanilla flavoured white chocolate grinded to perfection, cooked under an oven which contained only 12.3% carbon dioxide to form the perfect mixture. Finally a bucket of fine chocolate was poured upon the cookie, making a thin layer of black sirup ooz out from the tip of the cookie.
-  }
-  elseif ($istok(coffee,%style,32)) {
-    if ($Settings($chan).Public) { halt }
-    $iif(!$chan, .msg $nick, .msg $chan) $c2($nick,$iif($chan,$nick,$me)) $c1(offers mugs of hot coffee) 0,12"""12] 0,1"""1] 0,4"""4] 0,3"""3] 0,8"""8] 0,2"""2] 0,9"""9] $iif($chan,$c1(to everyone in) $c2($nick,$chan),$c1(to you))
-  }
-  elseif ($istok(rsn,%style,32)) {
-    if (!$readini(defname.ini,RSNs,$address($iif($2,$2,$nick),3)) || !$nick(#,$iif($2,$2,$nick))) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Could not find) $c2($nick,$iif($2,$2,$nick))  $c1(in the channel or) $remove($c2($nick,$2),&) $c1(has no defname set.)
-    }
-    elseif ($readini(privacy.ini,privacy,$address($iif($2,$2,$nick),3))) {
-      $msgs($nick,$chan,$1) $logo($nick,rsn) $c1(Sorry, this nickname is private)
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,rsn) $c1(Stored rsn for the host) $+($c1,$chr(40),$c2($nick,$iif($2,$address($2,3),$address($nick,3))),$c1,$chr(41)) $c1(and nick) $c2($nick,$iif($2,$2,$nick)) $c1(is) $+($c2($nick,$iif($readini(privacy.ini,privacy,$address($iif($2,$2,$nick),3)),<hidden>,$readini(defname.ini,RSNs,$address($iif($2,$2,$nick),3)))),$c1,.)
-    }
-  }
-  elseif ($istok(tb,%style,32)) {
-    if ($nick isop $chan || $nick ishop $chan) && ($me isop $chan || $me ishop $chan) {
-      if ($3 !isnum || $4 == $null) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!tb <nick> <minutes> <reason>),$c1,.)
-        halt
-      }
-      if ($2 == $me) || ($2 ison #devvectra) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(I love) $c2($nick,$2) $c1(too much to TB! sorry!)) | halt }
-      if (!$nick(#,$2)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1($2 is not on the channel) | halt }
-      .ban $+(-ku,$calc($3 * 60)) $chan $2 2 $c2($nick,$2) $c1(is tb'ed for) $c2($nick,$3) $c1(mins! Reason:) $c2($nick,$4-)
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need to be) $c2($nick,Op/HalfOp) $c1(in) $+($c2($nick,$chan),$c1,. If you are $+ $chr(44) then) $c2($nick,Op/HalfOp) $c1(me!)
-    }
-  }
-  elseif ($istok(fairy,%style,32)) {
-    if (!$2) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!fairy <location>),$c1,.)
-    }
-    else {
-      if (!$readini(teleport.ini,teleport,$replace($2-,$chr(32),_))) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$2) $c1(is not found in our database.)
-      }
+      var %uri = /Parsers/index.php?type=RSworlds, %world = 0, %event = 0, %filter = 0, %members = 0
+      noop $regex(%address, $2-, /(?:(^\d+$)|(?:-([fm])\s|())(?:(?:([><]=|[<>=])|())(\d+(?:\.\d+)?k?)|())(?: ?(.+)|()))/Si)
+      if ($regml(%address, 1) isnum) { var %uri = %uri $+ &world= $+ $v1, %world = 1 }
       else {
-        $msgs($nick,$chan,$1) $logo($nick,fairyring) $c1(Combination for) $c2($nick,$2) $c1(is) $+($c2($nick,$readini(teleport.ini,teleport,$replace($2-,$chr(32),_))),$c1,.)
+        if ($regml(%address, 3) isnum) && ($regml(%address, 2) == $null) {
+          %output $col(%address, ERROR).logo Incorrect filter type. (EX: $col(%address, $1 >=1500 [EVENT]).fullcol OR $col(%address, $1 >=1.5k [EVENT]).fullcol $+ )
+        }
+        else {
+          if ($regml(%address, 1) != $null) { var %members = $iif($v1 == m, 1, 0), %uri = $+(%uri, &p2p=, %members) }
+          if ($regml(%address, 2) != $null) { var %uri = $+(%uri, &filter=, $regml(%address, 2), $regml(%address, 3)), %filter = 1 }
+          if (($regml(%address, 4) != $null) || ($regml(%address, 2) == $null && $regml(%address, 3) != $null)) { var %uri = $+(%uri, &event=, $urlencode($v1)), %event = 1 }
+        }
       }
+      var %host = vectra-bot.net
+      var %mark = $+(%output, $chr(16), %address, $chr(16), %world, $chr(16), %filter, $chr(16), %event, $chr(16), %members)
+      noop $Sockmake(RsWorld, %host, 80, %uri, %mark, $false)
     }
+    return
   }
-  elseif ($istok(clan,%style,32)) {
-    .var %rsn $rsn($nick,$iif($2,$2-,$address($nick,3)))
-    if (%rsn) {
-      .sockopen $+(clan.,$hget($+(id.,$cid),$me)) www.runehead.com 80
-      .sockmark $+(clan.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,%rsn,:,$nick,:,$iif(($regex($right($2-,1),/^[&*]$/Si) && $address($left($2,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2,-1),3)) == $readini(privacy.ini,privacy,$address($left($2,-1),3))),$ifmatch,DontHideRsnOkPlx))
+  elseif ($istok(farthest closest,%style,32)) {  
+    ; Find what skill
+    var %skill = $iif($regml(trigger,1) isnum 2-25,$v1,1)
+
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
     }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58),,$iif(%style == farthest,1,0))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
   }
-  elseif ($istok(helper,%style,32) && $nick ison #devvectra) {
-    if ($($right($1,-1),2) == join) { .join $2 }
-    if ($($right($1,-1),2) == spart) { .part $2 Part Ordered by $is_staff($nick) $nick }
+  elseif (%style == highlow) { 
+    ; Find the skill num
+    var %num = $iif($regml(trigger,3) !isnum 2-26,1,$v1)
+    if ($regex(trigger, $1,/^[!@.~`^](r(une)?s(cape)?)?highlow(\d+)?$/Si) == 0) {
+      if ($regex(trigger, $1,/^[!@.~`^](r(une)?s(cape)?)?high(est)?(\d+)?$/Si)) { var %skill = high }
+      else { var %skill = low }
+    }
+    else { var %skill = highlow }
+
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%num,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
   }
-  elseif ($istok(bncconnect,%style,32)) && ($nick == -sBNC) {
-    .hadd -mu120 $+(Connect.,$cid) $me on
+  elseif ($istok(nextcmb statpercent,%style,32)) { 
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    noop $Sockmake($+(RSstats.,%style), parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))), $+(%output,,%address,,$gettok(%rsn,1,58),,$gettok(%rsn,2,58)), $false)
+    return
   }
-  elseif ($istok(userreq,%style,32)) && ($vectra_staff($nick).admin) {
-    if (!$2) {
-      if (!$readini(req.ini,req,$network)) {
-        .notice $nick $c3(No requirements for) $c4($network) $c3(auto changing it to) $c4(2) $+ $c3($chr(44) that's) $c4($me + 1) $c3(user(s) in the channel.)
-        .writeini -n req.ini req $network 2
-        .msg #devvectra do writeini -n req.ini req $network 2
-        .halt
+  elseif (%style == soulwars) { 
+    if (!$2) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    if ($regex($2,/^at(t|k|tack)$/Si)) { var %skill = Attack }
+    elseif ($regex($2,/^def(en[cs]e)?$$/Si)) { var %skill = Defence }
+    elseif ($regex($2,/^str(ength|enght)?$/Si)) { var %skill = Strength }
+    elseif ($regex($2,/^((hp|hit)(s|points?)?|cons(titution)?)$/Si)) { var %skill = Constitution }
+    elseif ($regex($2,/^range(r|d|ing)?$/Si)) { var %skill = Ranged }
+    elseif ($regex($2,/^Pray(er)?$$/Si)) { var %skill = Prayer }
+    elseif ($regex($2,/^mag(e|ic)$$/Si)) { var %skill = Magic }
+    elseif ($regex($2,/^slay(er|ing)?$/Si)) { var %skill = Slayer }
+
+    if (!%skill) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    ; Find the goal
+    var %goal = 0
+    if ($regex($3-,/#(\d+)/Si) == 1) { var %goal = $iif($regml(1) isnum 2-126,$v1,0) }
+
+    ; Find the rsn
+    var %nick = $nick
+    if ($regsubex($3-,/(#(\d+))/g,$null) != $null) { 
+      var %v1 = $v1
+      var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && %v1 ison $chan,$+($trim(%v1),&),$trim(%v1)))) 
+    }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%goal,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }
+  elseif (%style == pcontrol) { 
+    if (!$2) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    if ($regex($2,/^at(t|k|tack)$/Si)) { var %skill = Attack }
+    elseif ($regex($2,/^def(en[cs]e)?$$/Si)) { var %skill = Defence }
+    elseif ($regex($2,/^str(ength|enght)?$/Si)) { var %skill = Strength }
+    elseif ($regex($2,/^((hp|hit)(s|points?)?|cons(titution)?)$/Si)) { var %skill = Constitution }
+    elseif ($regex($2,/^range(r|d|ing)?$/Si)) { var %skill = Ranged }
+    elseif ($regex($2,/^Pray(er)?$$/Si)) { var %skill = Prayer }
+    elseif ($regex($2,/^mag(e|ic)$$/Si)) { var %skill = Magic }
+
+    if (!%skill) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    ; Find the goal
+    var %goal = 0
+    if ($regex($3-,/#(\d+)/Si) == 1) { var %goal = $iif($regml(1) isnum 2-126,$v1,0) }
+
+    ; Find the rsn
+    var %nick = $nick
+    if ($regsubex($3-,/(#(\d+))/g,$null) != $null) {
+      var %v1 = $v1
+      var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && %v1 ison $chan,$+($trim(%v1),&),$trim(%v1)))) 
+    }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%goal,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }
+  elseif (%style == penguin) { 
+    if (!$2) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    if ($Skill($2)) { var %skill = $v1 }
+    if (%skill == Overall) { var %skill = $false }
+
+    if (!%skill) { %output $col(%address,error).logo Wrong syntax: $+($col(%address,$1 skill <nick> <#goal>),.) | halt }
+
+    ; Find the goal
+    var %goal = 0
+    if ($regex($3-,/#(\d+)/Si) == 1) { var %goal = $iif($regml(1) isnum 2-126,$v1,0) }
+
+    ; Find the rsn
+    var %nick = $nick
+    if ($regsubex($3-,/(#(\d+))/g,$null) != $null) { 
+      var %v1 = $v1
+      var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && %v1 ison $chan,$+($trim(%v1),&),$trim(%v1))))     
+    }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58),%output,%address,$2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    ; Call the command
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%goal,,$gettok(%rsn,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }
+  elseif (%style == barrows) {
+    if ($regex($2-,/([@\-]W(eap(on)?)?)$/Si)) { var %base = 100000, %barrows = Weapon | tokenize 32 $remove($1-,$regml(1)) }
+    elseif ($regex($2-,/([@\-]B(od(y|ies)?)?)$/Si)) { var %base = 90000, %barrows = Body | tokenize 32 $remove($1-,$regml(1)) }
+    elseif ($regex($2-,/([@\-](pl(8|ate))?Legs?)$/Si)) { var %base = 80000, %barrows = Legs | tokenize 32 $remove($1-,$regml(1)) }
+    elseif ($regex($2-,/([@\-]H(ead|elm(et)?)?)$/Si)) { var %base = 60000, %barrows = Helmet | tokenize 32 $remove($1-,$regml(1)) }
+    else { var %base = 330000, %barrows = Set }
+
+    if ($regex($2-,/#(\d+)/Si)) { 
+      var %level = $iif($regml(1) isnum 2-99,$v1,1) 
+      %output $col(%address,barrows).logo The $col(%address,in-house) repair cost for Barrows $col(%address,%barrows) with $col(%address,%level).fullcol smithing: $+($col(%address,$bytes($calc(%base * ((200 - %level) / 200)),db)).fullcol,gp.)
+    }
+
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, $2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    } 
+
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%base,,%barrows,,$gettok(%rsn,2,58))
+    noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
+    return
+  }
+  elseif (%style == maxed) {
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, $2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    noop $Sockmake($+(RSstats.,%style), parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))), $+(%output,,%address,,$gettok(%rsn,1,58),,$gettok(%rsn,2,58)), $false)
+    return
+  }
+  elseif (%style == track) { 
+    ; Find the time
+    var %time = 604800
+    if ($regex($2-,/@(?:\s+)?(\w+)/Si) == 1) {
+      var %time = $duration($regml(1))
+    }
+    tokenize 32 $1 $regsubex($2-,/(@(?:\s+)?(\w+))/g,$null)
+
+    ; Find the skill
+    if (!$2) { var %skill = all }
+    elseif ($Skill($2)) { var %skill = $calc($Numskill($v1) - 1) | tokenize 32 $deltok($1-,2,32) }
+    else { var %skill = all }
+
+    if (%skill != all) {
+      var %timeline = 86400,604800,2419200
+      if (%time !isin %timeline) { var %time = $sorttok($+(%timeline,$chr(44),%time),44,n) }
+      else { var %time = %timeline }
+      if ($numtok(%time,44) > 4) { var %time = %gettok(%time,1-4,44) }
+    }
+
+    ; Find the rsn
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,%time,,$gettok(%rsn,2,58))
+    var %host = rscript.org
+    var %uri = $+(/lookup.php?type=track&time=,%time,&skill=,%skill,&user=,$urlencode($gettok(%rsn,1,58)))
+    noop $Sockmake(Tracker, %host, 80, %uri, %mark, $false) | return
+  }
+  elseif (%style == check) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill>),.) Use $col(%address,$+($mid($1,0,1),start)) to start a new timer. }
+    else {
+      if ($Skill($2)) { var %skill = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill>),.) Specify a $col(%address,valid) skill. | halt }
+
+      if ($wildtok($hget(Skillcheck,%hash), $+(*,%skill,|*), 1, 58)) {  
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output,%address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+
+        var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58))
+        noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
       }
-      else {
-        .notice $nick $c3(The requirements for) $c4($network) $c3(have been set to) $c4($readini(req.ini,req,$network)) $+ $c3($chr(44) that's) $c4($me + $calc($readini(req.ini,req,$network) - 1)) $c3(user(s) in the channel.)
-        .halt
-      } 
-    }
-    if ($2 isnum 2-6) {
-      if ($readini(req.ini,req,$network) == $2) {
-        .notice $nick $c3(The user requirements for) $c4($network) $c3(have already been set to) $c4($2) $+ $c3(.)
-        .halt
-      }
-      .writeini -n req.ini req $network $2
-      .msg #devvectra do writeini -n req.ini req $network $2
-      .notice $nick $c3(The user requirements for) $c4($network) $c3(have been changed to) $c4($2) $+ $c3($chr(44) that's) $c4($me + $calc($2 - 1)) $c3(user(s) in the channel.)
-      .halt
-    }
-    else {
-      .notice $nick $c3(The requirment has to be a number between 1 and 6.)
-      .halt
-    }
-    .halt
-  }
-  elseif ($istok(lovemeter,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add 2 names you wanna check. Syntax:) $c2($nick,!lovemeter Terror_nisse Jeffreims)
-    }
-    elseif (!$3) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add 2 names you wanna check. Syntax:) $c2($nick,!lovemeter Terror_nisse Jeffreims)
-    }
-    else {
-      .describe $chan Starts the lovetest....
-      .msg $chan $logo($nick,lovemeter) $c1(Love percent between) $c2($nick,$2) $c1(and) $c2($nick,$3-) $c1(is) $c2($nick,$iif($nick ison #devvectra && $left($1,1) == `,100,$r(0,100))) $+ $+($c2($nick,%),$c3,.)
-    }
-  }
-  elseif ($istok(count,%style,32)) {
-    $msgs($nick,$chan,$1) $logo($nick,count) $c1(There are) $c2($nick,$nick($chan,0)) $c1(users in) $+($c2($nick,$chan),$c1,.) $c2($nick,$nick($chan,0,o)) $+($c1,ops,$chr(44)) $c2($nick,$nick($chan,0,h)) $+($c1,halfops,$chr(44)) $c2($nick,$calc($nick($chan,0) - $nick($chan,0,o) - $nick($chan,0,h) - $nick($chan,0,r))) $c1(voiced and) $c2($nick,$nick($chan,0,r)) $c1(regulars.)
-  }
-  elseif ($istok(players,%style,32)) {
-    .sockopen $+(players.,$hget($+(id.,$cid),$me)) www.runescape.com 80
-    .sockmark $+(players.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(halo,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!halo3 <username>),$c1,.)
-      halt
-    }
-    .sockopen $+(halo3.,$hget($+(id.,$cid),$me)) vectra-bot.net 80
-    .sockmark $+(halo3.,$hget($+(id.,$cid),$me)) $+($replace($2-,$chr(32),$+($chr(37),20),$chr(45),$+($chr(37),20),$chr(95),$+($chr(37),20),+,$+($chr(37),20)),:,$msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(farmer,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!farmer <seed>),$c1,.)
-    }
-    elseif (!$readini(seeds.ini,seeds,$replace($2-,$chr(32),$chr(95),$chr(45),$chr(95),+,$chr(95)))) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Farmer price for) $+($c1,",$c2($nick,$replace($2-,$chr(95),$chr(32),$chr(45),$chr(32),+,$chr(32))),$c1,") $c1(in our database.) $zybez($nick)
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,farmer price) $c1(Plant:) $c2($nick,$up($replace($2-,$chr(95),$chr(32),$chr(45),$chr(32),+,$chr(32)))) $c1($chr(124),Price:) $c2($nick,$up($gettok($readini(seeds.ini,seeds,$replace($2-,$chr(32),$chr(95),$chr(45),$chr(95),+,$chr(95))),1,124))) $c1($chr(124),Obtained:) $c2($nick,$up($gettok($readini(seeds.ini,seeds,$replace($2-,$chr(32),$chr(95),$chr(45),$chr(95),+,$chr(95))),2,124)))
-    }
-  }
-  elseif ($istok(mylist,%style,32)) { 
-    if (!$2) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Syntax:) $c2($nick,!mylist <Skill> $left($str($+(ITEM,$chr(44) $chr(32)),7),-3)) $c1((A maximum of 7 items can be added.)) 
-      halt
-    } 
-    if (!$gskill($2)) || ($istok(Overall,$gskill($2),32)) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid skill. Syntax:) $c2($nick,!mylist <Skill> $left($str($+(ITEM,$chr(44) $chr(32)),7),-3)) $c1((A maximum of 7 items can be added.)) 
-      halt
-    } 
-    .var %shortmy $gskill($2)
-    if (!$3) && ($readini(mylist.ini,n,$address($nick,3),%shortmy)) { 
-      .remini -n mylist.ini $address($nick,3) %shortmy
-      $msgs($nick,$chan,$1) $logo($nick,mylist) $c1(Mylist for) $c2($nick,%shortmy) $c1(has been cleared.) 
-      $iif($me ison #Devvectra, .msg #DevVectra do remini -n mylist.ini $address($nick,3) %shortmy)
-    } 
-    elseif (!$3) && (!$readini(mylist.ini,n,$address($nick,3),%shortmy)) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(No custom mylist found for) $c2($nick,%shortmy) $c1(- unable to clear. Syntax:) $c2($nick,!mylist <Skill> $left($str($+(ITEM,$chr(44) $chr(32)),7),-3))
-    }
-    elseif ($numtok($3-,44) > 7) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Only a maximum of 7 items may be added at any one time.) 
-    } 
-    elseif (1) { 
-      .var %x 1 
-      .var %i $replace($replace($regsubex($3-,/ *\x2C */g,$chr(44)),$chr(32),$chr(45)),$chr(95),$chr(45)) , %c $ticks
-      while (%x <= $numtok(%i,44)) {
-        if ($ticks > $calc(%c + 4000)) { break } 
-        if ($paramFind(%shortmy,$gettok(%i,%x,44))) && ($gettok(%i,%x,44) !isin %s) { 
-          .var %s $+(%s,$gettok($paramFind(%shortmy,$gettok(%i,%x,44)),3,124),$chr(44))
-        } 
-        elseif ($gettok(%i,%x,44) !isin %s) { 
-          .var %n %n $up($gettok(%i,%x,44) $+ $chr(44))
-        } 
-        .inc %x 
-      } 
-      if ($numtok(%s,32) !== 0) {  
-        writeini -n mylist.ini $address($nick,3) %shortmy %s 
-        $iif($me ison #Devvectra, .msg #DevVectra do writeini -n mylist.ini $address($nick,3) %shortmy %s)
-        $msgs($nick,$chan,$1) $logo($nick,mylist) $c1(Added) $c2($nick,$formatlist($left(%s,-1))) $c1(to mylist option for) $+($c1($chr(40)),$c2($nick,$address($nick,3)),$c1($chr(41))) $c1(in the skill) $c2($nick,%shortmy) $+ $c1(.) $iif(%n,$c1(Unknown item parameters:) $c2($nick,$formatlist($replace($left(%n,-1),$chr(95),$chr(32),$chr(45),$chr(32)))) $+ $c1(. A list of Item parameters can be found here:) $c2($nick,http://www.vectra-bot.net/forum/viewforum.php?f=19)) 
-      } 
       else { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid Item parameters. A list of items can be found here:) $c2($nick,http://www.vectra-bot.net/forum/viewforum.php?f=19) 
-      } 
-    } 
-  } 
-  elseif ($istok(cmb-est,%style,32)) {
-    if ($10 != $null) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Syntax:) $c2($nick,!cmb-est <Attack> <Strength> <Defence> <Constitution> <Prayer> <Range> <Magic> <Summoning>)
-      halt
+        tokenize 58 $hget(Skillcheck,%hash)
+        var %this = 1
+        while (%this <= $0) { var %trackers = %trackers $token($($+($,%this),2),1,124) | inc %this }
+        %output $col(%address,error).logo No skill tracker set for $+($col(%address,%skill),.) Active skill trackers for " $+ $col(%address,%address) $+ " are: $+($iif(%trackers,$colorList(%address,32,44,%trackers).space,$col(%address,None)),.)
+      }
     }
-    if ($9 == $null) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Syntax:) $c2($nick,!cmb-est <Attack> <Strength> <Defence> <Constitution> <Prayer> <Range> <Magic> <Summoning>)
-      halt
-    }
-    var %normnnskill $2-4 $6-9
-    var %x 1
-    while (%x <= 7) {
-      if ($gettok(%normnnskill,%x,32) !isnum 1-99) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Combat stats must be between) $c2($nick,1-99) $c1(and Constitution) $c2($nick,10-99) $c1(Syntax:) $c2($nick,!cmb-est Attack Strength Defence Constitution Range Prayer Magic Summoning) | halt }
-      inc %x
-    }
-    if ($5 !isnum 10-99) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Combat stats must be between) $c2($nick,1-99) $c1(and Constitution) $c2($nick,10-99) $c1(Syntax:) $c2($nick,!cmb-est Attack Strength Defence Constitution Prayer Range Magic Summoning) | halt }
-    $msgs($nick,$chan,$1) $logo($nick,cmb-est) $c1(Level:) $c2($nick,$gettok($cmbformula($2,$3,$4,$5,$6,$7,$8,$9),1,32)) $+($c1,$chr(91),F2P:,$chr(32),$c2($nick,$gettok($cmbformula($2,$3,$4,$5,$6,$7,$8),1,32)),$chr(93)) $+($c1,$chr(40),$c2($nick,$gettok($cmbformula($2,$3,$4,$5,$6,$7,$8,$9),2,32)),$c1,$chr(41)) $+($c1,ASDCPRM,$chr(40),SU,$chr(41),:) $c2($nick,$2 $3 $4 $5 $6 $7 $8 $9) 
+    return
   }
-  elseif ($istok(rsrule,%style,32)) {
-    if ($regex($2,/hono(u)?r/Si)) { $msgs($nick,$chan,$1) $logo($nick,RS RULES) $c2($nick,1.) $c1(Macroing and use of bots or third-party software.) $c2($nick,2.) $c1(Real-world trading or buying power-levelling.) $c2($nick,3.) $c1(Ratings transfers.) $c2($nick,4.) $c1(Buying selling or sharing an account.) $c2($nick,5.) $c1(Knowingly exploiting a bug.) $c2($nick,6.) $c1(Jagex staff impersonation.) $c2($nick,7.) $c1(Password, account, bank PIN or item scamming.) $c2($nick,8.) $c1(Advert blocking - (the adverts pay for the games you play).) $c2($nick,9.) $c1(Encouraging others to break the rules.) }
-    elseif ($regex($2,/respect/Si)) { $msgs($nick,$chan,$1) $logo($nick,RS RULES) $c2($nick,1.) $c1(Discrimination of any kind whether based on another player's race, nationality, gender, sexual orientation or religious beliefs.) $c2($nick,2.) $c1(Threatening another player or bullying of any kind.) $c2($nick,3.) $c1(Using obscene or inappropriate language.) $c2($nick,4.) $c1(Spamming or disruptive behaviour.) $c2($nick,5.) $c1(Misue of the forums.) }
-    elseif ($regex($2,/security/Si)) { $msgs($nick,$chan,$1) $logo($nick,RS RULES) $c2($nick,1.) $c1(Asking for or providing personal information such as full names, ages, postal or email addresses, telephone numbers or bank details.) $c2($nick,2.) $c1(Discussing or advocating illegal activity of any kind, such as the use of illegal drugs.) $c2($nick,3.) $c1(Advertising other websites.) }  
-    else { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!rsrule <honour|respect|security>),$c1,.) }
-  }
-  elseif ($istok(grats,%style,32)) {
-    if (!$3) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid Syntax! Syntax:) $+($c2($nick,!grats <level> <skill> [nick] OR !grats <skill> <level> [nick]),$c1,.)
-      halt
-    }
-    if ($gskill($2)) { .var %gratsskill $gskill($2) }
-    elseif ($gskill($3)) { .var %gratsskill $gskill($3) }
-    if ($2 isnum) { .var %gratsnum $2 }
-    elseif ($3 isnum) { .var %gratsnum $3 }
-    .var %gratsnick $iif($4,$4-,$nick)
-    if (!%gratsnum) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Level must be a number.)  $c1(Syntax:) $c2($nick,$1 <level> <skill> [nick] OR $1 <skill> <level> [nick]) 
-      halt
-    }
-    if (!%gratsskill) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid skill.)  $c1(Syntax:) $c2($nick,$1 <level> <skill> [nick] OR $1 <skill> <level> [nick]) 
-      halt
-    }
-    if (%gratsnum !isnum 2-99) && (!$istok(overall combat,%gratsskill,32)) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Level must be between:) $+($c2($nick,2-99),$c1,.) $c1(Syntax:) $c2($nick,$1 <level> <skill> [nick] OR $1 <skill> <level> [nick]) 
-      halt
-    }
-    elseif (%gratsskill == Overall) && (%gratsnum !isnum 35-2376) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Overall Level must be between:) $+($c2($nick,35-2376),$c1,.)
-      halt
-    }
-    elseif (%gratsskill == Combat) && (%gratsnum !isnum 4-138) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Combat Level must be between:) $+($c2($nick,4-138),$c1,.)
-      halt
-    }
-    .describe $chan $+($chr(40),$chr(175),$chr(96),$chr(183),$chr(46),$chr(95),$chr(46),$chr(171) $+ (4G09 $+ $chr(174) $+ 11 $+ $chr(195) $+ 12T7$)\ :D -< Congratulations on $c2($nick,level %gratsnum %gratsskill %gratsnick $+ !!) >- /(4G09 $+ $chr(174) $+ 11 $+ $chr(195) $+ 12T7$) $+ $+($chr(187),$chr(46),$chr(95),$chr(46),$chr(183),$chr(180),$chr(175),$chr(41)))
-  }
-  elseif ($istok(urban,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!urban <term>),$c1,.)
-      halt
-    }
-    .sockopen $+(urban.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80 
-    .sockmark $+(urban.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+,$chr(95),+,$chr(45),+),:,$nick)
-  } 
-  elseif ($istok(rsworld,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!rsworld <number>),$c1,.)
-      .halt
-    }
-    .sockopen $+(rsworld.,$hget($+(id.,$cid),$me)) www.vectra-bot.net 80 
-    .sockmark $+(rsworld.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$2,:,$nick)
-  }
-  elseif ($istok(rsname,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Please type) $+($c2($nick,!rsname <rsn>),$c1,.)
-    }
+  elseif (%style == stop) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill>),.) Use $col(%address,$+($mid($1,0,1),start)) to start a new timer. }
     else {
-      .sockopen $+(rsname.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(rsname.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),$chr(95),$chr(45),$chr(95)),:,$nick)
+      if ($Skill($2)) { var %skill = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill>),.) Specify a $col(%address,valid) skill. | halt }
+
+      if ($wildtok($hget(Skillcheck,%hash), $+(*,%skill,|*), 1, 58)) {     
+        if ($calc($ctime - $token($v1,2,124)) > $calc($ctime + 30)) { %output $col(%address,error).logo You must wait at least $coL(%address,30).fullcol seconds before stopping a timer. | halt }    
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+
+        var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58))
+        noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
+      }
+      else { 
+        tokenize 58 $hget(Skillcheck,%hash)
+        var %this = 1
+        while (%this <= $0) { var %trackers = %trackers $token($($+($,%this),2),1,124) | inc %this }
+        %output $col(%address,error).logo No skill tracker set for $+($col(%address,%skill),.) Active skill trackers for " $+ $col(%address,%address) $+ " are: $+($iif(%trackers,$colorList(%address,32,44,%trackers).space,$col(%address,None)),.)
+      }
     }
+    return
   }
-  elseif ($istok(fmylife,%style,32)) {
-    .sockopen $+(fml.,$hget($+(id.,$cid),$me)) www.fmylife.com 80
-    .sockmark $+(fml.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(chuck,%style,32)) {
-    .sockopen $+(chuck.,$hget($+(id.,$cid),$me)) chucknorrisjokes.linkpress.info 80
-    .sockmark $+(chuck.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(vin,%style,32)) {
-    .sockopen $+(vin.,$hget($+(id.,$cid),$me)) 4q.cc 80
-    .sockmark $+(vin.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(yomama,%style,32)) {
-    .sockopen $+(yomama.,$hget($+(id.,$cid),$me)) www.asandler.com 80
-    .sockmark $+(yomama.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick)
-  }
-  elseif ($istok(chans,%style,32) && $nick ison #devvectra && $tag($2)) {
-    .var %x = 1, %c $ticks
-    while ($chan(%x)) {
-      if ($ticks > $calc(%c + 2000)) { break }
-      .var %status = $+($iif($me isop $chan(%x),$+($chr(3),04,@,$chr(3)),$iif($me ishop $chan(%x),$+($chr(3),07,%,$chr(3)),$iif($me isvoice $chan(%x),$+($chr(3),12,+,$chr(3))))),$c2($nick,$chan(%x)))
-      .var %people = $calc(%people + $nick($chan(%x),0) - 1)
-      .var %finish = %finish %status $+($c1,$chr(91),$c2($nick,$calc($nick($chan(%x),0) - 1)),$c1,$chr(93))
-      inc %x
-    }
-    .var %msg = $msgs($nick,$chan,$1)
-    .tokenize 32 %finish
-    %msg $c1(I am currently serving) $c2($nick,%people) $c1(people on) $c2($nick,$chan(0)) $c1(channels:) $1-28
-    if ($29) {
-      %msg $29-
-    }
-  }
-  elseif ($istok(delpcw,%style,32)) {
-    if ($nick !isop $chan) && ($nick !ishop $chan) { 
-      .notice $nick $logo($nick,error) $c1(You need atleast) $c2($nick,halfop) $c1(to delete the pestcontrol world.) 
-    }
+  elseif (%style == start) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill>),.) Use $col(%address,$+($mid($1,0,1),start)) to start a new timer. }
     else {
-      if (!$readini(pcw.ini,channel,$chan)) {
-        .notice $nick $logo($nick,error) $c1(No pestcontrol world set for) $+($c2($nick,$chan),$c1,.)
+      if ($Skill($2)) { var %skill = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill>),.) Specify a $col(%address,valid) skill. | halt }
+
+      if (!$wildtok($hget(Skillcheck,%hash), $+(*,%skill,|*), 1, 58)) {   
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+
+        var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58))
+        noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
       }
       else {
-        $iif($me ison #Devvectra, .msg #DevVectra do remini -n pcw.ini channel $chan)
-        .remini -n pcw.ini channel $chan
-        .notice $nick $logo($nick,delpcw) $c1(Pestcontrol world for) $c2($nick,$chan) $c1(is now deleted.)
+        var %1 = $1
+        tokenize 58 $hget(Skillcheck,%hash)
+        var %this = 1
+        while (%this <= $0) { var %trackers = %trackers $token($($+($,%this),2),1,124) | inc %this }
+        if (%skill isin %trackers) { %output $col(%address,error).logo The skill $col(%address,%skill) is already being tracked, use $col(%address,$+($mid(%1,0,1),check) %skill) to check your progress. }
+        else { %output $col(%address,error).logo No skill tracker set for $+($col(%address,%skill),.) Active skill trackers for " $+ $col(%address,%address) $+ " are: $+($iif(%trackers,$colorList(%address,32,44,%trackers).space,$col(%address,None)),.) } 
       }
     }
+    return
   }
-  elseif ($istok(setpcw,%style,32)) {
-    if ($query($nick)) {
-      if (!$3) || ($2 !isnum 1-169) || ($2 !isnum) { .msg $nick $logo($nick,error) $c1(Please give the pcw you want to set and the channel it should be set for) $c2(!setpcw 64 #channel)
+  elseif (%style == goal) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill>),.) Use $col(%address,$+($mid($1,0,1),setgoal)) to start a new goal. }
+    else {
+      if ($Skill($2)) { var %skill = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill>),.) Specify a $col(%address,valid) skill. | halt }
+
+      if ($wildtok($hget(Skillgoal,%hash), $+(*,%skill,|*), 1, 58)) {  
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output,%address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+
+        var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58))
+        noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
+      }
+      else { 
+        tokenize 58 $hget(Skillgoal,%hash)
+        var %this = 1
+        while (%this <= $0) { var %goals = %goals $token($($+($,%this),2),1,124) | inc %this }
+        %output $col(%address,error).logo No skill goal set for $+($col(%address,%skill),.) Active skill goals for " $+ $col(%address,%address) $+ " are: $+($iif(%goals,$colorList(%address,32,44,%goals).space,$col(%address,None)),.)
+      }
+    }
+    return
+  }
+  elseif (%style == delgoal) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill>),.) Use $col(%address,$+($mid($1,0,1),delgoal)) to end a goal. | halt }
+    else {
+      if ($Skill($2)) { var %skill = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill>),.) Specify a $col(%address,valid) skill. | halt }
+      if ($wildtok($hget(Skillgoal,%hash), $+(*,%skill,|*), 1, 58)) {     
+        if ($calc($ctime - $token($v1,2,124)) > $calc($ctime + 30)) { %output $col(%address,error).logo You must wait at least $coL(%address,30).fullcol seconds before ending a goal. | halt }    
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+        var %string = $hget(Skillgoal,$+($network,:,%address))
+        var %token = $wildtok(%string, $+(*,%skill,|*), 1, 58)
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Skillgoal $+($network,:,%address) $deltok($hget(Skillgoal,$+($network,:,%address)), $findtok($hget(Skillgoal,$+($network,:,%address)), %token, 1, 58), 58)
+        %output $col(%address,delgoal).logo Your goal in $col(%address,%skill) has been deleted. To set a new one type $+($col(%address,!setgoal <skill>),.)
+      }
+      else { 
+        tokenize 58 $hget(Skillgoal,%hash)
+        var %this = 1
+        while (%this <= $0) { var %goals = %goals $token($($+($,%this),2),1,124) | inc %this }
+        %output $col(%address,error).logo No skill goal set for $+($col(%address,%skill),.) Active skill goals for " $+ $col(%address,%address) $+ " are: $+($iif(%goals,$colorList(%address,32,44,%goals).space,$col(%address,None)),.)
+      }
+    }
+    return
+  }
+  elseif (%style == setgoal) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <skill> [#goal]),.) Use $col(%address,$+($mid($1,0,1),setgoal)) to set a new goal. }
+    else {
+      if ($Skill($2)) { var %skill = $v1, %goal = $false }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill> [#goal]),.) Specify a $col(%address,valid) skill. | halt }
+      if ($3 && $regsubex($3,/#/g,$null) isnum 1-126) { var %goal = $v1 }
+      else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill> [#goal]),.) Specify a $col(%address,valid) skill goal. | halt }
+      if (!$wildtok($hget(Skillgoal,%hash), $+(*,%skill,|*), 1, 58)) {   
+        var %rsn = $Username(Defname, %address, 12, $nick)
+
+        ; Hand out the errors, oh well
+        noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+        if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+          noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+        }
+        var %mark = $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58),,%goal)
+        noop $Sockmake($+(RSstats.,%style),parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Stats&rsn=,$urlencode($gettok(%rsn,1,58))),%mark,$false)
+      }
+      else {
+        tokenize 58 $hget(Skillgoal,%hash)
+        var %this = 1
+        while (%this <= $0) { var %goals = %goals $token($($+($,%this),2),1,124) | inc %this }
+        %output $col(%address,error).logo No skill goal set for $+($col(%address,%skill),.) Active skill goals for " $+ $col(%address,%address) $+ " are: $+($iif(%goals,$colorList(%goals,32,44,%goals).space,$col(%address,None)),.)
+      }
+    }
+    return
+  }
+  elseif (%style == charm) { 
+    ;check for a level
+    if ($regex(level,$2,/^#(\d+)$/Si)) { 
+      var %level = $regml(level,1) 
+      if (%level !isnum 1-99) { %output $col(%address,error).logo You must specify a level between $col(%address,1).fullcol and $+($col(%address,99).fullcol,.) | return }
+      tokenize 32 $1 $3- 
+    }
+
+    ;if no level specified set default rsn for lookup
+    if (!%level) { 
+      var %rsn = $Username(Defname, %address, 12, $nick) 
+      noop $Username(%rsn,%output,%address,$1-).error
+      if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+        noop $Username($DEFNAME_TO_LONG,%output,%address,$1-).error
+      }
+    }
+    noop $regex(charms,$2-,/^(\d+)(\s\d+)?(\s\d+)?(\s\d+)?$/Si)
+    if (!$regml(charms,0)) || ($2- = 0 0 0 0) {  %output $col(%address,error).logo Please supply charms. Syntax: $+($col(%address,$1 1244 945 769 442).,) | return }
+    var %charms = $regsubex($str(.,$regml(charms,0)),/./g,$regml(charms,\n) $chr(32))
+    var %mark = $+(%output,,%address,,$iif(%rsn,$gettok($v1,1,58),$false),,%charms,,$iif(%level,$lvl($v1),$false))
+    if (%level) { ..signal -n $+(Charm.,$ticks) %mark | return }
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Stats&rsn= $+ $urlencode($gettok(%rsn,1,58))
+    noop $Sockmake($+(RSstats.,%style),%host,80,%uri,%mark,$false)
+    return
+  }
+
+  elseif (%style == swiftirc) {
+    if ($nick !ison #DevVectra) { %output $col(%address,error).logo This command is currently under construction by Vectra staff. | return }
+    if (!$2) { %output $col(%address,error).logo Please supply either a channel or username. $+($col(%address,$1 #vectra),.) | return }
+    else { 
+      var %uri = $+(/Parsers/index.php?type=SwiftIRC&search=,$urlencode($lower($remove($2,$chr(35)))),&switch=,$iif($left($2,1) == $chr(35),chan,user))
+      noop $sockmake(SwiftIRCstats,parsers.vectra-bot.net,80,%uri,$+(%output,,%address,,$2),$false) | return 
+    }
+  }
+
+  elseif (%style == mlcompare) {
+    if ($nick !ison #DevVectra) { %output $col(%address,error).logo This command is currently under construction by Vectra staff. | halt }
+    if ($regex($2,/^-e(xact)?$/Si)) { .var %exact $true | .tokenize 32 $1 $3- }
+    if ($regex($2,/^\#(\S+)$/Si)) { .var %number = $iif($regml(1) isnum,$v1,1) | tokenize 32 $1 $regsubex($2-, /(?:\#(?:\S+))/g, $null) }
+
+    noop $regex(comp, $2-, /^([^,]*)(?:\s+)?(?:[:,](?:\s+)?(.*))?$/)) 
+
+    if ($regml(comp,0) == 0) { %output $col(%address,error).logo Please supply two clans to compare. Syntax: $+($col(%address,!mlcompare (-e) (#<num>) $+(Exigence,$chr(44),$chr(32),ZE)).fullcol,.) If your channel has a default Clan set, you may only specify one clan. | return }
+    if ($regml(comp,2) == $null && $Settings($chan,default_ml)) { var %exact = $true, %x = $mid($v1, $calc($pos($v1, =, 1) + 1)), %y = $token($v1,1,124) }
+    if (!$3) { %output $col(%address,error).logo Please provide either another clan name or set a default clan name $+($chr(40),$col(%address,!mlcompare (-e) (#<num>) $remove($2,$chr(44))).fullcol,$chr(41),.) | .halt }
+
+    var %uri = $+(/Parsers/index.php?type=Clan&method=1&search=,$urlencode($regml(comp,1)),&compare=,$urlencode($iif(%y,$v1,$regml(comp,2))),$iif(%number,$+(&num=,$calc($v1 -1))),$iif(%exact,$+(&exact=,$urlencode($iif(%x,$v1,$regml(comp,2))))))
+    var %mark = $+(%output,,%address,,$iif(%number,$v1,$false),,$iif(%exact,exact,$false))
+    noop $sockmake(MLcompare,parsers.vectra-bot.net,80,%uri,%mark,$false) | return
+  }
+  if (%style == gecompare) {
+    noop $regex(comp, $2-, /^([^,]*)(?:\s+)?(?:[:,](?:\s+)?(.*))?$/))
+    if ($regml(comp,1) == $null) { %output $col(%address,error).logo Please supply two items to compare. Syntax: $+($col(%address,$1 $+(Abyssal whip,$chr(44),Armadyl godsword)),.) | return }
+    if ($regml(comp,2) == $null) { %output $col(%address,error).logo Please provide another item. $+($chr(40),$col(%address,$1 $regml(comp,1) $+ $chr(44) <item>),$chr(41),.) | return }
+    noop $sockmake(GeCompare,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Ge&item=,$urlencode($regml(comp,1)),:,$urlencode($regml(comp,2)),&track=H3LLY3S),$+(%output,,%address),$false) | return 
+  }
+  elseif (%style == longurl) {
+    if ($2 == $null) { %output $col(%address, ERROR).logo Missing parameter $col(%address, $1 http://goo.gl/1IT4f) | return }
+    else { noop $sockMake(LongURL, parsers.vectra-bot.net, 80, /Parsers/index.php?type=LongURL&q= $+ $urlencode($2), $+(%output, $chr(16), %address, $chr(16), $2)) | return }
+  }
+  elseif (%style == bug) {
+    if (!$2) { %output $col(%address,error).logo You must enter a bug to report. | return }
+    if ($hget(confirm,%address) isnum) { 
+      if (%realStaff) { hdel confirm %address }
+      else { %output $col(%address,error).logo You must wait $col(%address,$duration($calc(300 - ($ctime - $hget(Confirm,%address))))).fullcol until you can post another bug report or suggestion. | return }
+    }
+    if ($hget(confirm,%address)) { %output $col(%address,error).logo You already have a pending $col(%address,$gettok($hget(confirm,%address),1,16)) to confirm. | return }
+    var %code = $regsubex($str(.,5),/./g,$r(1,9))
+    hadd -u30 Confirm %address $+(Bug,,%code,,$fulladdress,,$network,,$iif($chan,$v1,Query),,$2-)
+    %output $col(%address,bug report).logo To confirm your bug report type $col(%address,!confirm %code) in the next 30 seconds.
+    return
+  }
+
+  elseif (%style == suggest) {
+    if (!$2) { %output $col(%address,error).logo You must enter a suggestion to submit. | return }
+    if ($hget(confirm,%address) isnum) { 
+      if (%realStaff) { hdel confirm %address }
+      else { %output $col(%address,error).logo You must wait $col(%address,$duration($calc(300 - ($ctime - $hget(Confirm,%address))))).fullcol until you can post another bug report or suggestion. | return }
+    }
+    if ($hget(confirm,%address)) { %output $col(%address,error).logo You already have a pending $col(%address,$gettok($hget(confirm,%address),1,16)) to confirm. | return }
+    var %code = $regsubex($str(.,5),/./g,$r(1,9))
+    hadd -u30 Confirm %address $+(Suggestion,,%code,,$fulladdress,,$network,,$iif($chan,$v1,Query),,$2-)
+    %output $col(%address,Suggestion).logo To confirm your suggestion type $col(%address,!confirm %code) in the next 30 seconds.
+    return
+  }
+
+  elseif (%style == confirm) {
+    if ($hget(confirm,%address) isnum) { %output $col(%address,error).logo You must wait $col(%address,$duration($calc(300 - ($ctime - $hget(Confirm,%address))))).fullcol until you can post another bug report or suggestion. | return }
+    if (!$hget(confirm,%address)) { %output $col(%address,error).logo You do not have a pending $col(%address,bug report) or $col(%address,suggestion) to confirm. | return }
+    var %code = $2
+    tokenize 16 $hget(confirm,%address) 
+    if (%code != $2) { %output $col(%address,error).logo The confirmation code $col(%address,%code).fullcol is incorrect. | return }
+    var %post = $+(host=,$urlencode($3),&network=,$urlencode($4),&channel=,$urlencode($5),&message=,$urlencode($6))
+    noop $Sockmake(Confirm, dev.vectra-bot.net, 80, $+(/Api/Api.php?post,$1), $+(%output,,%address,,$1), %post) | return
+  }
+
+  elseif (%style == coinshare) {
+    if ($3 == $null) { %output $col(%address,error).logo Specify a number representing the players and the name of the item. $+($col(%address,$1 #<players> <item>),.) | return }
+    elseif ($remove($2,$chr(35)) !isnum 2-100) { %output $col(%address,error).logo Specify a number between $+($col(%address,2-100).fullcol,.) | return }
+    else { noop $sockmake(CoinShare,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Ge&item=,$urlencode($3-)),$+(%output,,%address,,$remove($2,$chr(35)),,$3-),$false) | return }
+  }
+  elseif ($istok(bing bingimage bingnews binginstantanswer bingrelated bingvideo,%style,32)) {
+    var %lim = 1, %switch = $iif($remove(%style,bing),$v1,web)
+    noop $regex($2-, /(?: ?#(\d+)|())(?: ?(.+)|())/Si)
+    if ($regml(2) == $null) {
+      var %eMsg = $iif(%switch == InstantAnswer, 5*5, Vectra)
+      %output $col(%address, ERROR).logo $col(%address, Missing arguments ).col ( $+ EX: $col(%address, $1 %eMsg).fullcol $+ ) | return
+    }
+    else {
+      if ((%switch != InstantAnswer) && ($regml(2) isnum)) { var %lim = $v1 }
+      var %q = $regml(2)
+      var %mark = $+(%output,,%address,,%q,,%switch,,%lim)
+      var %host = parsers.vectra-bot.net
+      var %uri = $+(/Parsers/index.php?type=Bing&q=, $urlencode(%q), &src=, %switch)
+      noop $sockmake($+(Bing.,%switch), parsers.vectra-bot.net, 80, %uri, %mark, $false) | return
+    }
+  }
+  elseif (%style == google) {
+    if ($regex(site, $2-, /(@(\S+))/Si)) { var %site = $regml(site, 2) | tokenize 32 $deltok($1-, $findtok($1-, $regml(site, 1), 1, 32), 32) }
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 Vectra @urbandictionary.com).fullcol,.) | return }    
+    var %query = $2- , %mark = $+(%output,,%address,,%query,,$iif(%site,$v1,$false))
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Google&s=,$iif(%site,3,1),&q=,$urlencode($2-),$iif(%site,$+(&site=,%site))), %mark, $false)
+    return
+  }
+  elseif (%style == gcalc) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 $+($r(2,5),^,$r(2,10))).fullcol,.) | return }
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Google&s=5,&eq=,$urlencode($2-)), $+(%output,,%address,,$2-), $false)
+    return  
+  } 
+  elseif (%style == gimage) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <image>).fullcol,.) | return }
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Google&s=2,&q=,$urlencode($2-)), $+(%output,,%address,,$2-), $false)
+    return 
+  }
+  elseif (%style == convert) {
+    noop $regex(param, $2-, /(\d+)\s?(.+)[>:\s](.+)/Si)
+    if ($regml(param,0) == 0) { %output $col(%address,error).logo Syntax error $+($col(%address,$1 5 USD:EUR),.) ( $+ $col(%address,<amount> <from> <to>) $+ ) | return }
+    var %from = $regml(param,2), %to = $regml(param,3), %amount = $regml(param,1)
+    var %uri = $+(/Parsers/index.php?type=Google&s=6,&amount=,$urlencode(%amount),&from=,$urlencode(%from),&to=,$urlencode(%to))
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, %uri, $+(%output,,%address,,%amount,,%to,,%from), $false)
+    return
+  }
+  elseif (%style == translate) {
+    noop $regex(param, $2, /(?:(\S+)[:>\x2C])?(\S+)/Si)
+    if ($regml(param, 0) == 0) { %output $col(%address,error).logo Syntax error: $+($col(%address, $1 en:de Hello there how are you?).fullcol,.) | return }
+    var %from = $iif($regml(param, 2) != $null, $regml(param,1)), %to   = $iif($regml(param, 2) != $null, $regml(param,2), $regml(param,1))
+    var %uri = $+(/Parsers/index.php?type=Google&s=4,&from=,$iif(%from != $null,$Lang($v1)),&to=,$Lang(%to),&string=,$urlencode($3-))
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, %uri, $+(%output,,%address,,%to,,%from,,$3-), $false)
+    return 
+  }
+  elseif (%style == gfight) {
+    if ($numtok($2-,44) != 2) { %output $col(%address,error).logo Syntax error: $+($col(%address, $1 RuneScape $+ $chr(44) WoW),.) The two search terms must be separed by a comma. | return }
+    var %1 = $gettok($2-,1,44), %2 = $gettok($2-,2,44)
+    var %uri = $+(/Parsers/index.php?type=Google&s=8&q=,$urlencode(%1),&q2=,$urlencode(%2))
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, %uri, $+(%output,,%address,,%1,,%2), $false)
+    return
+  }
+  elseif (%style == route) {
+    noop $regex(groute,$2-,/(.+)->(.+)/Si)
+    if ($regml(groute, 0) == 0) { %output Syntax error: $col(%address, $1 $+(New York,$chr(44),$chr(32),NY->Pittsburgh,$chr(44),$chr(32),PA)) | return }
+    var %start = $urlencode($regml(groute, 1)), %end = $urlencode($regml(groute, 2))
+    var %uri = $+(/Parsers/index.php?type=Google&s=7,&start=,%start,&end=,%end)
+    noop $Sockmake($+(Google.,%style), parsers.vectra-bot.net, 80, %uri, $+(%output,,%address,,%start:,%end), $false)
+    return
+  }
+  elseif (%style == halo) {
+    noop $regex(%address, $1-, /^.(?:(?:halo)?(reach|odst|3)|halo (-[3ro])|halo())(?: (.+)|())/Si)
+    var %gTag = $iif($regml(%address, 2) == $null, $Username(Xboxlive, %address, 15, $nick), $+($v1,:DontHideRsnPlz))
+    if ($regml(%address, 1) == $null) { var %game = halo3 }
+    else { var %game = $iif($replacex($regml(%address, 1), -3, halo3, 3, halo3, -o, odst, -r, reach) !isin reach.odst.halo3, $null, $v1) }
+    if (%game == $null) { %output $col(%address,ERROR).logo Invalid game provided (Available options are $col(%address,Reach) ( $+ $col(%address,-r) $+ / $+ $col(%address,$+($mid($1,0,1),haloreach)) $+ ), $&
+      $col(%address,ODST) ( $+ $col(%address,-o) $+ / $+ $col(%address,$+($mid($1,0,1),odst)) $+ ), and $col(%address,Halo3) ( $+ $col(%address,-3) $+ / $+ $col(%address,$+($mid($1,0,1),halo3)) $+ ). | return }
+    elseif ($len($token(%gTag,1,58)) > 15) { %output $col(%address,ERROR).logo $col(%address, Gamertag length may not exceed 15 characters.) | return }
+    elseif ($regex($token(%gTag,1,58), /[^a-z0-9 ]/i)) { %output $col(%address,ERROR).logo Gamertags may only consist of Alphanumeric characters and spaces. | return }
+    else { noop $sockMake(Halo, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Halo&game=,%game,&user=,$urlencode($token(%gTag,1,58))), $+(%output,,%address,,%game,,%gtag), $false) | return }
+  }
+  elseif (%style == login) {
+    if ($chan) { %output $col(%address,error).logo The login command $col(%address,$b(must)) be used in $col(%address,PM) only to protect passwords. | halt }
+    if (%isLoggedIn != $false) { %output $col(%address,error).logo You are already logged in as $col(%address,%isLoggedIn).fullcol $+ . Please logout with $col(%address,!logout) first. | halt }
+    if (!$2) { %output $col(%address,error).logo Syntax for $col(%address,$1) is: $col(%address,$1 <username> <password>) $+ . | halt }
+    var %host = parsers.vectra-bot.net
+    var %uri = $+(/Api/Api.php?validateLogin)
+    var %post = $+(type=validateLogin,&auser=,$urlencode($iif(!$3,$nick,$2)),&apass=,$urlencode($iif(!$3,$2,$3)))
+    var %mark = $+(%output,,$network,,$fulladdress,,$iif(!$3,$nick,$2))
+    noop $Sockmake(Login,%host,80,%uri,%mark,%post)
+    %output $col(%address,Login).logo Validating login for $col(%address,$iif(!$3,$nick,$2)).fullcoll $+ . Please wait... 
+    return 
+  }
+  elseif (%style == logout) {
+    if (!%isLoggedIn) { %output $col(%address,error).logo You are not currently logged in. }
+    elseif ($2) {
+      if ($ial($2)) { var %user = $mask($v1,3)
+        if ($hget(Accounts,$+($network,:,%user))) { var %username = $v1
+          hdel Accounts $+($network,:,%address)
+          monitor Logout $b($2) was force logged out of $b(%username) by $b($nick) ( $+ $b(%isLoggedIn) $+ ) on $b($network) $+ .
+          %output $col(%address,logout).logo Successfully force logged out $col(%address,%user) ( $+ $col(%address,$2) $+ ) on $col(%address,$network) $+ .
+        }
+        else { %output $col(%address,error).logo The host $col(%address,$2) is not logged in on $col(%address,$network) $+ . | return }
+      }
+      else { %output $col(%address,error).logo Supply a nickname or address in the (*!*@* form) to force logout. | return }
+    }
+    else {
+      monitor Logout $b($nick) ( $+ $b(%address) $+ ) logged out of $b(%isLoggedIn) on $b($network) $+ .
+      hdel Accounts $+($network,:,%address)
+      %output $col(%address,logout).logo You are no longer logged in.
+    }
+    return
+  }
+  elseif (%style == whoami) { 
+    if (!%isLoggedIn) { %output $col(%address,error).logo You are not currently logged in. | return }
+    else { %output $col(%address,whoami).logo You are logged in as $col(%address,%isLoggedIn) $iif(%isStaff,$+($chr(32),$chr(40),$col(%address,$v1),$chr(41))) on address $col(%address,%address) $+ . | return }
+  }
+  elseif (%style == rswiki) {
+    if ($2- == $null) { %output $col(%address,RSWIKI).logo Syntax error: $+($col(%address,$1 phoenix).fullcol,.) | return }
+    else { noop $Sockmake(RSwiki, parsers.vectra-bot.net, 80, /Parsers/index.php?type=RSwiki&q= $+ $urlencode($2-), $+(%output,,%address,,$2-)) | return }
+  }
+  elseif (%style == rsspell) {
+    if ($2 isnum || $stringToNum($2) isnum) { var %amount = $v1 | tokenize 32 $deltok($1-,2,32)  }
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <amount> SPELL),.) | return }
+    else { noop $Sockmake(RSspell, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=RSspell&spell=,$urlencode($2-),&amount=,$iif(%amount,$v1,1)), $+(%output,,%address,,$iif(%amount,$v1,1),,$2-)) | return }
+  }
+  elseif (%style == clue) {
+    if ($2 == $null) {
+      var %emsg = $iif(?coord iswm $1, 00.00 N 07.13 W, $iif(?challenge iswm $v2, What is 19, 46 is my number))
+      %output $col(%address,error).logo Syntax error: $col(%address,$1 %emsg).fullcol | return
+    }
+    else {
+      noop $regex($2-, /(\d\d\.\d\d)\s?([NS]) (\d\d\.\d\d)\s?([EW])/Si)
+      if ($regml(0) != 0) { var %q = $regml(1) $regml(2) $regml(3) $regml(4) }
+      else { var %q = $2- }
+      noop $Sockmake(Clue, parsers.vectra-bot.net, 80, /Parsers/index.php?type=Clue&q= $+ $urlencode(%q), $+(%output,,%address,,%q)) | return
+    }
+  }
+  elseif (%style == item) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <#id|item name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %item = $iif($+($chr(35),*) iswm $2 || $2 isnum,$remove($2,$chr(35)),$urlencode($2-))
+    var %mark = $+(%output,,%address,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Item&search= $+ %item
+    noop $Sockmake(Item, %host, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == alch) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <amount> <#id|item name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %amount = 1
+    if ($stringToNum($2) isnum) { var %amount = $v1 | tokenize 32 $1 $3- }
+
+    ; Check for an id search
+    if ($regex($2-,/(?:#)?(\d+)/Si)) { var %item = $regml(1) }
+    if ($regsubex($2-,/((?:#)?(\d+))/g,$null) != $null) { tokenize 32 $v1 }
+    if (!%item) { var %item = $urlencode($1-) }
+
+    var %mark = $+(%output,,%address,,%amount,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Item&search= $+ %item
+    noop $Sockmake(Alch, %host, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == istats) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <#id|item name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %item = $iif($+($chr(35),*) iswm $2 || $2 isnum,$remove($2,$chr(35)),$urlencode($2-))
+    var %mark = $+(%output,,%address,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Item&search= $+ %item
+    noop $Sockmake(iStats, %host, 80, %uri, %mark, $false)
+    return 
+  }
+  elseif (%style == npc) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <#id|npc name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %item = $iif($+($chr(35),*) iswm $2 || $2 isnum,$remove($2,$chr(35)),$urlencode($2-))
+    var %mark = $+(%output,,%address,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Npc&search= $+ %item
+    noop $Sockmake(Npc, %host, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == drops) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <#id|item name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %item = $iif($+($chr(35),*) iswm $2 || $2 isnum,$remove($2,$chr(35)),$urlencode($2-))
+    var %mark = $+(%output,,%address,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Npc&search= $+ %item
+    noop $Sockmake(Drops, %host, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == quest) {
+    if (!$2) { %output $col(%address,error).logo Correct syntax: $+($col(%address,$1 <#id|item name>),.) The IDs corespond to $col(%address,Zybez.net) item database ids. | return }
+    var %item = $iif($+($chr(35),*) iswm $2 || $2 isnum,$remove($2,$chr(35)),$urlencode($2-))
+    var %mark = $+(%output,,%address,,%item)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Quest&search= $+ %item
+    noop $Sockmake(Quest, %host, 80, %uri, %mark, $false)
+    return
+  }
+  elseif (%style == rsn) {
+    var %search = $iif($2,$remove($trim($2),&,$,*),$nick)
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && %search ison $chan,$+(%search,&),%search)) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, $nick).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG, %output, %address, %search).error
+    }
+
+    var %check = $Username(Defname, %address, 12, $nick, $iif($chan && %search ison $chan,$+(%search,&),%search)).check
+    if (!%check) {  %output $col(%address,rsn).logo The user " $+ $col(%address,%search) $+ " does not have a defname set. | return }
+    else {
+      tokenize 58 %rsn
+      if ($2 != HideMyRsnPlx || %realStaff) { %output $col(%address,rsn).logo The RSN for " $+ $col(%address,%search) $+ " is: $+($col(%address,$1).fullcol,.) $iif($2 == HideMyRsnPlx,[Admin Override])  }
+      else { %output $col(%address,rsn).logo The user " $+ $col(%address,%search) $+ " has defname privacy enabled. }
+    }
+    return
+  }
+  elseif (%style == clan) {
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, %nick).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    var %mark = $+(%output,,%address,,$token(%rsn,1,58),,$token(%rsn,2,58)) 
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Clan&method=0&search= $+ $urlencode($gettok(%rsn,1,58))
+    noop $Sockmake(Clan, %host, 80, %uri, %mark, $false) | return
+  }
+  elseif (%style == claninfo) {
+    if (!$2 && !$Settings($chan,default_ml)) { %output $col(%address,error).logo Invalid syntax. Type: $col(%address,$1 <#N> clan-name) or set a Default Memberlist ( $+ $col(%address,!defaultml someclan) $+ ). | return }
+
+    var %num = 1
+    if ($regex($2-,/#(\d+)/Si)) { var %num = $regml(1) | tokenize 32 $1 $3- }
+    if ((!$2 || $2 == $null) && (!$Settings($chan,default_ml))) { %output $col(%address,error).logo Invalid syntax. Type: $col(%address,$1 <#N> clan-name) or set a Default Memberlist ( $+ $col(%address,!defaultml someclan) $+ ). | return }
+
+    var %clan = $iif($2,$2-,$gettok($Settings($chan,default_ml),1,124))    
+    var %mark = $+(%output,,%address,,%num,,%clan,,$chan)    
+
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=Clan&method=1&search= $+ $urlencode(%clan)
+    noop $Sockmake(ClanInfo, %host, 80, %uri, %mark, $false) 
+    halt
+  }
+  elseif (%style == w60pengs) { noop $sockmake(W60Pengs, parsers.vectra-bot.net, 80, /Parsers/index.php?type=Penguins, $+(%output,,%address,,$iif($2,$regsubex($2-,/[_+]/g,$chr(32)),$false)), $false) | return }
+  elseif (%style == clanrank) {
+    if (!$2) { %output $col(%address,error).logo Please supply a user/rank and a clan. Syntax: $+($col(%address,$1 #2 SU),.) If your channel has a default Clan set, you only need the user or rank. | return }
+    if (!$3) {
+      if ($Settings($chan,default_ml)) { var %search = $gettok($v1,1,124) } 
+      else { %output $col(%address,error).logo Please provide a clan to lookup. | return }
+    }
+    var %type = $iif($left($2,1) == $chr(35),rank,user)
+    var %host = parsers.vectra-bot.net
+    var %uri = $+(/Parsers/index.php?type=Clan&method=2&search=,$urlencode($iif(%search,$v1,$3-)),&,%type,=,$urlencode($remove($2,$chr(35))))
+    var %mark = $+(%output,,%address,,%type,,$2,,$iif(%search,$v1,$3-)) 
+    %output %host %uri
+    noop $Sockmake(ClanRank, %host, 80, %uri, %mark, $false) | return
+  }
+  elseif (%style == defaultml) {
+    if (!$2 || $regex($2,/^\-(d(el(ete)?)?|r(em(ove)?)?)$/Si))  {
+      if ($Settings($chan,default_ml)) {
+        if ($regex($2,/^\-(d(el(ete)?)?|r(em(ove)?)?)$/Si) && ($nick isop $chan || $nick ishop $chan || %realStaff)) { hadd default_ml $chan $null | %output $col(%address,default-ml).logo The current Default Runehead Clan memberlist for $col(%address,$chan) has been unset. | return }
+        else { %output $col(%address,default-ml).logo The current Default Runehead Clan memberlist for $+($col(%address,$chan),:) $col(%address,$gettok($Settings($chan,DefaultML),1,124)) ( $+ $col(%address,$gettok($Settings($chan,DefaultML),2,124)) $+ ). To unset this type: $+($col(%address,$1 -d),.) | return }
+      }
+      else { %output $col(%address,error).logo The correct syntax is: $col(%address,$1 <#N> clan-name) to set a new Default ML. To view the Default ML type: $col(%address,$1) and to unset it type: $+($col(%address,$1 -d),.) | return }
+    }
+    else { 
+      var %num = 1
+      if ($regex($2-,/#(\d+)/Si)) { var %num = $regml(1) }
+      if ($regsubex($2-,/(#(\d+))/g,$null) != $null) { tokenize 32 $v1 }
+      if (!$1 || $1 == $null) { %output $col(%address,error).logo The correct syntax is: $col(%address,$1 <#N> clan-name) to set a new Default ML. To view the Default ML type: $col(%address,$1) and to unset it type: $+($col(%address,$1 -d),.) | return }
+
+      var %mark = $+(%output,,%address,,$chan,,%num,,$1-) 
+      var %host = parsers.vectra-bot.net
+      var %uri = /Parsers/index.php?type=Clan&method=1&search= $+ $urlencode($1-)
+      noop $Sockmake(DefaultML, %host, 80, %uri, %mark, $false) | return
+    }
+  }
+  elseif (%style == alog) { 
+    if ($regex($2,/^-?-(r(ec(ent)?)?|kill(s|ed)?|l(e?ve?ls?)?|i(tems?)?|q(uests?)?|e(xp(erience)?)?|m(isc)?|t(rails?)?)$/Si)) { var %switch = $lower($mid($regml(1),0,1)) | tokenize 32 $deltok($1-,2,32) }
+    if (!%switch && $regex($2-,/@(r(ec(ent)?)?|kill(s|ed)?|l(e?ve?ls?)?|i(tems?)?|q(uests?)?|e(xp(erience)?)?|m(isc)?|t(rails?)?)$/Si)) { 
+      var %switch = $lower($mid($regml(1),0,1))
+      tokenize 32 $deltok($1-,$findtok($1-,$+(@,$regml(1)),1,32),32) 
+    }
+
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, $2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }    
+
+    noop $sockmake(Alog,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Alog&rsn=,$Urlencode($gettok(%rsn,1,58)),&switch=,%switch),$+(%output,,%address,,$token(%rsn,1,58),,$token(%rsn,2,58),,$iif(%switch,$v1,0))) | return
+  }
+  elseif (%style == trank) {
+    ; Find the skill
+    if (!$2) { var %skill = 0 }
+    elseif ($Skill($2)) { var %skill = $calc($Numskill($v1) - 1) | tokenize 32 $deltok($1-,2,32) }
+    else { var %skill = 0 }
+    ; Find the rsn
+    if ($2) { var %rsn = $Username(Defname, %address, 12, $nick, $iif($chan && $2 ison $chan,$+($trim($2-),&),$trim($2-)))) }
+    else { var %rsn = $Username(Defname, %address, 12, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%rsn,1,58), %output, %address, $2-).error
+    if (!$regex($gettok(%rsn,1,58),/^[-a-z0-9_ ]+$/Si)) {
+      noop $Username($DEFNAME_TO_LONG,%output,%address,$2-).error
+    }
+
+    var %uri = $+(/lookup.php?type=trackrank&user=,$gettok(%rsn,1,58),&skill=,%skill)
+    noop $Sockmake(TrackerRank, rscript.org, 80, %uri, $+(%output,,%address,,$gettok(%rsn,1,58),,%skill,,$gettok(%rsn,2,58)), $false) | return
+  }
+  elseif (%style == Toptrack) { 
+    if ($Skill($2)) { var %skill = $Numskill($v1) - 1 | tokenize 32 $deltok($1-,2,32) }
+    if ($regex($2,/^@?(d(ay)?|w(eek)?|m(onth)?)$/Si)) { var %length = $left($regml(1),1) | tokenize 32 $2- }
+    noop $Sockmake(Toptrack,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Toptrack&time=,$iif(%length,$v1,d),&skill=,$iif(%skill,$v1,0)),$+(%output,,%address,,$iif(%skill,$v1,0),,$iif(%length,$v1,d))) | return
+  }
+  elseif (%style == Top10) { 
+    if ($Skill($2)) { var %skill = $Numskill($v1) - 1 | tokenize 32 $deltok($1-,2,32) }
+    noop $Sockmake(Top10,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=RStop10&time=,&skill=,$iif(%skill,$v1,0)),$+(%output,,%address,,$iif(%skill,$v1,0))) | return
+  }
+  elseif (%style == spellcheck) { 
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!spellcheck <word>),.) | return }
+    else { noop $sockmake(Spellcheck,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Spellcheck&q=,$urlencode($2)),$+(%output,,%address,,$2)) | return }
+  }
+  elseif (%style == urban) { 
+    if ($regex($2,/^#(\d+)$/Si)) { var %result $regml(1) | tokenize 32 $2- }
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!urban [#N] <search>),.) | return }
+    else { noop $sockmake(Urban,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Urban&q=,$urlencode($2-)),$+(%output,,%address,,$2-,,$iif(%result,$v1,1))) | return } 
+  }
+  elseif (%style == acronym) {
+    if ($2 == $null) { %output $col(%address, ERROR).logo Please submit an acronym to look up. | return }
+    else {  noop $sockMake(Acronym, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Acronym&q=,$urlencode($2)), $+(%output,,%address,,$2)) | return }
+  }
+  elseif (%style == php) {
+    if ($2 == $null) { %output $col(%address, ERROR).logo Please submit a PHP function to look up | return }
+    else { noop $sockMake(PHP, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=PHP&func=,$urlencode($2)), $+(%output,,%address,,$2), $false) | return }
+  }
+  elseif (%style == define) { 
+    if ($regex($2,/^#(\d+)$/Si)) { var %result $regml(1) | tokenize 32 $2- }
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!define [#N] <word>),.) | return }
+    else { noop $sockmake(Define,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Define&word=,$urlencode($2)),$+(%output,,%address,,$2,,$iif(%result,$v1,1))) | return } 
+  }
+  elseif (%style == checkrsn) {
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!checkrsn <rsn>),.) | return }
+    elseif ($len($2-) > 12) { %output $col(%address,error).logo You must specify a rsn $col(%address,12) characters or less. | return }
+    else { noop $sockmake(CheckRSN,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Checkrsn&rsn=,$urlencode($2-)),$+(%output,,%address,,$2-)) | return }
+  }
+  elseif (%style == imdb) { 
+    if (!$2) { %output $col(%address,error).logl The correct syntax is $+($col(%address,!imdb <movie>),.) | return }
+    else { noop $sockmake(Imdb,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Imdb&q=,$urlencode($remove($2-,$chr(35)))),$+(%output,,%address,,$remove($2-,$chr(35)))) | return }
+  }
+  elseif (%style == rsforum) {
+    if ($regex($2,/^#([1-5])$/Si)) { var %result $regml(1) | tokenize 32 $2- }
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!rsforum [#1-5] <search>),.) | return }
+    else { noop $sockmake(RSforum,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=RSforum&query=,$urlencode($2-)),$+(%output,,%address,,$2-,,$iif(%result,$v1,1))) | return } 
+
+  }
+  elseif (%style == weather) {    
+    if ($regex($2,/^-(df|fd|[df])$/Si)) {
+      if (f isincs $regml(1)) { var %forcast = $true }
+      if (d isincs $v2) { 
+        if ($3) { var %default = $true }
+        elseif ($+($nick,:*) !iswm $Username(Weather, %address, 75, $nick)) { %output $col(%address,location).logo The default location ( $+ $col(%address,$v2).fullcol $+ ) has now been removed for " $+ $col(%address,%address) $+ ". | hdel Weather %hash | return }
+        else { %output $col(%address,error).logo There is no Default location set for " $+ $col(%address,%address) $+ ". | return }
+      }
+      tokenize 32 $1 $3-
+    }
+    if (!$2 && $+($nick,:*) iswm $Username(Weather, %address, 75, $nick)) { %output $col(%address,error).logo Supply a location or set a default one using $+($col(%address,$1 -d <location>).fullcol,.) | return }
+
+    if (!$2) { var %location = $Username(Weather, %address, 75, $nick) }
+    else { var %location = $+($2-,:DontHideRsnPlz) }
+
+    var %uri = $+(/Parsers/index.php?type=Weather&loc=,$urlencode($token(%location,1,58)),$iif(%forcast,&fc=1))
+    noop $sockmake(Weather,parsers.vectra-bot.net,80,%uri,$+(%output,,%address,,$iif(%forcast,$v1,$false),,$iif(%default,$v1,$false),,$token(%location,1,58),,$token(%location,2,58)),$false) | return
+  }
+  elseif ($istok(Youtube YoutubeUser,%style,32)) {
+    if (%style == youtubeuser) { tokenize 32 $1 $+(-u,$2-) }
+    noop $regex($2-, /(?:(-[u])|())(?: ?#(\d+)|())(?: ?(.+)|())/Si)
+    if ($regml(3) == $null) {
+      var %msg = $iif($regml(1) != $null, -u schmoyoho, [#N] sanity song)
+      %output $col(%address,Youtube).logo Syntax error $+($col(%address,$1 %msg).fullcol,.) | return
+    }
+    else {
+      if ($regml(1) != $null) { var %lim = 1, %user = $true, %q = $regml(3), %uri = /Parsers/index.php?type=Youtube&user=1&q= }
+      else { var %lim = $iif($regml(2) != $null, $v1, 1), %user = $false, %q = $regml(3), %uri = /Parsers/index.php?type=Youtube&user=0&num= $+ %lim $+ &q= }
+      noop $Sockmake(YTsearch, parsers.vectra-bot.net, 80, $+(%uri,$urlencode(%q)), $+(%output,,%address,,%lim,,%q,,%user)) | return
+    }
+  }
+  elseif (%style == rsrank) {
+    if (!$2) { %output $col(%address,error).logo Proper syntax: $+($col(%address,$1 <#rank> Skill),.) | return }
+    var %rank = 1
+    ; Check for a numeric rank
+    if ($regex($2-,/(?:#)?((\d+)([kmb])?)/Si)) { var %rank = $stringToNum($regml(1)) }
+    if ($regsubex($1-,/((?:#)?(\d+)([kmb])?)/g,$null) != $null) { tokenize 32 $v1 }
+
+    if ($Skill($2)) { var %skill = $v1 }
+    else { var %skill = Overall }
+
+    if (%rank > 2000000) { %output $col(%address,error).logo The lowest rank to search is: $col(%address,$bytes(2000000,db)).fullcol ( $+ $col(%address,2M).fullcol $+ ). | return }
+    if ($Skill(%skill)) { var %skill = $v1 }
+    else { %output $col(%address,error).logo The supplied skill " $+ $col(%address,%skill) $+ " is not a valid Runescape skill. | return }
+
+    var %uri = $+(/Parsers/index.php?type=RSrank&rank=,$urlencode(%rank),&skill=,$calc($Numskill(%skill) - 1),&shortlinks=1)
+    noop $Sockmake(RSrank, vectra-bot.net, 80, %uri, $+(%output,,%address,,%rank,,%skill), $false) | return
+  }
+  elseif (%style == rsnews) {
+    var %mark = $+(%output,,%address,,$iif($+($chr(35),*) iswm $2 && $remove($2,$chr(35)) isnum 1-5,$v1,1))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=RSnews
+    noop $Sockmake(RSnews, %host, 80, %uri, %mark, $false) | return
+  }
+  elseif (%style == whatpulse) {
+    if (!$2) {
+      var %name = $Username(Whatpulse,%address,25,$nick)
+
+      ; Hand out the errors, oh well
+      noop $Username(%name,%output,%address).error
+
+      var %mark = $+(%output,,%address,$token(%name,1,58),,$token(%name,2,58))
+      var %host = parsers.vectra-bot.net
+      var %uri = /Parsers/index.php?type=Whatpulse&user= $+ $urlencode($gettok(%name,1,58))
+      noop $Sockmake(Whatpulse, %host, 80, %uri, %mark, $false) | return
+    }
+    elseif ($regex($2,/^\-d(ef(ault)?)?$/Si)) {
+      if (!$3) { 
+        if ($Username(Whatpulse, %address, 20, $nick).check) { 
+          var %rsn = $v1
+          hdel Whatpulse %hash | %output $col(%address,whatpulse).logo Your default whatpulse name for $col(%address,%address) ( $+ $col(%address,$gettok(%name,1,58)) $+ ) has been deleted. | return
+        }
+        else { %output $col(%address,error).logo Please supply a Whatpulse username or id to set as your default name. Syntax: $+($col(%address,$1 $2 <name/id>),.) | return }
+      }
+      else { 
+        %output $col(%address,whatpulse).logo Your default whatpulse name has been set to $col(%address,$3-) for the host $+($col(%address,%address),.)
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Whatpulse %hash $replace($3-,$chr(32),_)
+      }
+    }
+    else {
+      var %name = $Username(Whatpulse, %address, 25, $nick, $2-)
+
+      ; Hand out the errors, oh well
+      noop $Username($gettok(%name,1,58),%output,%address).error
+
+      var %mark = $+(%output,,%address,,$token(%name,1,58),,$token(%name,2,58))
+      var %host = parsers.vectra-bot.net
+      var %uri = /Parsers/index.php?type=Whatpulse&user= $+ $urlencode($gettok(%name,1,58))
+      noop $Sockmake(Whatpulse, %host, 80, %uri, %mark, $false) | return
+    }
+  }
+  elseif (%style == wpcompare) {
+    if (!$2) { %output $col(%address,error).logo Please add two nicknames to compare. Syntax: $+($col(%address,$1 $+(User1[&],$chr(44),<user2[&]>)),.) | return }
+
+    noop $regex(wpc, $2-, /^([^,]*)(?:,(.*))?$/)) 
+    var %user1 = $Username(Whatpulse, %address, 25, $nick, $trim($regml(wpc, 1)))
+    if ($regml(wpc, 2)) { var %user2 = $Username(Whatpulse, %address, 25, $nick, $trim($regml(wpc, 2))) } 
+    else { var %user2 = $Username(Whatpulse, %address, 25, $nick) }
+
+    ; Hand out the errors, oh well
+    noop $Username($gettok(%user1,1,58),%output,%address).error
+    noop $Username($gettok(%user2,1,58),%output,%address).error
+
+    if (%user1 == %user2) { %output $col(%address,error).logo Both supplied Whatpulse names are the same. | return }
+
+    var %mark = $+(%output,,%address,,$gettok(%user1,1,58),,$gettok(%user2,1,58),,$gettok(%user1,2,58),,$gettok(%user2,2,58))
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=WhatpulseComp&u1= $+ $urlencode($gettok($replace(%user1,$chr(32),_),1,58)) $+ &u2= $+ $urlencode($gettok($replace(%user2,$chr(32),_),1,58))
+    noop $Sockmake(WPcompare, %host, 80, %uri, %mark, $false) 
+    halt
+  }
+  elseif (%style == rsplayers) { 
+    var %mark = $+(%output,,%address)
+    var %host = parsers.vectra-bot.net
+    var %uri = /Parsers/index.php?type=RSplayers
+    noop $Sockmake(RSplayers, %host, 80, %uri, %mark, $false) | return
+  }
+  elseif (%style == cyborg) {
+    if ($2- == $null) { %output $col(%address,error).logo Syntax error: $col(%address,$1 $me).fullcol | return }
+    elseif ($len($2-) > 12) { %output $col(%address,error).logo All searches must be 12 or less characters long. | return }
+    var %query = $regsubex($2-,/[^\w ]/i,$chr(32))
+    noop $Sockmake(Cyborg, parsers.vectra-bot.net, 80, $+(/Parsers/index.php?type=Cyborg&q=,$urlencode(%query)),$+(%output,,%address,,1,,%query)) | return 
+  }
+  elseif (%style == fact) { noop $Sockmake(Fact, parsers.vectra-bot.net, 80, /Parsers/index.php?type=Fact&q= $+ $regml(trigger, 1), $+(%output,,%address,,1,,$regml(trigger, 1))) | return }
+  elseif (%style == xboxlive) {
+    noop $regex(%address, $2-, /^(?:-[dg])?(?: #(\d+)|())(?: ?(.+[&$]?)|())/Si)
+    var %limit = $iif($regml(%address, 1) == $null, 1, $v1), %gtag = $iif($regml(%address,2) == $null, $Username(Xboxlive, %address, 15, $nick, $regml(%address,2)), $remove($v1,$,&))
+    var %game = $iif($2 == -g, $true, $false)
+    if ($2 == -d) {
+      if ($regml(%address, 2) == $null) {
+        if (!$Username(Xboxlive, %address, 15, $nick).check) { hdel Xboxlive %hash | %output $col(%address,xbox).logo Default gamertag for " $+ $col(%address,%address) $+ " has been removed. | return }
+        else { %output $col(%address,error).logo You don't have a default GamerTag assigned to hostname " $+ $col(%address,%address) $+ ". | return }
+      }
+      else { 
+        %output $col(%address,xbox).logo Default gamertag for " $+ $col(%address,%address) $+ " has been set to: $+($col(%address,%gtag),.)
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Xboxlive %hash %gtag
+        return
+      }
+    }    
+    elseif (%gtag == $null) { %output $col(%address,error).logo Error missing arguments $col(%address,$1 [-gd] [#N] GAMER_TAG).fullcol ( $+ $col(%address,[]).fullcol = $col(%address,Optional).fullcol $+ , $col(%address,N).fullcol = $col(%address,Number).fullcol $+ )) | return }
+    elseif ($len($gettok(%gtag,1,58)) > 15) { %output $col(%address,error).logo GamerTag length exceeded. Length must not exceed $col(%address,15).fullcol characters. | return }
+    else { noop $Sockmake(Xboxlive, parsers.vectra-bot.net, 80, /Parsers/index.php?type=Xbl&tag= $+ $urlencode(%gtag), $+(%output,,%address,,%limit,,%gtag,,%game)) | return }
+  }  
+  elseif (%style == kbase) {
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <term>),.) | return }
+    else { noop $sockmake(Kbase,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=RSkbase&search=,$urlencode($2-)),$+(%output,,%address,,$2-),$false) | return }
+  }
+  elseif (%style == slogan) {
+    if (!$2) { %output $col(%address,error).logo Specify a phrase to sloganize. | return }
+    else { noop $sockmake(Slogan,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Slogan&q=,$urlencode($2-)),$+(%output,,%address,,$2-),$false) | return }
+  }
+  elseif (%style == timezone) {
+    if (!$2) { %output $col(%address,error).logo Supply a location to lookup. $+($col(%address,$1 Alicante $+ $chr(44) Spain),.) | return }
+    else { noop $sockmake(Timezone,parsers.vectra-bot.net,80,$+(/Parsers/index.php?type=Weather&loc=,$urlencode($2-)),$+(%output,,%address),$false) | return }
+  }
+  elseif (%style == noburn) {
+    if (!$2) { %output $col(%address,error).logo Please supply a food to lookup. $col(%address,$1 Shark),.) }
+    elseif ($read($Datadir(noburn.txt), w, $+(*,$qt($replace($2-,$chr(32),*,+,_)),*))) {
+      tokenize 124 $v1
+      %output $col(%address,noburn).logo $+($chr(40),$col(%address,$replace($1,_,$chr(32))).fullcol,$chr(41)) $iif($8 == M,$+([,$col(%address,M).fullcol,])) $iif($2-4 == $false $false $false,$col(%address,N/A).fullcol,$iif($2,Gauntlets: $col(%address,$2).fullcol) $iif($3,Range: $col(%address,$3).fullcol) $iif($4,Fire: $col(%address,$4).fullcol)) $chr(124) Cooking lvl: $col(%address,$iif($5,$5,N/A)).fullcol $chr(124) Used on: $replacex($6,F,$col(%address,Fire).fullcol,R,$col(%address,Range).fullcol) $chr(124) Heals: $col(%address,$bytes($7,db))
+      if ($9) { %output $col(%address,noburn).logo $+([,other info,]) $col(%address,$9-).fullcol }
+    }
+    else { %output $col(%address,error).logo The food $+(",$col(%address,$2-).fullcol,") did not return any results. }
+    return
+  }
+  if (%style == status) {
+    if ($2 && %realStaff) {
+      if ($chr(35) isin $2) { 
+        %output $col(%address,settings).logo In $col(%address,$2) the settable options are $col(%address,Public,$Settings($2,Public)) $+ $chr(44) $col(%address,VoiceLock,$Settings($2,voicelock)) $+ $chr(44) $&
+          $col(%address,AutoClan,$Settings($2,auto_clan)) $+ $chr(44) $col(%address,AutoCmb,$Settings($2,auto_cmb)) $+ $chr(44) $col(%address,AutoStats,$Settings($2,auto_stats)) $+ $chr(44) $&
+          $col(%address,AutoVoice,$Settings($2,auto_voice)) $+ $chr(44) $col(%address,GE Alert,$Settings($2,global_ge)) $+ $chr(44) $col(%address,RSnews Alert,$Settings($2,global_rsnews)) $+ $chr(46) The channel site is currently set to: $col(%address,$iif($Settings($2,Site),$token($Settings($2,site),2,32),None)) $+ . $&
+          The Default Channel Memberlist is set to the clan: $col(%address,$iif($Settings($2,default_ml),$gettok($v1,1,124),None)) $+ .
+        if (!$isEmpty($Settings($2,commands))) { %output $col(%address,commands).logo The current offline commands are: $+($colorList(%address, 32, 44, $Settings($2,commands)).space,.) }
         halt 
       }
-      elseif ($nick !isop $3) && ($nick !ishop $3) || ($me !ison $3) {
-        .msg $nick $logo($nick,error) $c1(You are not half-op+ on that channel or I am not there.) 
-        halt
-      } 
-      else {
-        $iif($me ison #Devvectra, .msg #DevVectra do writeini -n pcw.ini channel $3 $2 $nick $ctime)
-        .writeini -n pcw.ini channel $3 $2 $nick $ctime
-        .msg $3 $c3(**) $+($c3,$chr(40),$c4($upper(pestcontrol)),$c3,$chr(41),$c3,:) $c3(New pestcontrol world has been set! Type) $c4(!pcw) $c3(to see it.)
-        .msg $nick $logo($nick,pestcontrol) $c1(World) $c2($nick,$2) $c1(has been set for) $c2($nick,$3) $+ $c1(.)
-        halt
-      }
-    }
-    if ($nick !isop $chan) && ($nick !ishop $chan) { 
-      .notice $nick $logo($nick,error) $c1(You need atleast) $c2($nick,halfop) $c1(to set a pestcontrol world.)
-      halt
-    }
-    if ($2 !isnum 1-169) || ($2 !isnum) { 
-      .notice $nick $logo($nick,error) $c2($nick,$2) $c1(is not a valid Runescape world.) 
-    }
-    else {
-      $iif($me ison #Devvectra, .msg #DevVectra do writeini -n pcw.ini channel $chan $2 $nick $ctime)
-      .writeini -n pcw.ini channel $chan $2 $nick $ctime
-      .msg $chan $c3(**) $+($c3,$chr(40),$c4($upper(pestcontrol)),$c3,$chr(41),$c3,:) $c3(New pestcontrol world has been set! Type) $c4(!pcw) $c3(to see it.)
-    }
-  }
-  elseif ($istok(pcw,%style,32)) {
-    if ($nick isreg $chan) {
-      .notice $nick $logo($nick,error) $c1(You need to be atleast) $c2($nick,voice) $c1(to check the pestcontrol world.) 
-    }
-    else {
-      if (!$readini(pcw.ini,channel,$chan)) {
-        .notice $nick $logo($nick,error) $c1(No pestcontrol world set for) $+($c2($nick,$chan),$c1,.)
-      }
-      else {
-        .notice $nick $logo($nick,pcw) $c1(The Pest Control world for) $c2($nick,$chan) $c1(is) $+($c2($nick,$gettok($readini(pcw.ini,channel,$chan),1,32)),$c1,$chr(44)) $c1(set by) $+($c2($nick,$gettok($readini(pcw.ini,channel,$chan),2,32)),$c1,$chr(44)) $c2($nick,$duration($calc($ctime - $gettok($readini(pcw.ini,channel,$chan),3,32)),1)) $c1(ago.)
-      }
-    }
-  }
-  elseif ($istok(level,%style,32)) {
-    if ($regex($2,/(.*)-(.*)/Si)) {
-      if ($regml(1) > $regml(2)) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(The first number needs to be higher than the other. ex:) $+($c2($nick,!level 50-56),$c1,.)
-      }
-      elseif ($regml(1) isnum 1-126 && $regml(2) isnum 1-126) {
-        $msgs($nick,$chan,$1) $logo($nick,lvl-exp) $c1(The exp between level) $c2($nick,$token($2,1,45)) $c1(and) $c2($nick,$token($2,2,45)) $c1(is) $+($c2($nick,$bytes($calc($statsxp($token($2,2,45)) - $statsxp($token($2,1,45))),db)),$c1,.) 
-      }
-    }
-    elseif ($2 isnum 1-126) {
-      $msgs($nick,$chan,$1) $logo($nick,lvl-exp) $c1(The exp for level) $c2($nick,$2) $c1(is) $c2($nick,$bytes($statsxp($2),b)) $c1(exp.)
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please use a level from) $+($c2($nick,1-126),$c1,.)
-    }
-  }
-  elseif ($istok(exp,%style,32)) {
-    if ($skillnonum($2)) {
-      .var %return $msgs($nick,$chan,$1)
-      if ($paramFind($skillnonum($2),$3-)) {
-        .tokenize 124 $v1 | %return $logo($nick,params) $c1(Best result for) $c2($nick,$qt($2)) $c1(in skill) $c2($nick,$skillnonum($1)) $c1(returned) $c2($nick,$3) $c1(at) $c2($nick,$4) $c1(exp each.)
-      }
-      else { %return $logo($nick,params) $c1(No results, please check our website for the proper syntax.) }
-    }
-    elseif ($replace($2,k,000,m,000000,b,000000000) isnum 1-200000000) {
-      .var %exp $replace($2,k,000,m,000000,b,000000000),%level $undoexp(%exp)
-      $msgs($nick,$chan,$1) $logo($nick,exp-lvl) $c1(The lvl for) $c2($nick,$bytes(%exp,db)) $c1(exp is) $+($c2($nick,%level),$c1,.) $c1(Exp to level) $c2($nick,$calc(%level + 1)) $+ $c1(:) $c2($nick,$bytes($calc($statsxp($calc(%level + 1)) - %exp),db)) $+ $c1(.)
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please specify a exp between) $+($c2($nick,1-200.000.000),$c1,.)
-    }
-  }
-  elseif ($istok(google,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type) $+($c2($nick,!google SEARCH),$c1,.)
-    }
-    .sockopen $+(google.,$hget($+(id.,$cid),$me)) www.vectra-bot.net 80
-    .sockmark $+(google.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+),:,$nick)
-  }
-  elseif ($istok(spell,%style,32)) {
-    if ($replace($2,k,000,m,000000,b,000000000) isnum) { 
-      .var %object $replace($3-,$chr(32),$chr(95)),%number $v1 
-    }
-    else { var %object $replace($2-,$chr(32),$chr(95)) }
-    if (!%object) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type) $+($c2($nick,!rsspell <amount> SPELL),$c1,.)
-    }
-    else {
-      .sockopen $+(spell.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(spell.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,%object,:,$nick,:,$iif(%number,$v1,1))
-    }
-  }
-  elseif ($istok(privacy,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type) $+($c2($nick,!privacy on/off),$c1,.)
-    }
-    elseif ($2 == off && !$readini(privacy.ini,privacy,$address($nick,3))) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Defname privacy was already off.)
-    }
-    elseif ($2 == on && $readini(privacy.ini,privacy,$address($nick,3))) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Defname privacy was already on.)
-    }
-    elseif ($2 == on && !$readini(defname.ini,RSNs,$address($nick,3))) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You need a default RSN to set privacy on. Type) $+($c2($nick,!defname RSN),$c1,.)
-    }
-    elseif ($2 == on) {
-      $msgs($nick,$chan,$1) $logo($nick,privacy) $c1(Defname privacy is now on.)
-      .writeini -n privacy.ini Privacy $address($nick,3) $readini(defname.ini,RSNs,$address($nick,3))
-      $iif($me ison #Devvectra, .msg #DevVectra do writeini -n privacy.ini Privacy $address($nick,3) $readini(defname.ini,RSNs,$address($nick,3)))
-    }
-    elseif ($2 == off) {
-      $msgs($nick,$chan,$1) $logo($nick,privacy) $c1(Defname privacy is now off.)
-      .remini -n privacy.ini Privacy $address($nick,3)
-      $iif($me ison #Devvectra, .msg #DevVectra do remini -n privacy.ini Privacy $address($nick,3))
-    }
-  }
-  elseif ($istok(amsg,%style,32) && $chan == #devvectra) && ($nick isop #devvectra || $nick ishop #devvectra) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please enter something to send.)
-      .halt
-    }
-    .emsg e $c3(**) $+($c3,$chr(40),$c4($upper(global)),$c3,$chr(41),$c3,:) $c3($2-)
-  }
-  elseif ($istok(rsf,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add a topic to search for.) $zybez($nick)
-      .halt
-    }
-    .sockopen $+(qfc.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(qfc.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($2-,$chr(32),+,$chr(95),+,$chr(45),+))
-  }
-  elseif ($istok(monster,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,npc/monster) $c1(Invalid Syntax. Syntax:) $c2($nick,!monster/NPC <monster/NPC>)
-    } 
-    else {
-      .sockopen $+(monster.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(monster.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($2-,$chr(32),_))
-    }
-  }
-  elseif ($istok(slogan,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add something to search for.)
-      .halt
-    }
-    .sockopen $+(slogan.,$hget($+(id.,$cid),$me)) www.thesurrealist.co.uk 80
-    .sockmark $+(slogan.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+,$chr(95),+,$chr(45),+),:,$nick)
-  }
-  elseif ($istok(1881,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Vennligst skriv et nummer og s?ke etter.) $+($c1,$chr(40),$c2($nick,1881.no),$c1,$chr(41))
-      halt
-    }
-    .sockopen $+(1881.,$hget($+(id.,$cid),$me)) www.1881.no 80
-    .sockmark $+(1881.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+,$chr(95),+,$chr(45),+),:,$nick)
-  }
-  elseif ($istok(alch,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type:) $+($c2($nick,!alch [amount] <item>),$c1,.) $c1(Amount is optional.)
-      .halt
-    }
-    if ($replace($2,K,000,M,000000,B,000000000) isnum && $3) { .var %ammount = $v1 | .tokenize 32 $deltok($1-,2,32) }
-    .sockopen $+(alch.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(alch.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$iif(%ammount,%ammount,1),:,$replace($remove($2-,$chr(35)),$chr(32),_),:,$nick)
-  }
-  elseif ($istok(claninfo,%style,32)) {
-    if (!$2 && !$Settings($chan,DefaultML)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type:) $c2($nick,!ml <clan-name>) $c1(or set a Default Memberlist.) | halt }
-    .sockopen $+(claninfo.,$hget($+(id.,$cid),$me)) www.runehead.com 80
-    .sockmark $+(claninfo.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$iif(!$2,$gettok($Settings($chan,DefaultML),1,124),$replace($2-,$chr(32),+,$chr(45),+,$chr(95),+)),:,$nick)
-  }
-  elseif ($istok(clue,%style,32)) {
-    .sockopen $+(clue.,$hget($+(id.,$cid),$me)) www.zybez.net 80
-    .sockmark $+(clue.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$right($1,-1),:,$2-)
-  }
-  elseif ($istok(locator,%style,32)) {
-    if (!$2-) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type:) $c2($nick,!locator Latitude S/W/N/E Longitude S/W/N/E) $c1(Example:) $+($c2($nick,!locator 00.00 N 07.13 W),$c1,.) 
-      .halt
-    }
-    elseif (*.* !iswm $2) || (*.* !iswm $4) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Type:) $c2($nick,!locator Latitude S/W/N/E Longitude S/W/N/E) $c1(Example:) $+($c2($nick,!locator 00.00 N 07.13 W),$c1,.) 
-      .halt
-    }
-    .sockopen $+(locator.,$hget($+(id.,$cid),$me)) www.tip.it 80
-    .sockmark $+(locator.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$2-3,:,$4-5)
-  }
-  elseif ($istok(ignore,%style,32)) {
-    if ($nick ison #devvectra && $nick !isreg #devvectra) { 
-      if (!$2) {
-        $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(Give me something to ignore first.)
+      elseif ($regex($2,/^\-b(ot(s)?)?$/Si)) {
+        var %i = 1, %c $ticks, %cid = $cid
+        while ($scon(%i).cid) {
+          scid $v1      
+          if ($ticks > $calc(%c + 2000)) { break }  
+          var %out = %out $col($null,$me) $+([,$col($null,$comchan($me,0)).fullcol,]) on $col($null,$network) ( $+ $col($null,$server) $+ ).
+          inc %i
+        }
+        scid -r
+        %output $col($null,Status).logo This client currently has $col($null,$scon(0)).fullcol active connections. %out 
         halt
       }
-      if ($2 == -r) {
-        if (!$ignore($3)) { 
-          $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(I am not ignoring) $c2($nick,$3) $+ $c1(.)
+      elseif ($regex($2,/^\-i(nfo(rmation)?)?$/Si)) {
+        .var %i = 1, %lines = 0, %size = 0, %c $ticks
+        while (%i <= $script(0)) { 
+          if ($ticks > $calc(%c + 2000)) { break }          
+          inc %lines $lines($script(%i)) 
+          inc %size $file($script(%i)).size
+          var %out = %out $col(%address,$nopath($script(%i))) ( $+ Size: $col(%address,$bytes($file($script(%i)).size)).fullcol $+ KB Lines: $col(%address,$bytes($lines($script(%i)),db)).fullcol $+ )
+          inc %i 
         }
-        else { 
-          if ($nick !isop #devvectra) {
-            if ($ignore($3).secs == $null) {
-              $msgs($nick,$chan,$1) $logo($nick,ignore) $c2($nick,$ignore($3)) $c1(is permanently ignore and only people with owner status can remove this ignore.)
-            }
-            if ($ignore($3).secs) { 
-              !ignore -r $ignore($3)
-              $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(Successfully removed) $c2($nick,$3) $c1(from the ignore list.)
-            }
-          }
-          if ($ignore($3).secs || $ignore($3)) && ($nick isop #devvectra) {
-            !ignore -r $ignore($3)
-            $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(Successfully removed) $c2($nick,$3) $c1(from the ignore list.)
-          }
-        }
-      }
-      if ($ignore($2)) && ($2 != -r) { 
-        $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(I am already ignoring) $c2($nick,$ignore($2)) $+ $iif($ignore($2).secs, $chr(44) $c2($nick,$duration($ignore($2).secs)) $c1(left until unignore.))
-        !halt
-      }
-      if ($ignore($3)) && $regex($2,/-(.*)) && ($2 != -r) { 
-        $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(I am already ignoring) $c2($nick,$ignore($3)) $+ $iif($ignore($3).secs, $chr(44) $c2($nick,$duration($ignore($3).secs)) $c1(left until unignore.))
-        !halt
-      }
-      else {
-        if ($duration($right($2,-1),1) == 0) && ($3 == $null) && ($ignore($2) == $null) {
-          if ($nick ishop #devvectra && $nick !isop #devvectra) { $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(You need owners status to permanently ignore someone.) | !halt }
-          ignore $2
-          $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(Now ignoring) $c2($nick,$2) $c1(permanently.)
-        }
-        if ($duration($right($2,-1),1) != 0) && ($ignore($3) == $null) {
-          var %ignoretime = $duration($right($2,-1),1)
-          ignore -u $+ %ignoretime $3
-          $msgs($nick,$chan,$1) $logo($nick,ignore) $c1(Added) $c2($nick,$3) $c1(to ignore for) $c2($nick,$duration(%ignoretime))
-        }
+        %output $col(%address,status).logo Vectra is currently comprised of $col(%address,$script(0)).fullcol files with a total of $col(%address,%lines).fullcol lines of code. The $col(%address,$script(0)).fullcol files take up $col(%address,$ceil($bytes(%size))).fullcol $+ KB of space.
+        %output $col(%address,status).logo Files: %out
+        halt
       }
     }
+    if ($me != %Mainbot && !%realStaff) { halt }
+    %output $col(%address,settings).logo In $col(%address,$chan) the settable options: $col(%address,Public,$Settings($chan,public)) $+ $chr(44) $col(%address,VoiceLock,$Settings($chan,voicelock)) $+ $chr(44) $&
+      $col(%address,AutoClan,$Settings($chan,auto_clan)) $+ $chr(44) $col(%address,AutoCmb,$Settings($chan,auto_cmb)) $+ $chr(44) $col(%address,AutoStats,$Settings($chan,auto_stats)) $+ $chr(44) $&
+      $col(%address,AutoVoice,$Settings($chan,auto_voice)) $+ $chr(44) $col(%address,GE Alert,$Settings($chan,global_ge)) $+ $chr(44) $col(%address,RSnews Alert,$Settings($chan,global_rsnews)) $+ $chr(46) The first channel site is currently set to: $col(%address,$iif($Settings($chan,Site),$token($Settings($chan,site),2,32),None)) $+ . $&
+      The Default Channel Memberlist is set to the clan: $col(%address,$iif($Settings($chan,default_ml),$gettok($v1,1,124),None)) $+ .
+    if (!$isEmpty($Settings($chan,commands))) { %output $col(%address,commands).logo The current offline commands are: $+($colorList(%address, 32, 44, $Settings($chan,commands)).space,.) }
+    halt
   }
-  elseif ($istok(reason,%style,32)) {
-    if ($is_staff($nick) && $Mainbot(#DevVectra) == $me) {
-      if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Can't check for a blacklist without a channel, dummy.) | halt } 
-      .var %x = 1, %c $ticks
-      while (%x <= $ini(blacklist.ini,0)) {
-        if ($ticks > $calc(%c + 4000)) { break }
-        if ($ctime >= $readini(blacklist.ini,$ini(blacklist.ini,%x),ctime)) && (!$istok(0,$readini(blacklist.ini,$ini(blacklist.ini,%x),ctime),32)) {
-          .remini -n blacklist.ini $ini(blacklist.ini,%x)          
+  elseif (%style == commands) { %output $col(%address,commands).logo Commands can be found at: $col(%address,http://www.vectra-bot.net) and our forums can be found at: $+($col(%address,http://forum.vectra-bot.net),.) | return }
+  elseif (%style == mystatus) {
+    if ($2 && %realStaff) {
+      if (*!*@* iswm $2) { var %hash = $+($network,:,$2) }
+      elseif ($ial($2)) { var %hash = $+($network,:,$mask($v1,3)) }
+      else { %output $col(%address,error).logo the search " $+ $col(%address,$2).fullcol $+ " was not found in the $+($col(%address,IAL),.) Try searching a specific hostname ( $+ $col(%address,$1 *!*@*) $+ ). | halt }
+    }
+    build $gettok(%hash,2,58)
+    %output $col(%address,mystatus).logo You are currently $iif($hget(Accounts,%hash),logged in as $col(%address,$v1).fullcol $iif(%realStaff,$+($chr(40),$col(%address,%isStaff),$chr(41))),not logged in) for host $+($col(%address,$gettok(%hash,2,58)),.) Your Runescape settings - Defname: $col(%address,$iif($hget(Defname,%hash),$v1,None)) $+ . Your settable options are: $col(%address,Privacy,$iif($hget(Privacy,%hash) == 1,$true,$false)) $&
+      $+ $chr(44) $col(%address,ShortLinks,$iif($hget(Shortlinks,%hash) == 1,$true,$false)) $+ . Your Default Account names are; Whatpulse: $col(%address,$iif($hget(Whatpulse,%hash),$v1,None)) $+ $chr(44) Xbox Live: $col(%address,$iif($hget(Xboxlive,%hash),$v1,None)) $+ .
+    halt
+  } 
+  elseif (%style == hashcache) {
+    var %c = $ticks, %this = 1, %num = 1
+    while (%this <= $hget(0)) {
+      var %name = $hget($v1)
+      if ($ticks > $calc(2000+%c)) break
+      var %size = $hget(%name).size, %items = $hget(%name, 0).item, %send = %send $col(%address,%name) (Size: $col(%address,%size).fullcol Items: $col(%address,%items).fullcol Filled: $col(%address,$calc(%items / %size * 100)).fullcol $+ % $+ ) $(|,)
+      inc %this
+    }
+    noop $sockshorten(124, %output, $col(%address,hash-cache).logo, %send)
+    halt
+  }
+  elseif (%style == blacklist) {
+    %output %isLoggedIn > %isStaff > %realStaff
+    if (!%realStaff) { halt }
+
+    if ($regex($regml(trigger,2) ,/^(del|rem)/Si) == 0) {
+      ; adding
+      if ($regex($2,/^-(\S+)$/Si)) {
+        if ($duration($regml(1))) { var %time = $v1 }
+        else { %output $col(%address,error).logo Duration $+(",$col(%address,$regml(1)).fullcol,") was invalid. Setting time to perm ban. }
+        tokenize 32 $deltok($1-,2,32)
+      }
+      if ($left($2,1) == $chr(35)) { var %channel = $2 }
+      else { %output $col(%address,error).logo Please supply a channel. $col(%address,$1 [-<time>] #<channel> [@<network>] <reason>).fullcol | halt }
+      if ($regex($3,/^@(\S+)$/Si)) { var %network = $regml(1) | tokenize 32 $deltok($1-,3,32) }
+
+      var %network = $iif(%network,$v1,$network), %hash = $+(%network,:,$2)
+      if ($hget(Blacklist,%hash)) { %output $col(%address,error).logo The channel $+(",$col(%address,$2).fullcol,") is already blacklisted on $+($col(%address,$ucword(%network)).fullcol,.) | halt }
+
+      hadd $+(-sm,$iif(%time,$+(u,$v1))) Blacklist %hash $+($iif(%isLoggedIn,$v1,$nick),:,%network,:,$ctime,:,$iif($3-,$v1,Not set.))
+      var %x 1, %channel = $token(%hash,2,58)
+      while (%x <= $scon(0)) {
+        scid $scon(%x).cid
+        if ($network == %network && $me ison %channel) { 
+          monitor part $col($null,blacklist).logo I have parted $col($null,%channel) on $col($null,$network) due to a blacklist.
+          part %channel This channel has been $iif(%time,temorary,permanently) $+(blacklisted,$iif(%time,$+($chr(40),$duration($v1,1),$chr(41))),:) $b($iif($3-,$v1,Not set.)) - If you want to appeal this blacklist, join #Vectra. 
         }
+        scid -r
         inc %x
       }
-      if ($ini(blacklist.ini,$2)) { 
-        $msgs($nick,$chan,$1) $logo($nick,blacklist) $c1(Channel) $c2($nick,$2) $c1(is blacklisted with the reason:) $c2($nick,$readini(blacklist.ini,$2,reason)) $c1(by) $c2($nick,$readini(blacklist.ini,$2,staff)) $c1(on) $+($c2($nick,$readini(blacklist.ini,$2,when)),$c1,.) $&
-          $c1(This ban will expire in:) $c2($nick,$iif($readini(blacklist.ini,$2,ctime) == 0,Never.,$duration($calc($v1 - $ctime),1)))
+      %output $col(%address,blacklisted).logo [ADD] Channel: $col(%address,%channel).fullcol $+($chr(40),$col(%address,$ucword(%network)).fullcol,$chr(41)) $chr(124) Will be removed: $col(%address,$iif(%time,$duration(%time,1),Never)).fullcol $chr(124) Reason: $col(%address,$iif($3-,$v1,Not set.)).fullcol
+    }
+    else {
+      ; deleting
+      if ($regex($3,/^@(\S+)$/Si)) { var %network $regml(1) }
+      var %network = $iif(%network,$v1,$network), %hash = $+(%network,:,$2)
+
+      if ($hget(Blacklist,%hash) == $null) { %output $col(%address,error).logo The channel $+(",$col(%address,$2).fullcol,") is not blacklisted on $+($col(%address,$ucword(%network)).fullcol,.) }
+      else {
+        tokenize 58 $hget(Blacklist,%hash)
+        hdel Blacklist %hash
+        %output $col(%address,blacklist).logo [DEL] Channel: $col(%address,$token(%hash,2,58)).fullcol $+($chr(40),$col(%address,$2).fullcol,$chr(41)) $chr(124) Supposed to be removed: $col(%address,$iif($3 != $false,$duration($calc($3 - $ctime),1),Never)).fullcol $chr(124) Reason: $col(%address,$4-).fullcol
+      }
+    }
+    return
+  }
+  elseif (%style == reason) {
+    if (!%realStaff) { halt }
+    return
+  }
+  elseif (%style == ignore) {
+    if (!%realStaff) { halt }
+    return 
+  }  
+  elseif (%style == cmb-est) {
+    if (!$8) { %output $col(%address,error).logo The correct syntax is $+($col(%address,$1 <att> <def> <str> <cns> <range> <pray> <mage> [sum]),.) | return }
+    else {
+      .tokenize 32 $2- $iif(!$9,1)
+      var %skills = Attack Defence Strength Constitution Ranged Prayer Magic Summoning, %a = 1
+      while (%a <= $numtok(%skills,32)) {
+        var %lvl = $gettok($1-,%a,32), %skill = $gettok(%skills,%a,32)
+        if (%lvl > 99) { %output $col(%address,error).logo You must specify a $col(%address,%skill) level less than or equal to 99. | return }
+        elseif (%skill == constitution) && (%lvl < 10) { %output $col(%address,error).logo You must specify a $col(%address,%skill) level greater than or equal to 10. | return }
+        inc %a
+      }
+      var %cmb = $cmb($1-).class, %class = $gettok(%cmb,2,32), %p2p = $gettok(%cmb,1,32), %f2p = $cmb($1-7 1), %nextcmb $nextcmb($1-)
+      %output $col(%address,cmb-est).logo Combat: $col(%address,%p2p) $iif(%p2p != %f2p,[F2P: $col(%address,%f2p) $+ ]) $+($chr(40),$col(%address,%class),$chr(41)) $+(ADS,$b(C),RPM,$chr(40),SU,$chr(41),:) $col(%address,$gettok($1-,1-3,32) $b($gettok($1-,4,32)) $gettok($1-,5-,32)))
+      if (%nextcmb) { %output $col(%address,cmb-est).logo For $+($col(%address,$calc($floor(%p2p) + 1)),:) $regsubex(%nextcmb,/(\d+)/g,$col(%address,\1).fullcol) }
+      return
+    }
+  }
+  elseif (%style == cns-est) {
+    if (!$6) { %output $col(%address,error).logo The correct syntax is $+($col(%address,$1 <att> <def> <str> <range> <mage>),.) | return }
+    else {
+      var %skills attack defence strength ranged magic, %a 1
+      while (%a <= $numtok(%skills,32)) {
+        var %lvl = $gettok($2-,%a,32), %skill = $gettok(%skills,%a,32)
+        if (%lvl > 99) { %output $col(%address,error).logo You must specify a $col(%address,%skill) level less than or equal to 99. | return }
+        else { var %skillline = %skillline %skill $+($col(%address,%lvl).fullcol,;) }
+        inc %a
+      }
+      %output $col(%address,cns-est).logo Estimated Constitution ( $+ $mid(%skillline,0,-1) $+ ): $col(%address,$cns-est($2-)) | return
+    }
+  }
+  elseif (%style == calc) {
+    if (!$2) { %output $col(%address,error).logo Specify something to calculate. | return }
+    else { %output $col(%address,calc).logo $col(%address,$strip($2-)) = $col(%address,$bytes($calc($regsubex($strip($replace($2-,$chr(44),,x,*,pi,$pi)),/(\d+(?:\.\d+)?)([kmb])/gi,( \1 $replace(\2,b,*1000m,m,*1000k,k,*1000) ))),db)) | return }
+  }
+  elseif (%style == mylist) {
+    if (!$skill($2) || !$3) { %output $col(%address,error).logo The correct syntax is $+($col(%address,!mylist <skill> $+(<item>,[,$chr(44),item2])),.) You can specify up to $col(%address,6).fullcol items. | return }
+    var %skill = $skill($2), %line = $replace($3-,$+($chr(44),$chr(32)),$chr(16),$chr(44),$chr(16))
+    if ($istok(Overall Dungeoneering,%skill,32)) { %output $col(%address,error).logo You must specify a $col(%address,valid) skill. The skills $col(%address,overall) and $col(%address,dungeoneering) cannot be used. | return }
+    if ($regex($3,/^(0|clear|unset)$/Si)) {
+      if ($wildtok($hget(Mylist,%hash), $+(*,%skill,|*), 1, 16)) { 
+        var %token = $findtok($hget(Mylist,%hash), $v1, 1, 16)
+        %output $col(%address,Mylist).logo The mylist for $col(%address,%skill) has been unset.
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Mylist %hash $deltok($hget(Mylist,%hash), %token, 16)
+        if ($hget(Mylist,%hash) == $null || $hget(Mylist,%hash) == 0) { hadd Mylist %hash 0 }
+      }
+      else { %output $col(%address,error).logo There is no mylist set for the $col(%address,%skill) skill. }
+      return
+    }
+    var %a = $numtok(%line,16), %b = 1, %valid, %invalid
+    while (%a >= %b) { 
+      var %item = $gettok(%line,%b,16), %info $gettok($skillparam(%skill,%item,1),1,124)
+      if (!%info) { var %invalid = $addtok(%invalid,%item,44) } 
+      else { var %valid = $addtok(%valid,%info,44) }
+      inc %b
+    }
+    if (%valid) { 
+      %output $col(%address,mylist).logo The paramter(s) $colorList(%address, 44, 44, %valid).space have been added to the mylist for $col(%address,%address).fullcol in the skill $+($col(%address,%skill),.)
+      if ($wildtok($hget(Mylist,%hash), $+(*,%skill,|*), 1, 16)) { 
+        var %token = $findtok($hget(Mylist,%hash), $v1, 1, 16)
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Mylist %hash $puttok($hget(Mylist,%hash), $+(%skill,|,$replace(%valid,$chr(44),$(|))), %token, 16)) 
       }
       else { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$2) $c1(is not in the blacklist.) 
-      }
+        var %string = $+(%skill,$(|),$replace(%valid,$chr(44),$(|)))
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Mylist %hash $iif($hget(Mylist,%hash) == 0, %string, $addtok($hget(Mylist,%hash), %string, 16)) 
+      }      
+    }
+    if (%invalid) { 
+      %output $col(%address,error).logo The parameter(s) $colorList(%address, 44, 44, %invalid).space are invalid. A list of valid parameters can be found here $+($col(%address,http://www.vectra-bot.net/forum/viewforum.php?f=19),.) 
     }
   }
-  elseif ($istok(blacklist,%style,32) && $is_staff($nick)) {
-    if ($istok(add,$remove($left($1,4),$left($1,1)),32)) {
-      .var %times = $duration($right($2,-1),1)
-      if ($me ison $iif($regex($2,/-(.*)/Si),$3,$2)) {
-      .part $v2 This channel has been $iif($regex($2,/-(.*)/Si),temporary $+(blacklisted,$chr(40),$duration(%times,1),$chr(41),:),Permanently blacklisted:) $+($chr(2),$iif($iif($regex($2,/-(.*)/Si),$4-,$3-),$v1,No reason.),$chr(2)) - If you want to appeal this blacklist $+ $chr(44) join #Vectra }
-      if ($Mainbot(#DevVectra) == $me) {
-        if ($regex($2,/-(.*)/Si) && $duration($regml(1))) { .var %time = $duration($regml(1)) | .tokenize 32 $deltok($1-,2,32) }
-        if ($ini(blacklist.ini,$2)) { 
-          $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$2) $c1(is already blacklisted.)
-          .halt
-        }        
-        .writeini -n blacklist.ini $2 ctime $iif(%time,$calc($ctime + %time),0)
-        .writeini -n blacklist.ini $2 when $fulldate
-        .writeini -n blacklist.ini $2 staff $nick
-        .writeini -n blacklist.ini $2 reason $iif($3-,$v1,No reason.)
-        $msgs($nick,$chan,$1) $logo($nick,blacklist) $c2($nick,$2) $c1(is added to the blacklist with the reason:) $+($chr(2),$c2($nick,$iif($3,$3-,No Reason.)),$chr(2))
+  elseif (%style == tripexp) {
+    if ($3 == $null) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill> <exp>),.) Exp must be numeric. Use $col(%address,0).fullcol or " $+ $col(%address,clear) $+ " to unset. | return }
+
+    if ($Skill($2)) { var %skill = $v1 }
+    else { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <Skill> <exp>),.) Exp must be numeric. Use $col(%address,0).fullcol or " $+ $col(%address,clear) $+ " to unset. | return }
+
+    if ($regex($3,/^(0|clear|unset)$/Si)) {
+      if ($wildtok($hget(Tripexp,%hash), $+(*,%skill,|*), 1, 58)) { 
+        var %token = $findtok($hget(Tripexp,%hash), $v1, 1, 58)
+        %output $col(%address,tripexp).logo The tripexp for $col(%address,%skill) has been unset.
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Tripexp %hash $deltok($hget(Tripexp,%hash), %token, 58)
       }
+      else { %output $col(%address,error).logo There is no tripexp set for the $col(%address,%skill) skill. }
     }
-    elseif ($istok(del,$remove($left($1,4),$left($1,1)),32)) {
-      if ($is_staff($nick) && $Mainbot(#DevVectra) == $me) {
-        if ($ini(blacklist.ini,$2)) { 
-          $msgs($nick,$chan,$1) $logo($nick,blacklist) $c2($nick,$2) $c1(is deleted from blacklist with the reason:) $+($chr(2),$c2($nick,$readini(blacklist.ini,$2,reason)),$chr(2)) $c1(by) $+($chr(2),$c2($nick,$readini(blacklist.ini,$2,staff)),$chr(2)) $c1(set on) $+($chr(2),$c2($nick,$readini(blacklist.ini,$2,when)),$chr(2))
-          .remini -n blacklist.ini $2 | .halt
-        }
-        $msgs($nick,$chan,$1) $logo($nick,error) $c2($nick,$2) $c1(is not in the blacklist.)
+    elseif (($3 isnum) && ($3 > 0)) {
+      %output $col(%address,tripexp).logo The amount of exp gained per trip for the $col(%address,%skill) is now set at $+($col(%address,$3).fullcol,.)
+      if ($wildtok($hget(Tripexp,%hash), $+(*,%skill,|*), 1, 58)) { 
+        var %token = $findtok($hget(Tripexp,%hash), $v1, 1, 58)
+        hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Tripexp %hash $puttok($hget(Tripexp,%hash), $+(%skill,|,$3), %token, 58)) 
       }
+      else { hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Tripexp %hash $addtok($hget(Tripexp,%hash), $+(%skill,|,$3), 58)) }      
     }
+    else { %output $col(%address,error).logo Exp must be numeric. Use $col(%address,0).fullcol or " $+ $col(%address,clear) $+ " to unset. | return }
+    return
   }
-  elseif ($istok(calc,%style,32)) {
+  elseif (%style == defname) {
     if (!$2) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Specify something to calculate.)
+      if (!$hget(Defname,%hash)) { %output $col(%address,defname).logo You are able to set a default Runescape Name that will always be used for you with: $col(%address,!defname <rsn>) $+ . | return }
+      else { hdel Defname %hash | %output $col(%address,defname).logo Your default RSN has been been deleted. Want to set a new one? $col(%address,!defname <rsn>) $+ . | return } 
+      return
     }
+    var %defname = $hget(Defname,%hash)
+    var %rsn = $replace($2-,$chr(32),_,-,_)
+    if (%defname && %defname == %rsn) { %output $col(%address,defname).logo The Default Runescape name currently set is the same as the one being set. | return }    
+    if ($len($2-) > 12 || !$regex(%rsn,/^[-a-z0-9_ ]+$/i)) { %output $col(%address,error).logo The RSN $col(%address,$2-) is too long, or has invalid characters. Names must be $col(%address,12).fullcol characters or less, and may only contain $col(%address,$+(spaces,$chr(44),$chr(32),underscores,$chr(44),$chr(32),dashes,$chr(44),$chr(32),letters,$chr(44),$chr(32),and numbers.)) | return }
+
+    ; add the new defname    
+    %output $col(%address,defname).logo Your RSN has been set to $col(%address,$2-) with the host $+($col(%address,%address),.)     
+    hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Defname %hash %rsn 
+    return
+  }
+
+  elseif (%style == grats) {
+    if ($regex($3,/^c(ombat|mb)$/Si) || $regex($2,/^c(ombat|mb)$/Si)) {
+      tokenize 32 $1 $iif($regex($3,/^c(ombat|mb)$/Si),$2 Combat,$3 Combat) $4-
+      var %grats = Combat
+      if ($stringToNum($remove($2,$chr(44))) !isnum 3-138) { %output $col(%address,error).logo Please supply a valid $col(%address,Combat).fullcol level from $+($col(%address,3-138).fullcol,.) Example: $col(%address,!grats 138 Combat $iif($4-,$4-,$nick)).fullcol | return }
+      goto GratsSend
+    }
+
+
+    elseif ($istok(Dueling Bounty Bounty-Rogue M-A BA-Attack BA-Defend BA-Collect BA-Heal CastleWars Conquest,$skill($3),32) || $istok(Dueling Bounty Bounty-Rogue M-A BA-Attack BA-Defend BA-Collect BA-Heal CastleWars Conquest,$skill($2),32)) {
+      tokenize 32 $1 $iif($istok(%mini,$skill($3),32),$2 $skill($3),$3 $skill($2)) $4-
+      var %grats = Minigame $skill($3)
+      if ($stringToNum($remove($2,$chr(44))) < 1) { %output $col(%address,error).logo Please supply a valid $+($col(%address,Score).fullcol,.) Example: $col(%address,!grats 1000 $skill($3) $iif($4-,$4-,$nick)).fullcol | return }
+      goto GratsSend
+    }
+
+    elseif ($skill($3) || $skill($2)) {
+      tokenize 32 $1 $iif($skill($3),$2 $skill($3),$3 $skill($2)) $4-
+      var %grats = Skill $skill($3)
+      if ($stringToNum($remove($2,$chr(44))) !isnum 2-126) { %output $col(%address,error).logo Please supply a valid $col(%address,Skill).fullcol level from $+($col(%address,2-120).fullcol,.) Example: $col(%address,$1 99 $skill($3) $iif($4-,$4-,$nick)).fullcol | return }
+      elseif ($skill($3) != Dungeoneering && $stringToNum($remove($2,$chr(44))) > 99) { %output $col(%address,error).logo Please supply a valid number from $col(%address,2-99).fullcol for $+($col(%address,$skill($3)).fullcol,.) Example: $col(%address,$1 80 $skill($3) $iif($4-,$4-,$nick)).fullcol | return }
+      goto GratsSend
+    }
+
+    if (!%grats) { %output $col(%address,error).logo Please supply a valid $+($col(%address,Skill),/,$col(%address,Minigame),/,$col(%address,Combat),.) Example: $col(%address,!grats 99 Attack $iif($4-,$4-,$nick)).fullcol or $col(%address,!grats 1000 Dueling $iif($4-,$4-,$nick)).fullcol | return }
+
+    :GratsSend
+    .describe $chan (¯`·._.«(4G09®11Ã12T7$)\ :D $col(%address,$null) $+ -< Congratulations on $+($col(%address,$iif($token(%grats,1,32) == Minigame,Score,Level) $bytes($2,db) $iif($token(%grats,1,32) == Combat,$v2,$token(%grats,2,32)) $iif($4-,$4-,$nick)).fullcol,!!)  >- /(4G09®11Ã12T7$)»._.·´¯)
+    if ($token(%grats,1,32) == Skill && $iif($4-,$4-,$nick) == $nick && $2 < 126) {
+      var %lvl = $2, %exp = $lvl($2), %tolvl.exp = $calc($lvl($calc($2 +1)) - %exp)
+      var %skill = $skill($3)      
+      $iif(*.msg* iswm %output && $chr(35) !isin %output, .msg $nick, .notice $nick) $col(%address).c2 For $+($iif(%skill == Dungeoneering,$col(%address,$calc($2 + 1)).fullcol %skill,$col(%address,$bytes(%tolvl.exp,db) %skill).fullcol exp),:) $item2lvl(%address, %skill, %lvl, %exp, %tolvl.exp, $false)
+    }
+    return
+  }
+
+  elseif (%style == privacy) {
+    if (!$2-) { %output $col(%address,error).logo Invalid syntax! Type: $+($col(%address,$1 on/off),.) | return }
+    elseif (!$istok(on off,$2,32)) { %output $col(%address,error).logo Invalid syntax! Type: $+($col(%address,$1 on/off),.) | return }
+    elseif ($2 == off && $hget(Privacy,%hash) == 0) { %output $col(%address,error).logo Privacy is already off. | return }
+    elseif ($2 == on && $hget(Privacy,%hash) == 1) { %output $col(%address,error).logo Privacy is already on. | return }
+    elseif ($2 == on) {
+      %output $col(%address,privacy).logo Privacy options have been enabled. All user identifiable data will now be hidden.
+      hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Privacy %hash 1
+    }
+    else {
+      %output $col(%address,privacy).logo Privacy options have been disabled.
+      hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Privacy %hash 0
+    }
+    return
+  }
+
+  elseif (%style == mycolor) {
+    if ($network == Bitlbee) { halt }
+    if (!$2) { %output $col(%address,error).logo You can personalize Vectra's output with your own favorite colors! Type: $+($col(%address,$1 <highlight color> <text color>),.) | return }
+    if ($regex($2,/\-?(d(elete)?|c(lear)?)$/Si)) {
+      hdel Mycolor %hash
+      %output $col(%address,mycolor).logo Personalized color settings have been removed for ( $+ $col(%address,%address) $+ ).
+      return
+    }
+    ; Just incase color,color
+    tokenize 32 $replace($1-,$chr(44),$chr(32))
+    var %c1 = $Colors($2)
+    var %c2 = $Colors($3)
+    if (!%c1 || ($3 && !%c2)) { %output $col(%address,error).logo $iif(!$3,The,One or both) supplied $iif(!$3,color,colors) are not valid. Please supply either the numeric color or name. | return }
+    else { hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Mycolor %hash %c1 %c2 | %output $col(%address,mycolor).logo Your personal highlight color for the host ( $+ $col(%address,%address) $+ ) has been set to: $+($col(%address,This),.) | return }
+    return
+  }
+
+  elseif (%style == set) {
+    if (($nick !isop $chan && $nick !ishop $chan) && !%realStaff) { %output $col(%address,error).logo This command can only be used by channel ops ( $+ $col(%address,@) $+ ) or halfops ( $+ $col(%address,%) $+ ). | return }
+
+    ; Only expose the type and option
+    if ($regex($1,/^[!@~`.]set(ting(s)?)?/Si)) { tokenize 32 $2- }
+    else { tokenize 32 $mid($1-,2) }
+
+    ; Option should only be on or off
+    if (!$istok(on off,$2,32)) { %output $col(%address,error).logo Syntax error. Only $col(%address,on) and $col(%address,off) are allowed options. | return }
+
+    ; No sense re-evaling this each line
+    var %option = $iif($2 == on,$true,$false)
+
+    if ($istok(public,$1,32)) { var %table = public }
+    elseif ($regex($1,/^v(oice)?lock$/Si)) { var %table = voicelock }
+    elseif ($1 == autoclan) { var %table = auto_clan }
+    elseif ($istok(autocombat autocmb,$1,32)) { var %table = auto_cmb }
+    elseif ($istok(autostats autooverall,$1,32)) { var %table = auto_stats }
+    elseif ($1 == autovoice) { var %table = auto_voice }
+    elseif ($regex($1,/^g(rand)?e(xchange)?((a)?msg|global|alert)$/Si)) { var %table = global_ge }
+    elseif ($regex($1,/^r(une)?s(cape)?news((a)?msg|global|alert)$/Si)) { var %table = global_rsnews }
+    elseif ($regex($1,/^g(rand)?e(xchange)?(?:[\-_])?graphs?$/Si)) { var %table = ge_graphs }
+    elseif ($regex($1,/^(s(?:hort|mall)(?:link|url)s?)/Si)) {
+      if ($Shortlinks(%address) == %option) { %output $col(%address,error).logo The $col(%address,Short Links) option is already $col(%address,$2) for $+($col(%address,%address).fullcol,.) | return }
+      else { hadd Shortlink %hash $iif(%option,1,0) | %output $col(%address,settings).logo $col(%address,Short Links) will now $iif(!%option,no longer) be the default output type for all links. | return }
+    }
+    elseif ($Commands($+(!,$1)) || $SettingsGroup($1)) {
+      var %style = $v1
+      if ($Settings($chan,Commands,%style)) { 
+        ; The command type is listed in the command on/off list
+        if (%option == $true) { 
+          hadd Commands $+($network,:,$chan) $deltok($Settings($chan,Commands), $findtok($Settings($chan,Commands), %style, 1, 32), 32) 
+          %output $col(%address,settings).logo The command " $+ $col(%address,$1) $+ " is now $col(%address,Enabled,!%option) in $+($col(%address,$chan),.) | return
+        }
+        else { %output $col(%address,error).logo The command " $+ $col(%address,$1) $+ " is already $col(%address,Disabled,%option) in $+($col(%address,$chan),.) | return }
+      }
+      else {
+        ; The command is not listed in the on/off list
+        if (%option == $true) { %output $col(%address,error).logo The command " $+ $col(%address,$1) $+ " is already $col(%address,Enabled,%option) in $+($col(%address,$chan),.) | return }
+        else { hadd Commands $+($network,:,$chan) $addtok($Settings($chan,commands),%style,32) | %output $col(%address,settings).logo The command " $+ $col(%address,$1) $+ " is now $col(%address,Disabled,04).override in $+($col(%address,$chan),.) | return }
+      }
+      return
+    }
+
+    if (%table) {
+      var %table.name = $ucword($replace(%table,_,$chr(32)))
+      if (%option && (%table == auto_voice) && ($me !ishop $chan && $me !isop $chan)) { %output $col(%address,error).logo To enable $col(%address,Auto Voice) I must be atleast a $col(%address,halfop) ( $+ $col(%address,%) $+ ). | return }
+      elseif ($Settings($chan,%table) == %option) { %output $col(%address,error).logo The $col(%address,%table.name) option is already $col(%address,$2) in $+($col(%address,$chan).fullcol,.) | return }
+      else { hadd %table $+($network,:,$chan) $iif(%option,1,0) | %output $col(%address,settings).logo $col(%address,%table.name) commands are now $col(%address,$iif(%option,03Enabled,04Disabled)) in $+($col(%address,$chan),.) | return }
+    }
+
+    %output $col(%address,error).logo The option " $+ $col(%address,$1).fullcol $+ " is not a valid settable option, please see $+($col(%address,http://forum.vectra-bot.net/viewtopic.php?f=24&t=341),.)  | return
+  }
+  elseif (%style == site) {
+    if ($regml(trigger, 0) == 2 && ($nick !isop $chan && $nick !ishop $chan) && %realStaff == $false) { %output $col(%address,error).logo This command can only be used by channel ops ( $+ $col(%address,@,04).override $+ ) or halfops ( $+ $col(%address,%,12).override $+ ). | return }
+    elseif ($2 == $null) {
+      if ($Settings($chan,site) == 0 || $numtok($v1,32) == 1) { %output $col(%address,error).logo There are no links associated with $+($col(%address,$chan),.) | return }
+      elseif ($regex($regml(trigger,2), /(del|rem)/i) && $Settings($chan,site) != 0) {
+        var %siteline = $Settings($chan,site), %link = $token(%siteline,2,32)
+        if ($calc($numtok(%siteline,32) - 1) == 1) { hadd site $+($network,:,$chan) 0 }
+        else { hadd site $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $token(%siteline,3-,32) }        
+        var %count = $calc(11 - $numtok($Settings($chan,site),32))  
+        %output $col(%address,links).logo The link " $+ $col(%address,%link) $+ " has been deleted. You can set $col(%address,%count).fullcol more $+(website,$iif(%count != 1,s),.)
+      }
+      else { 
+        tokenize 32 $Settings($chan,site)
+        var %line = [Last Added By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $colorList(%address, 32, 44, $2-).space
+        noop $sockShorten(44, %output, $col(%address,links).logo, %line, $true)
+      }
+    }
+    elseif ($istok(add set,$regml(trigger,2),32)) {
+      if ($numtok($Settings($chan,site),32) == 11) { %output $col(%address,error).logo You can only have a maximum of $col(%address,10).fullcol sites assigned to a $+($col(%address,$chan),.) }
+      elseif ($istok($2,$Settings($chan,site),32)) { %output $col(%address,error).logo The link " $+ $col(%address,$2) $+ " is already associated with $+($col(%address,$chan),.) }
+      elseif (http://* !iswm $2-) { %output $col(%address,error).logo You must include $col(%address,http://) in your urls. }
+      else {
+        if ($Settings($chan,site) == 0) { hadd site $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $2 }
+        else { hadd site $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $2 $token($Settings($chan,site),2-,32) }
+        var %count = $calc(11 - $numtok($Settings($chan,site),32))
+        %output $col(%address,setsite).logo The link $col(%address,$2) has been added to the list of sites for $+($col(%address,$chan),.) You can set $col(%address,%count).fullcol more $+(website,$iif(%count != 1,s),.)
+      }
+    }
+    elseif ($istok(del rem,$regml(trigger,2),32)) {
+      if ($Settings($chan,site) == 0 || $numtok($v1,32) == 1) { %output $col(%address,error).logo There are no links associated with $+($col(%address,$chan),.) }
+      elseif ($2 == all) { hadd site $+($network,:,$chan) 0 | %output $col(%address,links).logo The links associated with $col(%address,$chan) have all been deleted. }
+      elseif ($remove($2,$chr(35)) !isnum 1-10) { %output $col(%address,error).logo Please choose a number $col(%address,1).fullcol through $col(%address,10).fullcol to delete. }
+      else {  
+        var %siteline = $token($Settings($chan,site),2-,32), %num = $iif($remove($2,$chr(35)) > $numtok(%siteline,32),$v2,$v1), %count = $calc($numtok(%siteline,32) - 1)
+        if (%count == 0) { hadd site $+($network,:,$chan) 0 }
+        else { hadd site $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $deltok(%siteline,%num,32) }
+        %output $col(%address,links).logo You have deleted " $+ $col(%address,$token(%siteline,%num,32)) $+ " from the links list for $+($col(%address,$chan),.) To delete all links, type: $+($col(%address,$1 all),.)
+      }
+    }
+    elseif ($Settings($chan,site) == 0 || $numtok($v1,32) == 1) { %output $col(%address,error).logo There are no links associated with $+($col(%address,$chan),.) }
     else { 
-      $msgs($nick,$chan,$1) $logo($nick,calc) $c2($nick,$strip($2-)) $c1(=) $c2($nick,$bytes($calc($regsubex($strip($replace($2-,$chr(44),,x,*,pi,$pi)),/(\d+(?:\.\d+)?)([kmb])/gi,( \1 $replace(\2,b,*1000m,m,*1000k,k,*1000) ))),db)) 
+      tokenize 32 $Settings($chan,site)
+      var %line = [Last Added By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $colorList(%address, 32, 44, $2-).space
+      noop $sockShorten(44, %output, $col(%address,links).logo, %line, $true)
     }
+    return
   }
-  elseif ($istok(mycolor,%style,32)) {
-    if ($2 == $null) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please specify a colour number or name of the colour. You can also set "clear" to get default Vectra colours back.)
+  elseif (%style == event) {
+    if ($regml(trigger, 0) == 2 && ($nick !isop $chan && $nick !ishop $chan) && %realStaff == $false) { %output $col(%address,error).logo This command can only be used by channel ops ( $+ $col(%address,@,04).override $+ ) or halfops ( $+ $col(%address,%,12).override $+ ). }
+    elseif ($2 == $null) {
+      if ($Settings($chan,event) == 0) { %output $col(%address,error).logo No event has been set for $+($col(%address,$chan),.) }
+      elseif ($regex($regml(trigger,2), /(del|rem)/i) && $Settings($chan,event) != 0) { hadd event $+($network,:,$chan) 0 | %output $col(%address,event).logo The event for $col(%address,$chan) has been deleted. }
+      else { tokenize 32 $Settings($chan,event) | %output $col(%address,event).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
     }
-    elseif ($regex($2,/clear/Si)) {
-      .remini -n mycolor.ini 2 $address($nick,3)
-      $iif($me ison #Devvectra, .msg #DevVectra do remini -n mycolor.ini 2 $address($nick,3))
-      $msgs($nick,$chan,$1) $logo($nick,mycolor) $c1(Personal highlight colors for the host) $+($c1,$chr(40),$c2($nick,$address($nick,3)),$c1,$chr(41),) $c1(has been deleted.)
-    }
-    elseif ($colors($2-) == $null) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid color: Color needs to be from) $c2($nick,0-15) $c1(or) $+($c2($nick,the name of the colour),$c1,.) }
-    elseif ($2- !== $null) && ($colors($2-) !== $null) {
-      $msgs($nick,$chan,$1) $logo($nick,mycolor) $c1(Your personal highlight color for the host:) $+($c1,$chr(40),$c2($nick,$address($nick,3)),$c1,$chr(41),) $c1(has been set to:) $+($chr(3),$colors($2-),This)
-      if ($network == Bitlbee) {
-        $msgs($nick,$chan,$1) $logo($nick,mycolor) $c1(NOTE: Remember that colors do not work with regular messenger. And therefor will return boxes and annoying numbers if you have colors on and not using messenger plus. To disable colors type:) $c2($nick,!mycolor clear)
-      }
-      .writeini -n mycolor.ini 2 $address($nick,3) $colors($2-)
-      $iif($me ison #Devvectra, .msg #DevVectra do writeini -n mycolor.ini 2 $address($nick,3) $colors($2-))
-    }
+    elseif ($istok(add set,$regml(trigger,2),32)) { hadd event $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $2- | %output $col(%address,setevent).logo The event for $col(%address,$chan) has been set to: $+($col(%address,$2-).fullcol,.) }
+    elseif ($istok(del rem,$regml(trigger,2),32)) { hadd event $+($network,:,$chan) 0 | %output $col(%address,event).logo The event for $col(%address,$chan) has been deleted. }
+    elseif ($Settings($chan,event) == 0) { %output $col(%address,error).logo No event has been set for $+($col(%address,$chan),.) }
+    else { tokenize 32 $Settings($chan,event) | %output $col(%address,event).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
+    return
   }
-  elseif ($istok(rsnews,%style,32)) {
-    if ($regex($2,/#?(.+)/Si)) {
-      .var %number = $regml(1)
-      if (%number !isnum 1-4) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please use a number between) $c2($nick,1) $c1(and) $+($c2($nick,4),$c1,.)
-      }
-      else {
-        .sockopen $+(rsnews.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-        .sockmark $+(rsnews.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,%number,:,$nick)
-      }
+  elseif (%style == requirements) {
+    if ($regml(trigger, 0) == 2 && ($nick !isop $chan && $nick !ishop $chan) && %realStaff == $false) { %output $col(%address,error).logo This command can only be used by channel ops ( $+ $col(%address,@,04).override $+ ) or halfops ( $+ $col(%address,%,12).override $+ ). }
+    elseif ($2 == $null) {
+      if ($Settings($chan,requirements) == 0) { %output $col(%address,error).logo No requirements has been set for $+($col(%address,$chan),.) }
+      elseif ($regex($regml(trigger,2), /(del|rem)/i) && $Settings($chan,requirements) != 0) { hadd requirements $+($network,:,$chan) 0 | %output $col(%address,requirements).logo The requirements for $col(%address,$chan) has been deleted. }
+      else { tokenize 32 $Settings($chan,requirements) | %output $col(%address,requirements).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
     }
-    else {
-      .sockopen $+(rsnews.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(rsnews.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,1,:,$nick)
-    }
+    elseif ($istok(add set,$regml(trigger,2),32)) { hadd requirements $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $2- | %output $col(%address,setrequirements).logo The requirements for $col(%address,$chan) has been set to: $+($col(%address,$2-).fullcol,.) }
+    elseif ($istok(del rem,$regml(trigger,2),32)) { hadd requirements $+($network,:,$chan) 0 | %output $col(%address,requirements).logo The requirements for $col(%address,$chan) has been deleted. }
+    elseif ($Settings($chan,requirements) == 0) { %output $col(%address,error).logo No requirements has been set for $+($col(%address,$chan),.) }
+    else { tokenize 32 $Settings($chan,requirements) | %output $col(%address,requirements).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
+    return
   }
-  elseif ($istok(compare,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax. Syntax:) $c2($nick,!compare SKILL USER1 USER2 - Replace spaces with underscores please.)
+  elseif (%style == voice) {
+    if ($regml(trigger, 0) == 2 && ($nick !isop $chan && $nick !ishop $chan) && %realStaff == $false) { %output $col(%address,error).logo This command can only be used by channel ops ( $+ $col(%address,@,04).override $+ ) or halfops ( $+ $col(%address,%,12).override $+ ). }
+    elseif ($2 == $null) {
+      if ($Settings($chan,voice) == 0) { %output $col(%address,error).logo No voice servers have been set for $+($col(%address,$chan),.) }
+      elseif ($regex($regml(trigger,2), /(del|rem)/i) && $Settings($chan,voice) != 0) { hadd voice $+($network,:,$chan) 0 | %output $col(%address,voice).logo The voice servers for $col(%address,$chan) have been deleted. }
+      else { tokenize 32 $Settings($chan,voice) | %output $col(%address,voice).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
     }
-    elseif (!$skill($2)) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid skill. Please select a valid one.)
-    }
-    elseif (!$3) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax! Syntax:) $c2($nick,!compare SKILL USER1 USER2 - Replace spaces with underscores please.)
-    }
-    else {
-      var %sockname Compare $+ $ticks $+ $r(1000,9999)
-      if ($tour($skill($2))) {
-        hadd -m %sockname minigame yes
-        hadd -m %sockname skill $v1
-      }
-      else hadd -m %sockname skill $skill($2)
-      hadd -m %sockname nick $nick
-      hadd -m %sockname user1 $replace($rsn($nick,$3),$chr(32),_,+,_)
-      hadd -m %sockname user2 $replace($rsn($nick,$iif($0 > 3,$4-,$address($nick,3))),$chr(32),_,+,_)
-      hadd -m %sockname user2a $address($nick,3)
-      hadd -m %sockname msg $msgs($nick,$chan,$1)
-      sockopen %sockname hiscore.runescape.com 80
-    }
+    elseif ($istok(add set,$regml(trigger,2),32)) { hadd voice $+($network,:,$chan) $+($nick,$chr(16),%address,$chr(16),$ctime) $2- | %output $col(%address,setvoice).logo The voice servers for $col(%address,$chan) have been set to: $+($col(%address,$2-).fullcol,.) }
+    elseif ($istok(del rem,$regml(trigger,2),32)) { hadd voice $+($network,:,$chan) 0 | %output $col(%address,voice).logo The voice servers for $col(%address,$chan) have been deleted. }
+    elseif ($Settings($chan,voice) == 0) { %output $col(%address,error).logo No voice servers have been set for $+($col(%address,$chan),.) }
+    else { tokenize 32 $Settings($chan,voice) | %output $col(%address,voice).logo [Set By $col(%address,$token($1,1,16)).fullcol - $col(%address,$token($duration($calc($ctime - $token($1,3,16))),1-2,32)).fullcol ago]: $2- }
+    return
   }
-  elseif ($istok(top10,%style,32)) {
-    if ($2 && !$skill($2)) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Wrong skill! Please add a valid skill.)
-    }
-    else {
-      .sockopen $+(top10.,$hget($+(id.,$cid),$me)) desu.rscript.org 80
-      .sockmark $+(top10.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$iif(!$2,0,$numskill($skill($2))),:,$nick)
-    }
-  } 
-  elseif ($istok(rank,%style,32)) {
-    if (!$3) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Syntax:) $c2($nick,!rank RANK SKILL) $c1(or) $+($c2($nick,!rank SKILL RANK),$c1,.) | halt
-    }
-    if ($skillnonum($2)) { var %rankskill $skillnonum($2) }
-    elseif ($skillnonum($3)) { var %rankskill $skillnonum($3) }
-    if ($2 isnum) { var %ranknum $2 }
-    elseif ($3 isnum) { var %ranknum $3 }
-    if (%ranknum !isnum 1-2000000) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please select a valid number from) $+($c2($nick,1-2.000.000),$c1,.)
-    }
-    elseif (!$skillnonum(%rankskill)) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please select a valid skill.) 
-    } 
-    elseif ($tour(%rankskill)) {
-      .sockopen $+(ranktour.,$hget($+(id.,$cid),$me))  hiscore.runescape.com 80
-      .sockmark $+(ranktour.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$numtour(%rankskill),:,%ranknum,:,$nick)
-    }
-    else {
-      .sockopen $+(rank.,$hget($+(id.,$cid),$me)) hiscore.runescape.com 80
-      .sockmark $+(rank.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$numskill(%rankskill),:,%ranknum,:,$nick)
-    }
-  }
-  elseif ($istok(youtube,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add anything to search for.) | halt
-    }
-    .sockopen $+(youtube.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(youtube.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+,$chr(45),+,$chr(95),+),:,$nick)
-  }
-  elseif ($istok(skillavg,%style,32)) {
-    if (!$2) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax. Ex:) $c2($nick,!agility-avg collision) | halt }
-    if ($regex($1,/^[!@.~`^](.*)-avg/Si)) {
-      .var %regml = $skill($regml(1))
-      .sockopen $+(clanavg.,$hget($+(id.,$cid),$me)) www.vectra-bot.net 80
-      .sockmark $+(clanavg.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$replace($2-,$chr(32),+,$chr(45),+,$chr(95),+),:,%regml,:,$nick)
-    }
-  }
-  elseif ($istok(wp,%style,32)) {
-    if ($regex($2,/-d(ef(ault)?)?$/Si)) {
-      .writeini -n WhatPulse.ini Default $address($nick,3) $replace($3-,$chr(32),$chr(95))
-      $msgs($nick,$chan,$1) $logo($nick,whatpulse) $c1(Your default whatpulse user account for the host) $c2($nick,$address($nick,3)) $c1(has been set to) $+($c2($nick,$replace($3-,$chr(32),$chr(95))),$c1,.)
-      $iif($me ison #Devvectra, .msg #DevVectra do writeini -n WhatPulse.ini Default $address($nick,3) $replace($3-,$chr(32),$chr(95)))
-      halt
-    }
-    else {
-      if ($regex($right($2-,1),/^[&*]$/Si) && $readini(WhatPulse.ini,default,$address($left($2,-1),3))) { .var %account1 = $ifmatch }
-      elseif ($2) { .var %account1 = $2- }
-      elseif ($readini(WhatPulse.ini,default,$address($nick,3))) { .var %account1 = $v1 }
-      else { .var %account1 = $nick }
-      .sockopen $+(wp.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(wp.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,%account1,:,$nick)
-    }
-  }
-  elseif ($istok(wpcompare,%style,32)) {
-    if ($2 == $null) || ($3 == $null) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add two nicknames to compare. Syntax:) $c2($nick,!wpcompare <User1 <User2>)
-      .halt
-    }
-    .var %account1 $2
-    .var %account2 $3
-    .sockopen $+(wpcompare.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-    .sockmark $+(wpcompare.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,%account1,:,%account2,:,$nick)
-  }
-  elseif ($istok(defname,%style,32)) {
-    if ($2- == $null) { 
-      .remini -n defname.ini RSNs $mask($fulladdress,3)
-      $msgs($nick,$chan,$1) $logo($nick,default name) $c1(Your default RSN has been been deleted. Want to set a new one? !defname) $c2($nick,<rsn>) $+ $c1(.)
-      $iif($me ison #Devvectra, .msg #DevVectra do remini -n defname.ini RSNs $mask($fulladdress,3))
-      .halt 
-    }
-    elseif (!$regex($replace($2-,$chr(32),$chr(95),$chr(45),$chr(95)),/^\w+(&)?$/Si) || $len($2-) > 12) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(The RSN) $c2($nick,$2-) $c1(is too long, or has invalid characters. Names must be) $c2($nick,12) $c1(characters or less, and may only contain) $c2($nick,$+(spaces,$chr(44),$chr(32),underscores,$chr(44),$chr(32),dashes,$chr(44),$chr(32),letters,$chr(44),$chr(32),and numbers.)) | halt
-    }
-    .writeini -n defname.ini RSNs $mask($fulladdress,3) $replace($remove($2-,$chr(36)),$chr(32),_,$chr(45),_)
-    $msgs($nick,$chan,$1) $logo($nick,default name) $c1(Your RSN has been set to) $c2($nick,$2-) $c1(with the host) $+($c2($nick,$address($nick,3)),$c1,.)
-    $iif($me ison #Devvectra, .msg #DevVectra do writeini -n defname.ini RSNs $mask($fulladdress,3) $replace($remove($2-,$chr(36)),$chr(32),_))
-  }
-  elseif ($istok(ascii,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add a string. Syntax:) $c2($nick,!ascii STRING)
-      .halt 
-    }
-    if ($len($2-) == 1) {
-      $msgs($nick,$chan,$1) $logo($nick,ascii) $c1(Ascii code for the string) $+($c1,",$c2($nick,$2-),$c1,") $c1($chr(124)) $c2($nick,$strip($left($regsubex($2-,/(.)/g,$+($chr(36),chr,$chr(40),$asc(\1),$chr(41),$chr(44))),-1)))
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,ascii) $c1(Ascii code for the string) $+($c1,",$c2($nick,$2-),$c1,") $c1($chr(124)) $c2($nick,$+($chr(36),$chr(43),$chr(40),$strip($left($regsubex($2-,/(.)/g,$+($chr(36),chr,$chr(40),$asc(\1),$chr(41),$chr(44))),-1)),$chr(41)))
-    }
-  }
-  elseif ($istok(part,%style,32)) {
+  elseif (%style == part) {
     if ($istok(bitlbee,$network,32)) { .part $chan | halt }
-    if ($2 == $null) && (!$istok(bitlbee,$network,32)) { 
-      .notice $nick $logo($nick,error) $c1(You need to use) $c2($nick,!part $me) $c1(or) $c2($nick,!part $iif($me == Vectra,00,$remove($me,Vectra,[,]))) $c1(to make me part) $c2($nick,$chan) 
-      halt
+    if ($2 == $null) { %output $col(%address,error).logo You need to use $col(%address,!part $me) or $col(%address,!part $iif($me == Vectra,00,$remove($me,Vectra,[,]))) to make me part $+($col(%address,$chan),.) | return }
+    if ($2 != $me && $remove($me,[,],Vectra) != $2) { halt }
+    if ($nick isop $chan || $nick ishop $chan || r !isincs $gettok($chan($chan).mode,1,32) || %realStaff) {
+      if ($ChanExcepts($network,$chan)) { %output $col(%address,error).logo I can not be parted from excepted channel $+($col(%address,$chan),.) | return }
+      else { .part $chan PART: Requested by $+($Rank,$nick) | monitor part I have parted $col($null,$chan) requested by $+($Rank,$col($null,$nick),.) Reason: $+($col($null,$iif($3,$3-,No reason given)),.) | return }
     }
-    if ($nick isop $chan || $nick ishop $chan) || ($nick ison #devvectra) {
-      if ($is_bot($2)) {
-        if ($excepted_chans($chan)) { 
-          halt 
+    else { %output $col(%address,error).logo You must be at least a halfop ( $+ $col(%address,%,12).override $+ ) or an op ( $+ $col(%address,@,04).override $+ ) to part me. }
+    return
+  }
+  elseif (%style == staff) {
+    if (!%realStaff) { return }
+    monitor staff-cmd Command " $+ $b($1) $+ " used by $nick $+([,%isLoggedIn,]) ( $+ %address $+ ) on $+($network,.)
+    if ($2 == $null) { %output $col(%address,error).logo incorrect syntax. | return }
+    elseif ($regml(trigger, 1) == join) { join $2- | return }
+    elseif (*part iswm $v1) { part $2 | return }
+    elseif ($regml(trigger, 1) == global && %Mainbot == $me) { 
+      if ($2 == --all) { var %switch = all | tokenize 32 $1 $3- }
+      else { var %switch = $network }
+      if ($2 == null) { %output $col(%address,error).logo You better not send an empty global!! ~Arc | return }
+      else { syncSend GLOBAL: $+ %switch $+ : $+ $vsssafe($col($Null,global).logo $2-) }
+    }
+    else { %output $col(%address,error).logo Option " $+ $col(%address,$2) $+ " not supported at this time. | return }
+    return
+  }
+  elseif (%style == shootingstar) {
+    if (!$2) || ($2 !isnum 1-9) { %output $col(%address,error).logo Syntax error $+($col(%address,$1 <level),.) | halt }
+    var %data = 1|10|14|2800:2|20|25|5000:3|30|29|5800:4|40|32|6400:5|50|47|9400:6|60|71|14200:7|70|114|22800:8|80|145|29000:9|90|210|42000
+    tokenize 124 $token(%data,$2,58)
+    %output $col(%address,shooting star).logo Star Size: $col(%address,$1) $(|) Mining level required: $col(%address,$2) $(|) Fragment exp: $col(%address,$3) $(|) Max exp: $col(%address,$bytes($4,b)) $+($chr(40),$col(%address,200 Fragments).fullcol,$chr(41)) | halt
+    return
+  }
+  elseif (%style == dklamp) {   
+    if (!$2) { %output $col(%address,error).logo Syntax error: $+($col(%address,$1 <level>),.) }
+    elseif ($2 isnum 1-99) { %output $col(%address,dklamp).logo At level $col(%address,$2).fullcol a dragonkin lamp is worth $col(%address,$bytes($Effigy($2),db)).fullcol exp. }
+    else { %output $col(%address,error).logo The level should be between $col(%address,1).fullcol and $+($col(%address,99).fullcol,.) }
+    return
+  }
+  elseif (%style == potion) { 
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,$1 <potion>),.) }
+    elseif ($read($DataDir(potions.txt),w,$+(*,$2-,*))) { tokenize 124 $v1 | %output $col(%address,potion).logo Item: $col(%address,$1) $(|,) Herblore Level: $col(%address,$2) $(|,) Herb: $col(%address,$3) $(|,) Ingredient: $col(%address,$4) $(|,) Exp: $col(%address,$5) $(|,) Effect: $col(%address,$6) }
+    else { %output $col(%address,error).logo The potion " $+ $col(%address,$2-) $+ " was not found in our database. }
+    return
+  }
+  elseif (%style == herbinfo) { 
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,$1 <herb>),.) }
+    elseif ($read($DataDir(herbs.txt),w,$+(*,$2-,*))) { tokenize 124 $v1 | %output $col(%address,herbinfo).logo Item: $col(%address,$1) $(|,) Level to Clean: $col(%address,$2) $(|,) Cleaning Exp: $col(%address,$3) $(|,) Used In: $col(%address,$replace($4,$chr(44),$+($chr(44),$chr(32)))) }
+    else { %output $col(%address,error).logo The herb " $+ $col(%address,$2-) $+ " was not found in our database. }
+    return
+  }
+  elseif (%style == farminfo) {
+    if (!$2) { %output $col(%address,error).logo The correct syntax is $+($col(%address,$1 <name>),.) }   
+    elseif ($read($DataDir(farmdb.txt), w, $+(*,$2-,*))) { tokenize 124 $v1
+      %output $col(%address,farminfo).logo Crop: $col(%address,$1) $(|,) Level: $col(%address,$2) $(|,) Growing Time: $iif($duration($remove($3,$chr(44))) >= 3600,$col(%address,$gettok($duration($v1),1-3,32)),$col(%address,$3))  $&
+        $(|,) Planting Exp: $col(%address,$4) $(|,) Harvest Exp: $col(%address,$5) $(|,) Check-Health Exp: $col(%address,$6) $(|,) Farmer Care Price: $col(%address,$7) 
+    }
+    else { %output $col(%address,error).logo The crop " $+ $col(%address,$2-) $+ " was not found in our database. }
+    return
+  }
+  elseif (%style == wave) {
+    if ($2 isnum 1-63) { %output $col(%address,Wave).logo $+([,$col(%address,$2).fullcol,]) $col(%address,$readini($DataDir(wave.ini),Waves,$2)) }
+    else { %output $col(%address,Wave).logo To get a fight cave wave please supply a number 1-63. Syntax $col(%address,$1 $r(1,63)) }
+    return
+  }
+  elseif (%style == pouch) { 
+    if (!$2) { %output $col(%address,error).logo Please enter the pouch name you want to look up. Syntax: $+($col(%address,$1 Steel Titan),.) } 
+    elseif ($read($DataDir(familiars.txt),w,$qt($+(*,$2-,*|*)))) { tokenize 124 $v1 
+      %output $col(%address,pouch).logo Name: $col(%address,$noqt($1)) $(|,) Level: $col(%address,$noqt($2)) $(|,) Shards: $col(%address,$noqt($4)) ( $+ $col(%address,$calc($noqt($4) * 25) GP).fullcol $+ ) Refund: $col(%address,$ceil($calc($noqt($4) * .7))).fullcol $(|,) $&
+        Requires: $col(%address,$noqt($3) $+(Charm,$chr(44))) $col(%address,$noqt($5)) $(|,) Exp: $col(%address,$noqt($6)) $(|,) Time: $col(%address,$noqt($7)) minutes $(|,) Focus: $col(%address,$noqt($8)) $(|,) Style: $col(%address,$noqt($9))
+    }
+    else { %output $col(%address,error).logo The familiar " $+ $col(%address,$2-) $+ " was not found in our database. } 
+    return
+  }
+  elseif (%style == special) { 
+    if (!$2) { %output $col(%address,error).logo Please specified a weapon. Syntax: $+($col(%address,$1 Abyssal whip),.) } 
+    elseif ($read($DataDir(weapons.txt),w,$qt($+(*|*,$2-,*|*)))) { tokenize 124 $v1 
+      %output $col(%address,special).logo Weapon: $col(%address,$noqt($2)) $(|,) Special: $col(%address,$noqt($1)) $(|,) Power: $+($col(%address,$noqt($3)),%) $(|,) Requirements: $col(%address,$noqt($4)) $(|,) Effect: $col(%address,$noqt($5))
+      %output $col(%address,special).logo Tactic: $col(%address,$noqt($6)) 
+    }
+    else { %output $col(%address,error).logo The weapon " $+ $col(%address,$2-) $+ " was not found in our database. } 
+    return
+  }
+  elseif (%style == rsrule) {
+    if ($regex($2,/hono(u)?r/Si)) { 
+      %output $col(%address,RS RULES).logo $col(%address,1.) Macroing, bots, or 3rd-party software. $col(%address,2.) Real-world trading or power-levelling. $col(%address,3.) Ratings transfers. $col(%address,4.) Buying selling or sharing an account. $col(%address,5.) $&
+        Knowingly exploiting a bug. $col(%address,6.) Jagex staff impersonation. $col(%address,7.) Password, account, bank PIN or item scamming. $col(%address,8.) Encouraging others to break the rules. 
+    }
+    elseif ($regex($2,/respect/Si)) { 
+      %output $col(%address,RS RULES).logo $col(%address,1.) Discrimination of any kind whether based on another player's race, nationality, gender, sexual orientation or religious beliefs. $col(%address,2.) Threatening another player or bullying of any kind. $col(%address,3.) Using obscene or inappropriate language. $& 
+        $col(%address,4.) Spamming or disruptive behaviour. $col(%address,5.) Misue of the forums.
+    }
+    elseif ($regex($2,/security/Si)) { 
+      %output $col(%address,RS RULES).logo $col(%address,1.) Asking for or providing personal information such as full names, ages, postal or email addresses, telephone numbers or bank details. $col(%address,2.) Discussing or advocating illegal activity of any kind, such as the use of illegal drugs. $col(%address,3.) Advertising other websites. 
+    }  
+    else { %output $col(%address,error).logo Invalid syntax! Please type $+($col(%address,$1 <honour|respect|security>),.) }
+    return
+  }
+  elseif (%style == newsOvrride) {
+    if (%isStaff == $false) { halt }
+
+    if ($me != Vectra || $network != VectraIRC) { halt }
+
+    if ($2 == $null) { var %option = $iif($timer(rsNews),$true,$false) }
+    elseif ($istok(on off,$2,32)) { var %option = $iif($2 == off,$true,$false) }  
+    else { %output $col(%address,error).logo The only available options are $col(%address,on) or $col(%address,off),.) }
+
+    if (%option == $true) { 
+      if ($timer(rsNews) == $false) { %output $col(%address,error).logo The timer is already shut off. }
+      else { rsNewsTimer --stop | %output $col(%address,admin).logo The RSnews timer is now $+($col(%address,off,$false),.) }
+    }
+    elseif (%option == $false) { 
+      if ($timer(rsNews) == $true) { %output $col(%address,error).logo The timer is already on. }
+      else { rsNewsTimer --start | %output $col(%address,admin).logo The RSnews timer is now $+($col(%address,on,$true),.) }
+    }
+  }
+  elseif (%style == lolmeter) {
+    var %info $remove($right($1,-1),meter), %percent $iif(%realstaff && $left($1,1) == `,100,$r(0,100)), %output $msgs($nick,$chan,@)
+    if (%info == love && !$3) || (!$2) { %output $col(%address,Error).logo You must enter $col(%address,$iif(%info == love,2 names,a name)) to check. | return } 
+    describe $chan Starts the %type meter... 
+    %output $col(%address,$+(%info,-meter)).logo The $col(%address,%info).fullcol meter reveals $iif(%type == love,the love connection between $col(%address,$2).fullcol and $col(%address,$3).fullcol is $col(%address,%percent).fullcol $+ $chr(37),$col(%address,$2).fullcol is $col(%address,%percent).fullcol $+ $chr(37) %info)
+    return
+  }
+  elseif (%style == parameter) {
+    if ($Skill($2)) { 
+      var %realskill = $v1
+
+      if ($istok(Attack Defence Strength Range,%realskill,32)) { var %skill = Melee }
+      else { var %skill = %realskill }
+
+      if ($SkillParam(%skill, $3-, 0)) { var %tokens = $1-        
+        tokenize 16 $v1 
+        var %this = 1
+        while (%this <= $0 && %this <= 5) {
+          var %token = $($+($,%this),2)
+          var %in = $iif($token(%token,4,124) == 1,$+([,$col(%address,M),])) $token(%token,1,124) (Lvl $col(%address,$token(%token,-2,124)).fullcol $+ ): $col(%address,$bytes($token(%token,2,124),db)).fullcol 
+          var %out = %out $(|) %in
+          inc %this
         }
-        else {
-          .part $chan !Part requested by $nick
-          $dev($logo(v,part) $c3(I have parted) $+($c4($chan),$chr(44)) $c3(requested by) $+($c4($nick),$c3,.)) 
-        }
+        %output %out
+        %output $col(%address,parameters).logo Best $+(result,$iif($0 != 1,s)) for " $+ $col(%address,$token(%tokens,3-,32)) $+ " in skill $col(%address,%realskill) returned: $mid(%out,2)
       }
+      else { %output $col(%address,error).logo No results, please check our website for the proper syntax. }
     }
-    elseif ($nick !isop $chan && $nick !ishop $chan) && (*r* !iswm $gettok($chan($chan).mode,1,32)) {
-      if (($2 == $me) || ($tag($2) && Vectra* iswm $2)) {
-        .part $chan !Part requested by $nick | $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(Part)),$c3,$chr(41),$c3,:) $c3(I have parted) $+($c4($chan),$chr(44)) $c3(requested by) $+($c4($nick),$c3,.)) 
-      }
+    elseif ($stringToNum($2) isnum 1-200000000) {
+      var %exp = $v1, %level = $exp($v1)
+      if (%level == 126) { %output $col(%address,level).logo The level for $col(%address,$bytes(%exp,db)).fullcol exp is $+($col(%address,%level).fullcol,.) }
+      else { %output $col(%address,level).logo The level for $col(%address,$bytes(%exp,db)).fullcol exp is $+($col(%address,%level).fullcol,.) Exp to level $col(%address,$calc(%level + 1)).fullcol $+ : $col(%address,$bytes($calc($lvl($calc(%level + 1)) - %exp),db)) $+ . }
     }
-    else { .notice $nick $logo($nick,error) $c1(You need to be atleast) $c2($nick,halfop) $c1(to make me part) $+($c2($nick,$chan),$c1,.) }
+    else { %output $col(%address,error).logo Please specify a exp between $col(%address,1) and $+($col(%address,200M),.) }
+    return
   }
-  elseif ($istok(lyrics,%style,32)) {
-    if (!$2) {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please add a song to lookup.)
+  elseif (%style == rslevel) {
+    if (!$2) { %output $col(%address,error).logo The first number needs to be higher than the other. Syntax: $+($col(%address,$1 50-56),.) }
+    elseif ($regex(level, $2,/(\d+)-(\d+)/Si)) {
+      var %low = $iif($regml(level, 1) > $regml(level, 2),$v2,$v1)
+      var %high = $iif($regml(level, 1) > $regml(level, 2),$v1,$v2)      
+      if (%low !isnum 1-126 || %high !isnum 1-126) { %output $col(%address,error).logo Please use a level from $col(%address,1) and $+($col(%address,126),.) }
+      else { %output $col(%address,level).logo The exp between level $col(%address,%low) and $col(%address,%high) is $+($col(%address,$bytes($calc($lvl(%high) - $lvl(%low)),db)),.) }
     }
-    else {
-      if ($remove($2,$chr(35)) !isnum 1-10) && ($chr(35) isin $2) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please select a number between 1-10.)
-      }
-      else {
-        .sockopen $+(lyric.,$hget($+(id.,$cid),$me)) search.lyrics.astraweb.com 80
-        .sockmark $+(lyric.,$hget($+(id.,$cid),$me)) $+($replace($iif($remove($2,$chr(35)) isnum && $left($2,1) == $chr(35),$3-,$2-),$chr(32),+,$chr(45),+,$chr(95),+),|,$msgs($nick,$chan,$1),|,$iif($remove($2,$chr(35)) isnum && $left($2,1) == $chr(35),$remove($2,$chr(35)),1),|,$nick)
-      }
-    }
+    elseif ($2 isnum 1-126) { %output $col(%address,level).logo The exp for level $col(%address,$2) is $col(%address,$bytes($lvl($2),db)) exp. The next level ( $+ $col(%address,$calc($2 + 1)) $+ ) is in $col(%address,$bytes($calc($lvl($calc($2 + 1)) - $lvl($2)),db)) exp. }
+    return
   }
-  elseif ($istok(youtubeLINK,%style,32) && Vectra !isin $nick) {
-    noop $regex($1-,/youtube\.com\/watch\?v=(\S+)/Si) {
-      .sockopen $+(youtubeL.,$hget($+(id.,$cid),$me)) desu.rscript.org 80
-      .sockmark $+(youtubeL.,$hget($+(id.,$cid),$me)) $+($regml(1),:,$iif(!$chan,.msg $nick,$iif(!$Settings($chan).Public,.msg $chan,.notice $nick)),:,$nick)
-    }
-  }
-  elseif ($istok(tracker,%style,32)) {
-    if $regex($2,/@/Si) { .var %Param = $right($2-,-1) | .tokenize 32 $deltok($1-,2-,32) }
-    elseif $regex($3,/@/Si) { .var %Param = $right($3-,-1) | .tokenize 32 $deltok($1-,3-,32) }
-    elseif $regex($4,/@/Si) { .var %Param = $right($4-,-1) | .tokenize 32 $deltok($1-,4-,32) }
-    if ($skill($2)) { .var %skill = $skill($2) | .tokenize 32 $deltok($1-,2,32) }
-    .var %rsn $rsn($nick,$iif($2,$2-,$address($nick,3)))
-    if (%rsn) {
-      .sockopen $+(track.,$hget($+(id.,$cid),$me)) desu.rscript.org 80
-      .sockmark $+(track.,$hget($+(id.,$cid),$me)) $+(%rsn,:,$msgs($nick,$chan,$1),:,$iif(%skill,$numskill($v1),all),:,$iif(%skill,$+(86400,$chr(44),604800,$chr(44),2419200,$chr(44),$duration(%param)),$iif(%param >= 1,$duration(%param),604800)),:,$nick,:,$iif(($regex($right($2-,1),/^[&*]$/Si) && $address($left($2,-1),3)) && ($readini(defname.ini,RSNs,$address($left($2,-1),3)) == $readini(privacy.ini,privacy,$address($left($2,-1),3))),$ifmatch,DontHideRsnOkPlx))
-    }
-  }
-  elseif ($istok(shards,%style,32)) {
+  elseif (%style == shards) {
+    if (!$2) { %output $col(%address,error).logo There are two options you can specify the familiar ( $+ $col(%address,$1 <pouch>) $+ ) or you can specify the amount of shards you have ( $+ $col(%address,$1 <CurrentShards> @Pouch) $+ ). }
     if ($2 && @* !iswm $3) {
-      if ($paramFind(Summoning,$remove($3-,@))) {
-        .var %return = $msgs($nick,$chan,$1)
-        .tokenize 124 $paramFind(Summoning,$remove($3-,@))
-        %return $logo($nick,Shards) $c1(Familiar) $c2($nick,$qt($3)) $c1(requires) $c2($nick,$5) $c1(shards.)
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Pouch is not found in our) $c2($nick,Summoning) $c1(database.) 
-      }
+      if ($read($DataDir(familiars.txt),w,$qt($+(*,$2-,*|*)))) { tokenize 124 $v1 | %output $col(%address,Shards).logo Familiar $col(%address,$1) requires $col(%address,$noqt($4)) shards ( $+ $col(%address,$bytes($calc($noqt($4) * 25),db) GP).fullcol $+ ) with a refund of $col(%address,$ceil($calc($noqt($4) * .7))).fullcol shards. }
+      else { %output $col(%address,error).logo Pouch " $+ $col(%address,$2-) $+ " is not found in our familiars database. }
     }
     elseif (@* iswm $3) {
-      if ($replace($2,k,000,m,000000) !isnum) || (@* !iswm $3)  {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Syntax is) $c2($nick,!shards CurrentShards @Pouch) 
+      if ($stringToNum($2) !isnum || @* !iswm $3)  { %output $col(%address,error).logo Syntax: $col(%address,$1 CurrentShards @Pouch) }
+      elseif ($read($DataDir(familiars.txt),w,$qt($+(*,$remove($3-,@),*|*)))) { 
+        var %data = $v1, %shards = $stringToNum($2) 
+        tokenize 124 %data 
+        %output $col(%address,Shards).logo With $col(%address,$bytes(%shards,db)) shards available, you can make around $col(%address,$bytes($floor($calc(%shards / $noqt($4))),db)) pouches of $col(%address,$1) (Shards: $col(%address,$noqt($4)) Refund: $col(%address,$floor($calc($noqt($4) * .70))) $& 
+          Cost: $col(%address,$bytes($calc($noqt($4) * 25),db) $+ GP) $+ ) or $col(%address,$bytes($shards(%shards,$noqt($4)),db)) pouches with $col(%address,$bytes($floor($shards(%shards,$noqt($4)).remain),db)) remaining using the Shards Swap.
       }
-      elseif ($paramFind(Summoning,$remove($3-,@))) {
-        .var %return = $msgs($nick,$chan,$1), %shards = $replace($2,k,000,m,000000)
-        .tokenize 124 $paramFind(Summoning,$remove($3-,@))
-        .var %count = $shards(%shards,$5)
-        %return $logo($nick,Shards) $c1(With) $c2($nick,$bytes(%shards,db)) $c1(shards availible, you can make around) $+($c2($nick,$bytes(%count,db)),$c1,$chr(44),$chr(32),$c2($nick,$3),$chr(40),$c2($nick,$6),$chr(41),$c1,$chr(32),using the Shards Swap.)
-      }
-      else {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Pouch) $c2($nick,$qt($remove($3-,@))) $c1(is not found in our) $c2($nick,Summoning) $c1(database.) 
-      }
+      else { %output $col(%address,error).logo Pouch " $+ $col(%address,$qt($remove($3-,@))) $+ " is not found in our familiars database. }
     }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(There are two options you can specify the familiar) $+($chr(40),$c2($nick,!shards Pouch),$chr(41)) $c1(or you can specify the amount of shards you have) $+($chr(40),$c2($nick,!shards CurrentShards @Pouch),$chr(41))
-    }
+    return
   }
-  elseif ($istok(portals,%style,32)) {
-    $msgs($nick,$chan,$1) $logo($nick,portals) $c1(The possible portal drop patterns are) [1] 6Purple - 12Blue - 8Yellow - 4Red [2] 6Purple - 8Yellow - 12Blue - 4Red [3] 12Blue - 6Purple - 4Red - 8Yellow [4] 12Blue - 4Red - 8Yellow - 6Purple [5] 8Yellow - 6Purple - 4Red - 12Blue [6] 8Yellow - 4Red - 6Purple - 12Blue
+  elseif (%style == portals) { 
+    %output $col(%address,portals).logo The possible portal drop patterns are: [1] 6Purple - 12Blue - 8Yellow - 4Red [2] 6Purple - 8Yellow - 12Blue - 4Red [3] 12Blue - 6Purple - 4Red - 8Yellow [4] $&
+      12Blue - 4Red - 8Yellow - 6Purple [5] 8Yellow - 6Purple - 4Red - 12Blue [6] 8Yellow - 4Red - 6Purple - 12Blue
+    return
   }
-  elseif ($istok(clancompare,%style,32)) {
-    if (!$2 || !$gettok($2-,1,44) || !$gettok($2-,2,44)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please supply two clans to compare seperated by a) comma $+ $c1(. Syntax:) $c2($nick,!mlcompare Damage incorperated $+ $chr(44) Skillers United) | halt }
-    else { 
-      .sockopen $+(clancompare.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(clancompare.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($gettok($2-,1,44),$chr(32),+),:,$replace($gettok($2-,2,44),$chr(32),+)) 
-    }
+  elseif (%style == ascii) {
+    if (!$2) { %output $col(%address,error).logo Please add a string. Syntax: $col(%address,$1 <string>) $+ . }
+    elseif ($len($2) == 1) { %output $col(%address,ascii).logo Ascii code for the character " $+ $col(%address,$2-) $+ " is: $col(%address,$strip($left($regsubex($2-,/(.)/g,$+($chr(36),chr,$chr(40),$asc(\1),$chr(41),$chr(44))),-1))) $+ . }
+    else { %output $col(%address,ascii).logo Ascii code for the string " $+ $col(%address,$2-) $+ " is: $col(%address,$+($chr(36),$chr(43),$chr(40),$strip($left($regsubex($2-,/(.)/g,$+($chr(36),chr,$chr(40),$asc(\1),$chr(41),$chr(44))),-1)),$chr(41))) $+ . }
+    return
   }
-  elseif ($istok(clanrank,%style,32)) {
-    noop $regex($2-,/#(\d+)/Si)
-    if (!$regml(1) || $regml(1) !isnum || !$3) { $msgs($nick,$chan,$1) $logo($nick,Error) $c1(Clan rank requires a valid) $c2($nick,numerical) $c1(rank, and a clan to search. Syntax:) $c2($nick,!clanrank #1 Skillers United) | halt }
-    else {
-      .sockopen $+(clanrank.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(clanrank.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$regml(1),:,$remtok($2-,$+($chr(35),$regml(1)),1,32))
-    }
+  elseif (%style == slap) {
+    if (!$chan) { halt }
+    var %output = $msgs($nick,$chan,@)
+    if ($2 == $me || $2 ison #devvectra) { %output $col(%address,$2-) is to cool to slap! | halt }
+    else { $iif(*E* iswmcs $chan($chan).mode,%output,.describe $chan) slaps $+($col(%address,$iif(!$2,$nick,$2)),$chr(3)) with $col(%address,$readini($DataDir(items.ini),Item,$r(1,1372))) }
+    return
   }
-  elseif ($istok(gfight,%style,32)) {
-    if (!$2 || !$gettok($2-,1,44) || !$gettok($2-,2,44)) { $msgs($nick,$chan,$1) $logo($nick,error) $c1(Please supply two terms to google battle seperated by a) comma $+ $c1(. Syntax:) $c2($nick,!gfight Dogs $+ $chr(44) Cat) | halt }
-    else { 
-      .sockopen $+(googlefight.,$hget($+(id.,$cid),$me)) parsers.phantomnet.net 80
-      .sockmark $+(googlefight.,$hget($+(id.,$cid),$me)) $+($msgs($nick,$chan,$1),:,$nick,:,$replace($gettok($2-,1,44),$chr(32),+),:,$replace($gettok($2-,2,44),$chr(32),+)) 
-    }
+  elseif (%style == lame) {
+    if (!$chan) { halt }
+    var %output = $msgs($nick,$chan,@)
+    if (!$2) { %output $+($col(%address,$null).c2,Lamest) person in $chan is... $col(%address,$nick($chan,$rand(1,$nick($chan,0)))) | halt }
+    else { %output $col(%address,$2-) is $iif($r(1,2) == 1,NOT) lame! }
+    return
   }
-  elseif ($istok(setmerch,%style,32)) {
-    if (($2 == $null) || ($nick !isop $chan)) { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(You did not give any item to set, or you're not op in this channel. Syntax:) $c2($nick,!setmerch Item: ITEM Reason: REASON)
-      .halt
-    }
-    elseif ($regex($2-,/item: (.*) reason: (.*)/)) {
-      if (($chr(36) isin $2-) || ($chr(59) isin $2-)) { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid characters!)
-        .halt
-      }
-      else {
-        .writeini -n merchant.ini x $chan $+($nick,;,$date(mmm dd yyyy) $time,;,$regml(1),;,$regml(2)) 
-        $msgs($nick,$chan,$1) $logo($nick,merchant) $c1(Item has been set!) $c2($nick,voice+) $c1(can now use) $c2($nick,!merchant) $c1(to see the item.)
-        .halt
-      }
-    }
-    else {
-      $msgs($nick,$chan,$1) $logo($nick,merchant) $c1(Invalid Syntax: !setmerch item: item name reason: merchanting reason)
-      .halt
-    }
+  elseif (%style == 8ball) {
+    if (!$2) { %output $col(%address,error).logo 8Balls require questions. }
+    else { $msgs($nick,$chan,@8ball) $col(%address,8Ball).logo $read($DataDir(8ball.txt)) }
+    return
   }
-  elseif ($istok(merch,%style,32)) {
-    if ($nick !isreg $chan) {
-      if ($readini(merchant.ini,x,$chan) != $null) {
-        $msgs($nick,$chan,$1) $logo($nick,merchant) $c1(The item) $c2($nick,$remove($gettok($readini(merchant.ini,x,$chan),3,59),$chr(36))) $c1(has been set by) $c2($nick,$remove($gettok($readini(merchant.ini,x,$chan),1,59),$chr(36))) $c1(at) $c2($nick,$remove($gettok($readini(merchant.ini,x,$chan),2,59),$chr(36))) $c1(Reason:) $c2($nick,$remove($gettok($readini(merchant.ini,x,$chan),4,59),$chr(36))) 
-      }
-      else { 
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(There was no item set for this channel!) 
-        .halt
-      }
-    }
+  elseif (%style == noob) {
+    if (!$chan) { halt }
+    if ($2) { %output $col(%address,noobtest).logo The noobtest reveals $col(%address,$2-) is $col(%address,$iif(%realStaff && $left($1,1) == `,100,$r(0,100))) $+  % noob! | halt }
+    elseif ($nick($chan,0) == 1) { %output $col(%address,noobtest).logo The noobtest reveals $col(%address,$nick) is $col(%address,$iif(%realStaff && $left($1,1) == `,100,$r(0,100))) $+ % noob! | halt }
+    else { $msgs($nick,$chan,@) $col(%address,noobtest).logo The noobtest reveals $col(%address,$nick($chan,$r(1,$nick($chan,0)))) is $col(%address,$iif(%realStaff && $left($1,1) == `,100,$r(0,100))) $+ % noob! | halt }
+    return
   }
-  elseif ($istok(delmerch,%style,32)) {
-    if ($nick isop $chan) {
-      if ($readini(merchant.ini,x,$chan) == $null) {
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(There was no item set for this channel!) 
-        .halt
-      }
-      else { 
-        .remini -n merchant.ini x $chan
-        $msgs($nick,$chan,$1) $logo($nick,error) $c1(The item has been cleared!) 
-        .halt
-      }
-    }
+  elseif (%style == mm) { 
+    if (!$chan) { halt } 
+    $iif(*E* iswmcs $chan($chan).mode,%output,.describe $chan) gives $+($col(%address,$iif($2,$2-,$nick)).fullcol,$chr(3)) some M&M's 1,0(0,4m1,0)1,0(0,12m1,0)1,0(0,3m1,0)1,0(0,8m1,0)1,0(0,7m1,0)1,0(0,5m1,0) 
+    return
   }
-  elseif ($istok(country,%style,32)) {
-    if ($2 != $null) && (* $+ $chr(36) $+ * !iswm $2-) {
-      .sockopen $+(country.,$hget($+(id.,$cid),$me)) vectra-bot.net 80
-      .sockmark $+(country.,$hget($+(id.,$cid),$me)) $+($nick,:,$msgs($nick,$chan,$1),:,$2-)
-    } 
-    else { 
-      $msgs($nick,$chan,$1) $logo($nick,error) $c1(Invalid syntax: !country NL)
-      .halt
-    }
+  elseif (%style == cookie) { 
+    if (!$chan) { halt }
+    $iif(*E* iswmcs $chan($chan).mode,%output,.describe $chan) gives $+($col(%address,$iif($2,$2-,$nick)).fullcol,$chr(3)) a cookie, coated with hot chocolate sauce which melts only at a temperature of 80 degrees celsius, filed with yanilla flavoured white chocolate grinded to perfection, $&
+      cooked under an oven which contained only 12.3% carbon dioxide to form the perfect mixture. Finally a bucket of fine chocolate was poured upon the cookie, making a thin layer of black sirup ooz out from the tip of the cookie. | halt 
+    return
   }
-}
-#SKILLCOST
-on *:SOCKOPEN:skillcost.*: {
-  .tokenize 58 $sock($sockname).mark
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=skillcost&rsn=,$4,&skill=,$numskill($3),$iif(GOAL.* iswm $5,&goal= $+ $gettok($5,2,46))) HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:skillcost.*: {
-  if ($sockerr) { .sockclosef $sockname | halt } 
-  .tokenize 58 $sock($sockname).mark
-  .var %n $2, %skill $3, %rsn $4, %privacy $6
-  .var %Sockreader | .sockread %Sockreader
-  if (not found isin %Sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(The username) $c2(%n,$rsnH(%n,%privacy,%rsn)) $c1(was not found in the runescape highscores)
-    .sockclosef $sockname | halt
+  elseif (%style == coffee) { 
+    if (!$chan) { halt }
+    $iif($chan,$iif($Settings($chan,Public),.msg $chan,.notice $nick),.msg $nick) $col(%address,$iif($chan,$iif($Settings($chan,Public),$nick,$me),$me)) offers mugs of hot coffee $&
+      0,12"""12] 0,1"""01] 0,04"""04] 0,03"""3] 0,08"""08] 0,02"""02] 0,09"""09] $col(%address,$null).c2 $+ $iif($chan,to everyone in $col(%address,$chan),to you) | halt
+    return
   }
-  elseif (not ranked isin %Sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,skillcost) $+($c1([),$c2(%n,$rsnH(%n,%privacy,%rsn)),$c1(])) $c1(Is not ranked in) $c2(%n,%skill) $+ $c1(.)
-    .sockclosef $sockname | halt  
-  }
-  elseif (EXP2NEXT isin %Sockreader) { .hadd -m $sockname Exp2next $gettok(%Sockreader,2,32) }
-  elseif (COST isincs %Sockreader) { 
-    .hinc -m $sockname Count 1
-    if ($hget($sockname,Count) <= 3) { .tokenize 32 %Sockreader
-      .hadd -m $sockname Output $hget($sockname,Output) $c1($chr(124)) $c2(%n,$bytes($5,db)) $c1($replace($4,_,$chr(32))) $+($c1($chr(40)),$c2(%n,$shortamount($gettok($6,1,58))),$c1(gp),$chr(32),$c2(%n,$shortamount($gettok($7,1,58))),$c1(gp),$chr(32),$c2(%n,$shortamount($gettok($8,1,58))),$c1(gp),$c1($chr(41)))
-    }
-  }
-  elseif (GRAPHS isin %Sockreader) { .hadd -m $sockname Graph $gettok(%Sockreader,2,32) }
-  elseif (END isin %Sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,skillcost) $+($c1([Approximate cost of),$chr(32),$c2(%n,$bytes($hget($sockname,Exp2next),db)),$c1(xp),$chr(32),$c1(for),$chr(32),$c2(%n,$rsnH(%n,%privacy,%rsn)),$chr(32),$c1(in),$chr(32),$c2(%n,%skill),$c1(])) $mid($hget($sockname,Output),2)
-    if ($hget($sockname,Graph)) { $gettok($sock($sockname).mark,1,58) $logo(%n,ge-graphs) $c2(%n,$$hget($sockname,Graph)) }
-    .sockclosef $sockname | halt
-  } 
-}
-#TRANSLATE
-on $*:SOCKOPEN:/^(translate\.\d+)$/: {
-  .tokenize 58 $sock($sockname).mark
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=translate&l1=,$3,&l2=,$4,&text=,$5) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf
-}
-on $*:SOCKREAD:/^(translate\.\d+)$/: {
-  if ($sockerr)  {
-    .msg #devvectra $logo(-,sockerr) $c1(Socket error in translate.)
-  }
-  else {  
-    .tokenize 58 $sock($sockname).mark
-    var %read
-    sockread %read
-    if ($regex(%read,/^(Lang[12]|more|translation)\:/Si)) { 
-      .hadd -m $sockname Info $addtok($hget($sockname,Info),$gettok(%read,2-,32),124)
-    }
-    elseif (%read == end) { 
-      var %o $1, %n $2
-      .tokenize 124 $hget($sockname,info)
-      %o $logo(%n,translate) $c1(Languages:) $c2(%n,$regsubex($1,/\b(\w)/g,$upper(\t))) $c1(->) $c2(%n,$regsubex($2,/\b(\w)/g,$upper(\t))) $c1($chr(124) Text:) $c2(%n,$4) $c1($chr(124) More info:) $c2(%n,$3)
-      .sockclosef $sockname
-    }
-  }
-}
-on *:sockopen:clantrack*: {
-  sockwrite -nt $sockname GET $+(/clantrack/clantrack_test.php?clantrack=true&4=,$gettok($sock($sockname).mark,1,58),&5=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite -nt $sockname Host: rodb.nl
-  sockwrite -nt $sockname $crlf $+ $crlf
-}
-on *:sockread:clantrack*: {
-  var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) {
-    !.msg #devvectra clantrack socket failed, closing socket! 
-    sockclose $sockname | !halt
-  }
-  var %sockreader
-  sockread %sockreader
-  if (*Error: Could not find* iswm %sockreader) {
-    $gettok($sock($sockname).mark,4,58) $logo(%n,error) $c1(Couldn't find) $c2(%n,$gettok($sock($sockname).mark,1,58))
-    !sockclose $sockname
-    !halt
-  }
-  if ($regex(%sockreader,/Date: (.*)/)) { .hadd -m $sockname date $regml(1) }
-  elseif ($regex(%sockreader,/Clan: (.*)/)) { .hadd -m $sockname clan $regml(1) }
-  elseif ($regex(%sockreader,/Name: (.*)/)) { .hadd -m $sockname name $regml(1) }
-  elseif ($regex(%sockreader,/Members: (.*)/)) { .hadd -m $sockname members $regml(1) }
-  elseif ($regex(%sockreader,/F2p: (.*)/)) { .hadd -m $sockname f2p $regml(1) }
-  elseif ($regex(%sockreader,/P2P: (.*)/)) { .hadd -m $sockname p2p $regml(1) }
-  elseif ($regex(%sockreader,/Attack: (.*?) (.*)/)) { .hadd -m $sockname attack $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Strength: (.*?) (.*)/)) { .hadd -m $sockname strength $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Hitpoints: (.*?) (.*)/)) { .hadd -m $sockname hitpoints $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Magic: (.*?) (.*)/)) { .hadd -m $sockname magic $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Ranged: (.*?) (.*)/)) { .hadd -m $sockname ranged $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Summoning: (.*?) (.*)/)) { .hadd -m $sockname summoning $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Prayer: (.*?) (.*)/)) { .hadd -m $sockname prayer $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/Agility: (.*?) (.*)/)) { .hadd -m $sockname agility $c1($regml(1)) $c3($chr(40)) $+ $iif($regml(2) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) }
-  elseif ($regex(%sockreader,/END/)) {
-    if ($hget($sockname,name) == $null) {
-      $gettok($sock($sockname).mark,4,58) $logo(%n,error) $c1(Couldn't find) $c2(%n,$gettok($sock($sockname).mark,1,58))
-      !sockclose $sockname
-      !halt
-    }
-    .var %members = $iif($gettok($hget($sockname,members),2,32) == 0,$gettok($hget($sockname,members),1,32),$gettok($hget($sockname,members),2,32)) $c3($chr(40)) $+ $iif($gettok($hget($sockname,members),3,32) > 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)), %cmb = $gettok($hget($sockname,f2p),1,32) $c3($chr(40)) $+ $iif($gettok($hget($sockname,f2p),2,32) >= 0,$cg($v1),$cl($v1)) $+ $c3($chr(41)) $+($chr(91),P2p: $c2(%n,$gettok($hget($sockname,p2p),1,32)) $c3($chr(40)) $+ $iif($gettok($hget($sockname,p2p),2,32) >= 0,$cg($v1),$cl($v1)),$chr(41) $+ ])
-    $gettok($sock($sockname).mark,4,58) $logo(%n,CLANTRACK) $c1(Clan:) $c2(%n,$hget($sockname,name)) $c1($chr(40)) $+ $c2(%n,$gettok($hget($sockname,date),1,32)) $+ $c1(->) $+ $c2(%n,$gettok($hget($sockname,date),3,32)) $+ $c1($chr(41) $chr(124) Members:) $c2(%n,%members) $c1($chr(124) Combat:) $c2(%n,%cmb) $c1($chr(124) Attack:) $c2(%n,$hget($sockname,attack)) $c1($chr(124) Str:) $c2(%n,$hget($sockname,strength)) $c1($chr(124) Constitution:) $c2(%n,$hget($sockname,hitpoints)) $c1($chr(124) Mage:) $c2(%n,$hget($sockname,magic)) $&
-      $c1($chr(124) Range:) $c2(%n,$hget($sockname,ranged)) $c1($chr(124) Sum:) $c2(%n,$hget($sockname,summoning)) $c1($chr(124) Pray:) $c2(%n,$hget($sockname,prayer)) $c1($chr(124) Agil:) $c2(%n,$hget($sockname,agility))
-    $gettok($sock($sockname).mark,4,58) $logo(%n,CLANTRACK) $c1(Link to memberlist:) $c2(%n,http://www.runehead.com/clans/ml.php?clan= $+ $hget($sockname,clan))
-    sockclose $sockname | halt
-  }
-}
-on $*:SOCKOPEN:/^(clanrank\.\d+)$/: {
-  .tokenize 58 $sock($sockname).mark
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=clanrank&clan=,$5,&r=,$4,&skill=,$3) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf
-}
-on $*:SOCKREAD:/^(clanrank\.\d+)$/: {
-  if ($sockerr)  {
-    .msg #devvectra $logo(-,sockerr) $c1(Socket error in clanrank.)
-  }
-  else { 
-    .tokenize 58 $sock($sockname).mark
-    var %read
-    sockread %read
-    if (RESULT: *|*|*|*|* iswm %read) {
-      var %o $1, %n $2, %skill $3, %clan $5
-      .tokenize 124 $gettok(%read,2-,32)
-      %o $logo(%n,clanrank) $c1(User:) $c2(%n,$2) $c1($chr(124) Skill:) $c2(%n,%skill) $c1($chr(124) Clan Rank:) $c2(%n,$bytes($1,db)) $c1($chr(124) Clan:) $c2(%n,%clan) $&
-        $c1($chr(124) Level:) $c2(%n,$4) $c1($chr(124) Rank:) $c2(%n,$3) $c1($chr(124) Exp:) $c2(%n,$5) 
-      .sockclosef $sockname
-    }
-    elseif ($regex(%read,/No clan matching search/Si)) { 
-      $1 $logo($2,error) $c1(The clan name ") $+ $c2($2,$5) $+ $c1(" was not found in the RSHSC.)
-      .sockclosef $sockname
-    }
-    elseif ($regex(%read,/RESULT\: Hiscores Catalogue/Si)) {
-      $1 $logo($2,error) $c1(No user was found at rank) $c2($2,$bytes($4,db)) $c1(in) $c2($2,$3) $c1(in the clan) $c2($2,$5) $+ $c1(.)
-      .sockclosef $sockname
-    }
-  }
-}
-on $*:SOCKOPEN:/^(toptrack\.\d+)$/: {
-  .tokenize 58 $sock($sockname).mark
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=toptrack&skill=,$3,&time=,$4) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf
-}
-on $*:SOCKREAD:/^(toptrack\.\d+)$/: {
-  if ($sockerr)  {
-    .msg #devvectra $logo(-,sockerr) $c1(Socket error in topptrack.)
-  }
-  else {      
-    .tokenize 58 $sock($sockname).mark
-    var %read
-    sockread %read
-    if (toptrack: * * iswm %read) {
-      .hinc -m $sockname ID
-      .hadd -m $sockname Toptrack $addtok($hget($sockname,Toptrack),$+($c1($chr(35)),$c2($2,$hget($sockname,ID)),$c1(:)) $c1($replace($gettok(%read,2,32),_,$chr(32))) $+($c1($chr(40)),$c2($2,$gettok(%read,3,32)),$c1($chr(41))),124)
-    }
-    if (end isin %read) && ($numtok($hget($sockname,toptrack),124) == 10) {
-      var %info $hget($sockname,Toptrack)
-      $1 $logo($2,track-top) $+($c1($chr(91)),$c2($2,$numskill($3)),$c1($chr(93))) $replace($gettok(%info,1-5,124),$chr(124),$+($chr(32),$c1($chr(124)),$chr(32)))
-      $1 $logo($2,track-top) $replace($gettok(%info,6-,124),$chr(124),$+($chr(32),$c1($chr(124)),$chr(32)))
-      .sockclosef $sockname
-    }
-  }
-}
-on $*:SOCKOPEN:/^(kbase\.\d+)$/: {
-  .tokenize 58 $sock($sockname).mark
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=kbase&search=,$3) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf
-}
-on $*:SOCKREAD:/^(kbase\.\d+)$/: {
-  if ($sockerr)  {
-    .msg #devvectra $logo(-,sockerr) $c1(Socket error in kbase.)
-  }
-  else {      
-    .tokenize 58 $sock($sockname).mark
-    var %read
-    sockread %read
-    if ($regex(%read,/^ERROR\:/Si)) { 
-      $1 $logo($2,error) $c1(There were no results found for ") $+ $c2($2,$3) $+ $c1(" in the RuneScape knowledge base.)
-      .sockclose $sockname
-    }
-    elseif ($regex(%read,/^(title|section|link|description)\:/Si)) { 
-      .hadd -m $sockname Kbase $addtok($hget($sockname,Kbase),$c2($2,$gettok(%read,2-,32)),126)
-    }
-    elseif (end isin %read) && ($numtok($hget($sockname,Kbase),126) == 4) { 
-      var %kbase $hget($sockname,Kbase)
-      $1 $logo($2,kbase) $c1(Top result for ") $+ $c2($2,$3) $+ $c1(" was) $gettok(%kbase,1,126) $c1(found at) $gettok(%kbase,3,126) $c1(in section) $gettok(%kbase,2,126)
-      $1 $logo($2,kbase) $c1(Description:) $gettok(%kbase,4,126)
-      .sockclosef $sockname
-    }
-  }
-}
-on $*:SOCKOPEN:/(SpotifyL\.\d+)$/: {
-  .tokenize 58 $sock($sockname).mark
-  .sockwrite -nt $sockname GET $+(/track/,$3) HTTP/1.1
-  .sockwrite -nt $sockname Host: open.spotify.com
-  .sockwrite -nt $sockname $crlf
-}
-on $*:SOCKREAD:/(SpotifyL\.\d+)$/: {
-  if ($sockerr)  {
-    .msg #devvectra $logo(-,sockerr) $c1(Socket error in spotify link.)
-  }
-  else {      
-    .tokenize 58 $sock($sockname).mark
-    var %read
-    sockread %read
-    if ($regex(%read,/<title>Spotify track<\/title>/Si)) { 
-      .sockclosef $sockname
-    }
-    elseif ($regex(%read,/<title>(.+?) - Spotify<\/title>/Si)) {
-      var %info $gettok($htmlfree(%read),2-,32)
-      $1 $logo($2,Spotify) $c1(Artist:) $c2($2,$gettok($gettok(%info,1,45),1-,32)) $c1($chr(124) Song:) $c2($2,$gettok($gettok(%info,2,45),1-,32))
-    }
-  }
-}
-#imdb
-on *:sockopen:imdb.*: {
-  .sockwrite -nt $sockname GET $gettok($sock($sockname).mark,3,58) HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $crlf
-}
-on *:sockread:imdb.*: {
-  if ($sockerr) { .sockclosef $sockname | halt }
-  else {
-    .var %display $gettok($sock($sockname).mark,1,58) , %n $gettok($sock($sockname).mark,2,58), %sockreader
-    .sockread %sockreader
-    if (No movie listings isin %sockreader) {
-      %display $logo(%n,error) $c1(Nothing found for your search in the Imdb.)
-      .sockclosef $sockname | halt
-    }
-    elseif (END isin %sockreader) {
-      if ($hget($sockname,Movie)) { %display $logo(%n,imdb) $c1(Results:) $c2(%n,$hget($sockname,MovieC)) $hget($sockname,Movie) }
-      elseif ($hget($sockname,title)) {
-        %display $logo(%n,imdb) $c2(%n,$hget($sockname,title)) $c1($chr(124) Released:) $c2(%n,$iif($hget($sockname,released),$v1,N/A)) $c1($chr(124) Director:) $c2(%n,$iif($hget($sockname,director),$v1,N/A)) $c1($chr(124) Runtime:) $c2(%n,$iif($hget($sockname,runtime),$v1,N/A)) $&
-          $c1($chr(124) Rating:) $c2(%n,$iif($hget($sockname,rating),$v1,N/A)) $c1($chr(124) Genre:) $c2(%n,$iif($hget($sockname,genre),$v1,N/A))
-      }
-      else { %display $logo(%n,error) $c1(Nothing found for your search in the Imdb.) }
-      .sockclosef $sockname | halt
-    }
-    elseif (MOVIE: isin %sockreader) && (!$hget($sockname,MovieC) || $hget($sockname,MovieC) <= 3) {
-      .tokenize 32 %sockreader
-      hinc -m $sockname MovieC 1
-      hadd -m $sockname Movie $+($hget($sockname,Movie),$+($chr(32),$c1($chr(124)),$chr(32),$c1($3-),$chr(32),$c1($chr(40)),$c2(%n,$2),$c1($chr(41))))
-    }
-    elseif ($regex(%sockreader,/(LINK|TITLE|DIRECTOR|RELEASED|RUNTIME|RATING|GENRE):/Si)) { .hadd -m $sockname $lower($regml(1)) $gettok(%sockreader,2-,32) }
-  }
-}
-#DEFML
-on *:sockopen:defml.*: {
-  .tokenize 126 $sock($sockname).mark
-  sockwrite -nt $sockname GET $+(/feeds/lowtech/searchclan.php?type=2&search=,$4) HTTP/1.1
-  sockwrite -nt $sockname Host: runehead.com
-  sockwrite -nt $sockname $crlf
-}
-on *:sockread:defml.*: {
-  if ($sockerr) { .sockclosef $sockname | halt }
-  .var %display $gettok($sock($sockname).mark,1,126) , %n $gettok($sock($sockname).mark,2,126), %chan $gettok($sock($sockname).mark,3,126), %clan $gettok($sock($sockname).mark,4,126) 
-  .var %read | .sockread %Sockreader
-  if (@@Not Found isin %Sockreader) { 
-    %display $logo(%n,error) $c1(The clan name ") $+ $c2(%n,$replace(%clan,_,$chr(32))) $+ $c1(" was not found in the RSHSC.)
-    .sockclosef $sockname | halt
-  }
-  elseif (*|*|*|*|*|* iswm %Sockreader) { 
-    .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan DefaultML $+($gettok(%Sockreader,1,124),$chr(124),$gettok(%Sockreader,3,124))
-    %display $logo(%n,default-ml) $c1(The default memberlist for channel) $c2(%n,%chan) $c1(has been set to the clan) $c2(%n,$gettok($Settings(%chan,DefaultML),1,124)) $c1(and memberlist) $c2(%n,$gettok($Settings(%chan,DefaultML),2,124)) $+ $c1(.)
-    .sockclosef $sockname | halt
-  }
-  elseif (@@end isin %Sockreader) { 
-    .sockclosef $sockname | halt
-  }
-}
-#ALOG - Adventurer's Log
-on *:SOCKOPEN:alog.*: {
-  .tokenize 126 $sock($sockname).mark
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=alog&rsn=,$3) HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:alog.*: {
-  if ($sockerr) { .sockclosef $sockname | halt }
-  .var %n $gettok($sock($sockname).mark,2,126), %rsn $gettok($sock($sockname).mark,3,126), %privacy $gettok($sock($sockname).mark,4,126)
-  .var %Sockreader | .sockread %Sockreader
-  if (hidden isin %Sockreader) { 
-    $gettok($sock($sockname).mark,1,126) $logo(%n,error) $c1(The Rsn is either hidden or does not exist.)
-    .sockclosef $sockname | halt
-  }
-  elseif (ALOG isin %Sockreader) { 
-    .var %count 0, %c $ticks
-    while (%Sockreader != $null) {  
-      .tokenize 32 $HTML2ASCII(%Sockreader)
-      if ($ticks > $calc(%c + 3000)) { break }
-      if (END isincs %Sockreader) { 
-        .var %header $logo(%n,a. log) $+($c1([),$c2(%n,$rsnH(%n,%privacy,$replace($gettok($sock($sockname).mark,3,126),_,$chr(32)))),$c1(])) 
-        .var %head = : $+ $address($me,5) PRIVMSG $gettok($gettok($sock($sockname).mark,1,126),2,32) :
-        .tokenize 32 $hget($sockname,Output)
-        if ($calc($len($1-) + $len(%head) + $len(%header)) <= 512) { $gettok($sock($sockname).mark,1,126) %header $remove($1-,$chr(124)) }
-        else { 
-          .tokenize 124 $1-
-          $gettok($sock($sockname).mark,1,126) %header $1-2
-          $gettok($sock($sockname).mark,1,126) %header $3-
-          .sockclosef $sockname | halt
-        }
-      }
-      ;elseif (%count <= 5) { 
-      if ($regex($2,/Gained/i)) { 
-        .hadd -m $sockname Output $hget($sockname,Output) $(|,) $+(,$c1($2),) $regsubex($iif($numtok($3-,44) > 4,$gettok($3-,1-4,44),$3-),/(\d+(?:\.\d+)?)/g,$c2(%n,\1)) $+ $c1(.) 
-        .inc %count 
-      }
-      elseif ($regex($3,/found/i)) { 
-        .hadd -m $sockname Output $hget($sockname,Output) $(|,) $+(,$c1($2-3),) $regsubex($4,/(\d+(?:\.\d+)?)/g,$c2(%n,\1)) $regsubex($iif($numtok($5-,44) > 4,$gettok($5-,1-4,44),$5-),/(\d+(?:\.\d+)?)(\s?[a-z])/gi,$c2(%n,\1) $+ $c1(x) \2) $+ $c1(.) 
-        .inc %count 
-      }
-      elseif ($regex($2,/Killed/i)) {
-        .hadd -m $sockname Output $hget($sockname,Output) $(|,) $+(,$c1($2),) $regsubex($iif($numtok($3-,44) > 5,$gettok($3-,1-5,44),$3-),/(\d+(?:\.\d+)?)/g,$c2(%n,\1) $+ $c1(x)) $+ $c1(.) 
-        .inc %count 
-      }
-      elseif ($regex($2,/Reached/i)) {
-        .hadd -m $sockname Output $hget($sockname,Output) $(|,) $+(,$c1($2),) $regsubex($iif($numtok($3-,44) > 5,$gettok($3-,1-5,44),$3-),/(\d+(?:\.\d+)?)/g,$c2(%n,\1)) $+ $c1(.) 
-        .inc %count
-      }
-      elseif ($regex($2,/Completed/i)) { 
-        .hadd -m $sockname Output $hget($sockname,Output) $(|,) $+(,$c1($2),) $c2(%n,$3) $c1($4) $regsubex($5-,/(.+?)(,|$)/g,$c2(%n,\1)\2)) $+ $c1(.) 
-        .inc %count 
-      }
-      else { .hadd -m $sockname Output $hget($sockname,Output) $(|,) $regsubex($2-,/(\d+(?:\.\d+)?)/g,$c2(%n,\1)) | .inc %count }
-      ;} 
-      .sockread %Sockreader 
-    } 
-  }
-  if (END isincs %Sockreader) { $gettok($sock($sockname).mark,1,126) $logo(%n,a. log) $+($c1([),$c2(%n,$rsnH(%n,%privacy,$replace($gettok($sock($sockname).mark,3,126),_,$chr(32)))),$c1(])) $iif($hget($sockname,Output),$v1,Nothing found in the A.Log.) | .sockclosef $sockname | halt } 
+  elseif (%style == skittle) { $iif(*E* iswmcs $chan($chan).mode,%output,.describe $chan) $chan gives $+($col(%address,$iif($2,$2-,$nick)).fullcol,$chr(3)) a skittle | return }
+  else { monitor command-error The command " $+ $1 $+ " triggered for $b(%style) but no entry found. }
+
+  return 
+  :error
+  if (%style == $Null) { halt }
+  .signal scriptError $+(%realStaff,$chr(16),%output,$chr(16),%address,$chr(16),%style,$chr(16),$1-,$chr(16),$error)
+  reseterror
 }
 
-#Trank
-on *:SOCKOPEN:trank.*: {
-  .tokenize 126 $sock($sockname).mark
-  .sockwrite -nt $sockname GET $+(/lookup.php?type=trackrank&user=,$3,&skill=,$5) HTTP/1.1
-  .sockwrite -nt $sockname Host: rscript.org
-  .sockwrite -nt $sockname $crlf
+# SOCKOPEN
+on *:SOCKOPEN:*:{ 
+  if ($istok(SyncServer rsAutoNews,$sockname,32)) { halt } 
+  var %mark = $sock($sockname).mark
+  var %host = $gettok(%mark,1,1)
+  var %uri = $gettok(%mark,2,1)
+  var %post = $iif($gettok(%mark,4,1),$gettok(%mark,3,1),$false)
+
+  sockmark $sockname $gettok(%mark,2,4)
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($gettok(%mark,2,4),1,16)) | socketClose $sockname | halt } 
+  sockwrite -nt $sockname $iif(%post,POST,GET) %uri HTTP/1.1
+  sockwrite -nt $sockname Host: %host
+  sockwrite -nt $sockname User-Agent: Vectra (Crawler Bot: vectra-bot.net)
+  if (%post) {
+    sockwrite -n $sockname Content-Type: application/x-www-form-urlencoded
+    sockwrite -n $sockname Content-Length: $len(%post) $+ $crlf $+ $crlf
+    sockwrite -n $sockname %post
+  }
+  else { sockwrite -nt $sockname $str($lf,2) }
+
+  return
+  :error
+  monitor Socket error: $error
+  .reseterror  
 }
-on *:SOCKREAD:trank.*: {
-  if ($sockerr) { .sockclosef $sockname | halt }
-  .var %n $gettok($sock($sockname).mark,2,126), %rsn $gettok($sock($sockname).mark,3,126), %privacy $gettok($sock($sockname).mark,4,126), %skill $gettok($sock($sockname).mark,5,126) 
-  .var %Sockreader | .sockread %Sockreader
-  if ($regex(%Sockreader,/^(day|week|month)\:/Si)) {
-    .tokenize 32 %Sockreader
-    .hadd -m $sockname $regml(1) $iif($istok(N/A,$2,32),$c2(%n,N/A),$+($c2(%n,$2),$chr(32),$c1($chr(40)),$c2(%n,$3),$c1(exp),$c1($chr(41))))
-  }
-  elseif (END isin %Sockreader) { 
-    if ($strip($hget($sockname,day) $hget($sockname,week) $hget($sockname,month)) == N/A N/A N/A) { 
-      $gettok($sock($sockname).mark,1,126) $logo(%n,error) $c1(The username ") $+ $c2(%n,$rsnH(%n,%privacy,%rsn)) $+ $c1(" is not ranked on the RuneScape Hiscores or has not gained any ranks.)
+
+#Runescape Stats
+on *:SOCKREAD:RSstats.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %hash = $gettok($sockname,2-,46)
+    var %type = $gettok($sockname,2,46)
+
+    tokenize 16 $sock($sockname).mark
+
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+    var %rsn      = $ucword($replace($3,_,$chr(32)))
+    var %switch   = $4
+    var %option   = $5
+    var %opperand = $6
+    var %params   = $7
+
+    .sockread %Sockread
+
+    tokenize 32 %Sockread 
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: * was not found * iswmcs %Sockread) {
+      %display $col(%address,error).logo The username $col(%address,%rsn).fullcol was not found in the RuneScape highscores.
+      sockclose $sockname | halt
     }
-    else {
-      $gettok($sock($sockname).mark,1,126) $logo(%n,Tracker Rank) $+($c1($chr(40)),$c2(%n,$numskill(%skill)),$c1($chr(41))) $c1(rank for) $c2(%n,$rsnH(%n,%privacy,%rsn)) $c1(in the last: Day:) $hget($sockname,day) $c1($chr(124) Week:) $hget($sockname,week) $c1($chr(124) Month:) $hget($sockname,month)
+    elseif (ERROR: Player * has no ranked skills * iswmcs %Sockread) {
+      %display $col(%address,error).logo The username $col(%address,%rsn).fullcol has no ranked skills in the high scores.
+      sockclose $sockname | halt
     }
-    .sockclosef $sockname | halt
-  }
-}
-#STATS COMMANDS
-on *:SOCKOPEN:stats.*:{
-  if ($sockerr) { .sockclosef $sockname | halt }
-  tokenize 58 $sock($sockname).mark
-  if ($len($1) > 12) || ($chr(36) isin $1) {
-    $2 $logo($3,error) $c1(Username has to contain $+(Spaces,$chr(44)) $+(underscores,$chr(44)) $+(numbers,$chr(44)) letters and 12 characters max.)
-    .sockclosef $sockname | .halt
-  }
-  sockwrite -nt $sockname GET $+(/index_lite.ws?player=,$1) HTTP/1.1
-  sockwrite -nt $sockname HOST: hiscore.runescape.com
-  sockwrite -nt $sockname $str($lf,2)
-}
-on *:SOCKREAD:stats.*:{
-  tokenize 58 $sock($sockname).mark
-  if ($sockerr) { .sockclose $sockname | halt }
-  var %rsn $1, %display $2, %nick $3, %privacy $4, %method $5, %opperand $6, %extradata $7
-  var %sockreader | .sockread %sockreader
-  if ($regex(%sockreader,/<html><head><title>(.*?) - (.*?)</title></head>/)) {
-    %display $logo(%nick,error) $c1(The username) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(was not found in the runescape highscores)
-    .sockclosef $sockname | halt
-  }
-  if ($regex(%sockreader,/not found/Si)) {
-    %display $logo(%nick,error) $c1(The username) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(was not found in the runescape highscores)
-    .sockclosef $sockname | halt
-  }
-  if ($regex($replace(%sockreader,-1,1),/^(\d+)((\x2C\d+){1,2})$/)) { 
-    var %x 0
-    while (%x <= 33) { 
-      .hadd -m $sockname $numskill(%x) $replace(%sockreader,-1,1) 
-      .sockread %sockreader | .inc %x 
-    }    
-    if ($istok(setgoal goal,$gettok($sockname,3,46),32)) {
-      if ($gettok($hget($sockname,%method),2,44) == 1) {
-        %display $logo(%nick,error) $c1(The username) $+($c1,",$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,") $c1(was not found in the RuneScape hiscores for) $+($c2(%nick,%method),$c1,.)
-        .sockclosef $sockname | halt
+    elseif (STAT: isin %Sockread || COMPARE: isin %Sockread) { hadd -mu10 %hash $2 $3- | hinc -mu10 %hash Count 1 }
+    elseif ($istok(HIGHER LOWER COMBATP2P COMBATF2P NEXTCMB CMBEXP SKILLEXP F2pEXP P2PEXP,$remove($1,:),32)) { hadd -mu10 %hash $lower($remove($1,:)) $2- }
+    if (END isincs $1) { 
+      ; Parse the data
+      var %count = $hget(%hash,Count)
+      var %skills = $Numskill(0)
+      var %minis  = $Numskill(0).minigames
+
+      if (%type == onjoin) {
+        var %chan = $token(%display,2,32)
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if ($Settings(%chan,auto_cmb)) {
+          var %a = $iif($gettok($hget(%hash,Attack),2,32),$v1,1), %s = $iif($gettok($hget(%hash,Strength),2,32),$v1,1), %d = $iif($gettok($hget(%hash,Defence),2,32),$v1,1), %h = $iif($gettok($hget(%hash,Constitution),2,32),$v1,10), %r = $iif($gettok($hget(%hash,Ranged),2,32),$v1,1), %p = $iif($gettok($hget(%hash,Prayer),2,32),$v1,1), $&
+            %m = $iif($gettok($hget(%hash,Magic),2,32),$v1,1), %su = $iif($gettok($hget(%hash,Summoning),2,32),$v1,1)
+          tokenize 32 $col(%address,combat).logo $col(%address,%rsn) is level $col(%address,$gettok($hget(%hash,combatp2p),1,32)).fullcol $+([,F2P:,$chr(32),$col(%address,$gettok($hget(%hash,combatf2p),1,32)).fullcol,]) ( $+ $col(%address,$gettok($hget(%hash,combatp2p),2,32)) $+ ) ADSCPMR $+ (SU) $col(%address,%a %d %s %h %p %m %r %su).fullcol
+          if ($gettok($sock($sockname).mark,5,16) == $true) { %display $1- }
+          else { %display $strip($1-) }
+        }
+        if ($Settings(%chan,auto_stats)) { 
+          tokenize 32 $hget(%hash,Overall) 
+          tokenize 32 $col(%address,overall).logo $+([,$col(%address,%rsn),]) Rank: $col(%address,$bytes($1,db)).fullcol $(|) Level: $col(%address,$bytes($2,db)).fullcol $+($chr(40),Average:,$chr(32),$col(%address,$round($calc($2 / 2496 * 100),2)).fullcol,$chr(41)) $(|) Exp: $coL(%address,$bytes($3,db)).fullcol 
+          if ($gettok($sock($sockname).mark,5,16) == $true) { %display $1- }
+          else { %display $strip($1-) }
+        }
+        noop $socketClose($sockname,%hash) | halt
       }
-      if (%opperand == -) { %opperand = $calc($gettok($hget($sockname,%method),2,44) + 1) }
-      if ($gettok($hget($sockname,%method),2,44) >= %opperand) {
-        %display $logo(%nick,error) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(is already level) $c2(%nick,%opperand) $c1(or above.)
-        .sockclosef $sockname | halt     
-      } 
-      elseif ($gettok($sockname,3,46) == setgoal) {
-        .writeini -n goal.ini $address(%nick,3) %method $+($replace($hget($sockname,%method),$chr(44),$chr(46)),.,%opperand,.,$ctime)
-        .msg #devvectra .do .writeini -n goal.ini $address(%nick,3) %method $+($replace($hget($sockname,%method),$chr(44),$chr(46)),.,%opperand,.,$ctime)
-        %display $logo(%nick,goal) $c1(Your goal of) $c2(%nick,%opperand %method) $c1(has been set. To view your progress type) $c2(%nick,!goal %method) $+ $c1(.)
-        .sockclosef $sockname | halt
+      elseif (%type == charm) { 
+        var %mark = $+(%display,,%address,,%rsn,,%switch,,$gettok($hget(%hash,Summoning),3,32))
+        .signal -n %hash %mark
+        noop $socketclose($sockname,%hash) | halt
       }
-      else { 
-        var %startlevel = $gettok($readini(goal.ini,n,$address(%nick,3),%method),2,46), %starttime = $gettok($readini(goal.ini,n,$address(%nick,3),%method),5,46)
-        var %startexp = $gettok($readini(goal.ini,n,$address(%nick,3),%method),3,46)
-        var %goallevel = $gettok($readini(goal.ini,n,$address(%nick,3),%method),4,46), %expofgoal = $exp(%goallevel), %expofstart  = $exp(%startlevel)
-        var %currentlevel = $gettok($hget($sockname,%method),2,44)
-        var %currentexp = $gettok($hget($sockname,%method),3,44)
-        var %expgained = $calc(%currentexp - %startexp), %exptogo = $calc(($exp(%goallevel) - %startexp) - %expgained), %percenttogo = $round($calc(((%expofgoal - %expofstart) - %exptogo) / (%expofgoal - %expofstart) * 100),2)
-        %display $logo(%nick,Goal) $c1(Starting Level:) $c2(%nick,%startlevel) $+($c1($chr(40)),$c2(%nick,$shortamount(%expofstart)),$c1($chr(41))) $c1($chr(124) Current Level:) $c2(%nick,%currentlevel) $c1($chr(124) Goal Level:) $c2(%nick,%goallevel) $+($c1($chr(40)),$c2(%nick,$shortamount($exp(%goallevel))),$c1($chr(41))) $&
-          $c1($chr(124) Exp Gained:) $c2(%nick,$bytes(%expgained,db)) $c1($chr(124) Exp Left:) $c2(%nick,$bytes(%exptogo,db)) $+($c1($chr(40)),$c2(%nick,%percenttogo),$c1($chr(37) to goal $+ $chr(41)) $chr(124) Goal Started:) $c2(%nick,$duration($calc($ctime - %starttime))) $c1(ago.)
-        .sockclosef $sockname | halt
+      elseif (%type == rsstats) {
+
+        if (%switch == n) { var %part = 3, %str = Exp To Next }
+        elseif (%switch == e) { var %part = 3, %str = Exp }
+        elseif (%switch == r) { var %part = 1, %str = Rank }
+        elseif (p* iswm %switch) { var %part = 3, %str = Percent to $remove($v2,p) }
+        else { var %part = 2, %str = Levels }
+
+        var %this = 1
+        while (%this < %skills) { inc %this
+          var %skill = $Numskill(%this)
+          var %short = $Numskill(%this,1)
+          var %data = $gettok($hget(%hash,%skill),%part,32)
+          var %rank = $gettok($hget(%hash,%skill),1,32), %level = $gettok($hget(%hash,%skill),2,32), %exp = $gettok($hget(%hash,%skill),3,32)
+          if (%data == $null) { continue }
+          elseif (%switch == e || %switch == r) { scon 0 if ( %data %option %opperand ) var % $+ output = %output %short $col(%address,$numToString(%data)).fullcol ~ }
+          elseif (%switch == n) {
+            var %next.lvl = $calc(%level + 1)
+            var %next.exp = $calc($lvl(%next.lvl) - %exp)
+            scon 0 if ( %next.exp %option %opperand ) var % $+ output = %output %short $col(%address,$numToString(%next.exp)).fullcol ~
+          }
+          elseif (p* iswm %switch) {
+            var %to.lvl = $remove(%switch,p)          
+            if (%to.lvl == $null || %to.lvl !isnum || %to.lvl > 126) { var %to.lvl = 99 }
+            if (%to.lvl <= %level) { continue }
+            var %exp.to = $lvl(%to.lvl)
+            var %percent.next = $round($calc(%exp / %exp.to * 100),2)
+            scon 0 if ( %percent.next %option %opperand ) var % $+ output = %output %short $col(%address,%percent.next).fullcol ~    
+          }
+          else { scon 0 if ( %data %option %opperand ) var % $+ output = %output %short $col(%address,$bytes(%data,db)).fullcol ~ } 
+        }
+        ; add in the mini games
+        while (%this < $Numskill) { 
+          inc %this
+          var %skill = $Numskill(%this)
+          var %data = $gettok($hget(%hash,%skill),2,32)
+          if (!%data) { continue }        
+          var %minigames = %minigames %skill $col(%address,$bytes(%data,db)).fullcol 
+        }
+        var %rsn = $iif($gettok($sock($sockname).mark,7,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if (%output == $null) { %display $col(%address,%rsn).logo No skills matched your search for $col(%address,$+(%option,%opperand,.)) }
+        else { 
+          var %overall = $iif($gettok($hget(%hash,Overall),%part,32) > 0,$bytes($v1,db),Unranked), %avglvl $iif($remove(%overall,$chr(44)) > 0,$round($calc($v1 / 2496 * 100),2))
+          %display $col(%address,%rsn).logo $chr(91) $+ Combat P2P: $col(%address,$gettok($hget(%hash,combatp2p),1,32)) ( $+ $col(%address,$gettok($hget(%hash,combatf2p),1,32)) $+ ) Overall: $col(%address,%overall).fullcol $+ $iif(%avglvl,$chr(32) $+ Average Level: $col(%address,$v1).fullcol $+ $chr(93),$chr(93)) $iif(%minigames,$chr(91) $+ Minigames: $v1 $+ $chr(93),$null)
+          noop $sockshorten(124, %display, $+($col(%address,$chr(3)),$chr(91),$col(%address,%str),$chr(93)), $replace($left(%output, -2), ~, $chr(124)))      
+        }
+        noop $socketClose($sockname,%hash) | halt
       }
-      .sockclosef $sockname | halt
-    }
-    elseif ($gettok($sockname,3,46) == skill) {
-      if ($gettok($hget($sockname,%method),2,44) == 1) {
-        %display $logo(%nick,error) $c1(The username) $+($c1,",$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,") $c1(was not found in the RuneScape hiscores for) $+($c2(%nick,%method),$c1,.)
-        .sockclosef $sockname | halt
+      elseif (%type == skill) {
+        var %rsn = $iif($gettok($sock($sockname).mark,8,16) == HideMyRsnPlx,<Hidden>,$gettok($sock($sockname).mark,3,16))
+        if ($hget(%hash,%switch)) {
+          tokenize 32 $hget(%hash,%switch)
+          if (%switch == Overall) { %display $col(%address,%switch).logo $+([,$col(%address,%rsn),]) Rank: $col(%address,$bytes($1,db)).fullcol $(|) Level: $col(%address,$bytes($2,db)).fullcol $+($chr(40),Average:,$chr(32),$col(%address,$round($calc($2 / 2496 * 100),2)).fullcol,$chr(41)) $(|) Exp: $coL(%address,$bytes($3,db)).fullcol $(|) Combat: $col(%address,$gettok($hget(%hash,combatp2p),1,32)).fullcol $&
+            ( $+ $col(%address,$gettok($hget(%hash,combatf2p),1,32)).fullcol $+ ) $+([,$col(%address,$gettok($hget(%hash,combatp2p),2,32)).fullcol,]) $(|) Combat%: $+($col(%address,$round($calc($hget(%hash,cmbexp) / $3 * 100),2)),%)) $+($chr(40),$col(%address,$bytes($hget(%hash,cmbexp),db)).fullcol,xp,$chr(41)) $(|) Skill%: $+($col(%address,$round($calc($hget(%hash,skillexp) / $3 * 100),2)),%) $+($chr(40),$col(%address,$bytes($hget(%hash,skillexp),db)).fullcol,xp,$chr(41)) }
+          elseif ($istok(Dueling Bounty Bounty-Rogue M-A BA-Attack BA-Defend BA-Collect BA-Heal CastleWars Conquest,%switch,32)) {
+            %display $col(%address,%switch).logo $+([,$col(%address,%rsn),]) Rank: $col(%address,$bytes($1,db)).fullcol $(|) Score: $col(%address,$bytes($2,db)).fullcol
+          }
+          else {
+            if (LEVEL.* iswm %option) { var %goal.lvl = $iif($gettok(%option,2,46) > $2,$v1,$calc($v2 + 1)), %goal.exp = $lvl(%goal.lvl) }
+            elseif (EXP.* iswm %option) { 
+              if ($gettok(%option,2,46) > $3) { var %goal.exp = $gettok(%option,2,46), %goal.lvl = $exp(%goal.exp) }
+            }
+            var %overall = $hget(%hash,Overall)
+            var %tolvl.lvl = $iif(%goal.lvl,$v1,$calc($2 + 1)), %tolvl.exp = $calc($iif(%goal.exp,$v1,$lvl(%tolvl.lvl)) - $3)
+            var %swpoint = $SWpoint(%switch,$iif($2 > 99,$v2,$v1)), %pcpoint = $PCpoint(%switch,$iif($2 > 99,$v2,$v1)), %tripexp = $Tripexp($+($network,:,%address),%switch), %effigy = $Effigy($iif($2 > 99,$v2,$v1))
+            %display $col(%address,%switch).logo $+([,$col(%address,%rsn),]) Rank: $col(%address,$bytes($1,db)).fullcol $(|) Level: $col(%address,$bytes($2,db)).fullcol $iif($token(%overall,2,32) > 0,$+($chr(40),Average Level:,$chr(32),$col(%address,$round($calc($v1 / 2475 * 100),2)).fullcol,$chr(32),of,$chr(32),$col(%address,99).fullcol,$chr(41))) $(|) Exp: $col(%address,$bytes($3,db)).fullcol $iif(%overall > 0,$+($chr(40),$col(%address,$round($calc($3 / $token(%overall,3,32) * 100),2)).fullcol,% of total,$chr(41))) $&
+              $(|) Exp to level $+($col(%address,%tolvl.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol ( $+ $col(%address,$round($calc(($3 - $lvl($2)) / ($lvl(%tolvl.lvl) - $lvl($2)) * 100),2)).fullcol $+ % to $col(%address,%tolvl.lvl).fullcol $+ )  $iif(%tripexp > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp / %tripexp))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($Penguin($2,%tolvl.exp),db)).fullcol $&
+              $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp / %effigy))).fullcol ( $+ $col(%address,$numToString(%effigy)).fullcol $+ xp) $iif($2 >= 30,$(|) ToG: $col(%address,$bytes($ceil($calc(%tolvl.exp / 60)),db)).fullcol) $iif(%swpoint > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp / %swpoint)),db)).fullcol) $iif(%pcpoint > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp / %pcpoint)),db)).fullcol)
+
+            if (%switch != overall) {
+              var %Skills = 0.72.72.72.373.372.74.73.75.76.77.78.79.80.81.82.83.84.85.86.87.209.361.88.108.0
+              var %params = $token($sock($sockname).mark,7,16)
+              var %param.type = $token($sock($sockname).mark,6,16)
+              if (%params == $false) { var %parameters = $null }
+              else {
+                var %this = 1, %count = $numtok(%params,124)
+                while (%this <= %count) {
+                  var %token = $token(%params,%this,124)
+                  if ($SkillParam(%switch, %token, 1)) { var %parameters = $addtok(%parameters,$v1,16) }
+                  else { var %notfound = $addtok(%notfound,%token,32) }
+                  inc %this
+                }                
+              }
+              var %display = .notice $ial(%address).nick
+              if (%notfound) { %display $col(%address,error).logo Invalid $+(parameter,$iif($numtok(%notfound,32) > 1,s),:) $+($colorList(%address, 32, 44, %notfound).space,.) Please have a look at: $+($col(%address,http://www.vectra-bot.net/forum/viewtopic.php?f=19 $+ $iif($token(%Skills,$Numskill(%switch),46) != 0,$+(&t=,$v1),$null)),.) }
+              if ($2 < 126) { $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address).c2 For $+($iif(%switch == Dungeoneering,$col(%address,$calc($2 + 1)).fullcol %switch,$col(%address,$bytes(%tolvl.exp,db) %switch).fullcol exp),:) $item2lvl(%address, %switch, $2, $3, %tolvl.exp, $false, %parameters) }
+            }
+          }
+        }
+        else { %display $col(%address,error).logo The RSN " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch).space skill. }
+        ; End skill parse
+        noop $socketClose($sockname,%hash) | halt
       }
-      elseif ($istok(BA-Attack BA-Defender BA-Collector BA-Healer Dueling Bounty Bounty-Rogue FOG,%method,32)) {
-        %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $+($c1,$chr(40),$c2(%nick,%method),$c1,$chr(41)) $c1(Rank:) $c2(%nick,$rankH(%nick,%privacy,%rsn,$bytes($gettok($hget($sockname,%method),1,44),db))) $c1($chr(124),Score:) $c2(%nick,$bytes($gettok($hget($sockname,%method),2,44),db))
-        .sockclosef $sockname | halt 
+      elseif (%type == combat) {
+        var %rsn = $iif($gettok($sock($sockname).mark,5,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        var %a = $iif($gettok($hget(%hash,Attack),2,32),$v1,1), %s = $iif($gettok($hget(%hash,Strength),2,32),$v1,1), %d = $iif($gettok($hget(%hash,Defence),2,32),$v1,1), %h = $iif($gettok($hget(%hash,Constitution),2,32),$v1,10), %r = $iif($gettok($hget(%hash,Ranged),2,32),$v1,1), %p = $iif($gettok($hget(%hash,Prayer),2,32),$v1,1), $&
+          %m = $iif($gettok($hget(%hash,Magic),2,32),$v1,1), %su = $iif($gettok($hget(%hash,Summoning),2,32),$v1,1)
+        %display $col(%address,combat).logo $col(%address,%rsn) is level $col(%address,$gettok($hget(%hash,combatp2p),1,32)).fullcol $+([,F2P:,$chr(32),$col(%address,$gettok($hget(%hash,combatf2p),1,32)).fullcol,]) ( $+ $col(%address,$gettok($hget(%hash,combatp2p),2,32)) $+ ) ADSCPMR $+ (SU) $col(%address,%a %d %s %h %p %m %r %su).fullcol
+        if ($floor($hget(%hash,combatp2p)) < 138) {
+          var %combat = $gettok($sock($sockname).mark,4,16)
+          var %cmb = $iif(%combat != 0 && %combat > $floor($hget(%hash,combatp2p)),$v1,$calc($floor($hget(%hash,combatp2p)) + 1))
+          %display $col(%address,combat).logo For $col(%address,%cmb).fullcol $+ : $regsubex($hget(%hash,nextcmb),/(\d+(?:\.\d+)?)/g,$col(%address,\1).fullcol)
+        }
+        noop $socketClose($sockname,%hash) | halt
       }
-      elseif ($istok(Overall,%method,32)) {
-        .var %level $gettok($hget($sockname,Overall),2,44), %rank $gettok($hget($sockname,Overall),1,44), %exp $gettok($hget($sockname,Overall),3,44)
-        .var %a = $iif($gettok($hget($sockname,attack),2,44),$v1,-), %s = $iif($gettok($hget($sockname,strength),2,44),$v1,-), %d = $iif($gettok($hget($sockname,defence),2,44),$v1,-), %h = $iif($gettok($hget($sockname,Constitution),2,44),$v1,-), %r = $iif($gettok($hget($sockname,ranged),2,44),$v1,-), %p = $iif($gettok($hget($sockname,prayer),2,44),$v1,-), %m = $iif($gettok($hget($sockname,magic),2,44),$v1,-), %su = $iif($gettok($hget($sockname,summoning),2,44),$v1,-)
-        .var %cmb = $cmbformula(%a,%s,%d,%h,%p,%r,%m,%su)
-        %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $+($c1($chr(40)),$c2(%nick,Overall),$c1($chr(41))) $c1(Level:) $c2(%nick,$bytes(%level,db)) $c1($chr(124) Exp:) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $c1($chr(124) Rank:) $c2(%nick,$rankH(%nick,%privacy,%rsn,$bytes(%rank,db))) $c1($chr(124) Cmb:) $c2(%nick,$gettok(%cmb,1,32)) $+($c1([F2P:),$chr(32),$c2(%nick,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m,-),1,32)),$c1(]),$chr(32),$c1($chr(40)),$c2(%nick,$gettok(%cmb,2,32)),$c1($chr(41)))
-        .sockclosef $sockname | halt
+      elseif (%type == nextcmb) {
+        var %this = 1
+        while (%this < $Numskill(0)) { 
+          inc %this
+          var %skill = $Numskill(%this)
+          if ($hget(%hash,%skill) == $Null) { continue }
+          tokenize 32 $hget(%hash,%skill)
+          if ($istok(2 3 4 5 6 7 8 25, %this, 32)) { var %statline = %statline $+($4,$(|),%skill)  }
+        }
+
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if (!%statline) { %display $col(%address,error).logo There are no combat skills left to level for $+($col(%address,%rsn),.) }
+        else { 
+          tokenize 32 $sorttok(%statline, 32, n)
+          var %skill = $token($1,2,124)
+          %display $col(%address,combat).logo The cloest Combat stat for $col(%address,%rsn) [ $+ $col(%address,$gettok($hget(%hash,combatp2p),1,32)).fullcol $+([,F2P:,$chr(32),$col(%address,$gettok($hget(%hash,combatf2p),1,32)).fullcol,]) ( $+ $col(%address,$gettok($hget(%hash,combatp2p),2,32)) $+ )] is $col(%address,$token($1,2,124)) with $col(%address,$bytes($token($1,1,124),db)).fullcol exp to go.
+          tokenize 32 $hget(%hash,%skill)
+          $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address,%skill).logo [For $col(%address,$bytes($4,db)).fullcol exp]: $item2lvl(%address, $iif($istok(Attack Strength Defence Range,%skill,32),Melee,%skill), $2, $3, $4, $false)
+        }
+        noop $socketClose($sockname,%hash) | halt
       }
-      else {
-        .var %display2 $8, %level $gettok($hget($sockname,%method),2,44), %rank $gettok($hget($sockname,%method),1,44), %exp $gettok($hget($sockname,%method),3,44), %vlevel $undoexp(%exp)
-        .var %tolevel $iif(GOAL.* iswm %opperand,$gettok(%opperand,2,46),$calc(%vlevel + 1)), %expcurrent $calc(%exp - $statsxp(%vlevel)), %exp2next $calc($statsxp(%tolevel) - %exp), %vnextexp $iif(%level == 99,200000000,13034431)
-        if ($gettok(%opperand,2,46) !== 0) && ($gettok(%opperand,1,46) == goal) && (%level >= $gettok(%opperand,2,46)) { %display $logo(%nick,error) $c1(Goal level stated is lower than or equal to the current level) | .sockclosef $sockname | halt }
-        if ($gettok(%opperand,2,46) !== 0) && ($gettok(%opperand,1,46) == goal) && ($gettok(%opperand,2,46) > 126) { %display $logo(%nick,error) $c1(Goal level max is 99) | .sockclosef $sockname | halt }
-        var %procent = $round($calc(%expcurrent / ($statsxp(%tolevel) - $statsxp(%vlevel)) * 100),2)
-        %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $+($c1($chr(40)),$c2(%nick,%method),$c1($chr(41))) $c1(Level:) $c2(%nick,%level) $iif(%level == 99,$+($c1([),$c2(%nick,%vlevel),$c1(]))) $c1($chr(124) Exp:) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $iif(!$istok(Overall,%method,32),$+($c1,$chr(40),$c2(%nick,$iif($round($calc(%exp / %vnextexp * 100),2) < 100,$v1,100)),$c1(%)) $+($c1,of $iif(%level == 99,200M exp,$v2),$chr(41))) $c1($chr(124) Rank:) $c2(%nick,$rankH(%nick,%privacy,%rsn,$bytes(%rank,db))) $&
-          $iif(!$istok(Overall,%method,32),$c1($chr(124),EXP to level) $+($c2(%nick,%tolevel),$c1,:) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp2next,db))) $+($c1,$chr(40),$c2(%nick,%procent),$c1(%)) $c1(to) $+($c2(%nick,%tolevel),$c1,$chr(41)))
-        if (%extradata != -) {
-          if ($paramFind(%method,%extradata)) {
-            var %items $c1($gettok($v1,3,124)) $c2(%nick,$bytes($round($calc(%exp2next / $gettok($v1,4,124)),0),db))
+      elseif (%type == compare) {
+        tokenize 16 $sock($sockname).mark
+        var %skill = $3
+        var %rsn = $iif($6 == HideMyRsnPlx,<Hidden>,$4)
+        var %compare = $iif($7 == HideMyRsnPlx,<Hidden>,$5)
+        var %minigame = $istok(Dueling Bounty Bounty-Rogue M-A BA-Attack BA-Defend BA-Collect BA-Heal CastleWars Conquest,%skill,32)
+        if (!$hget(%hash,%skill)) { %display $col(%address,error).logo Can not compute comparable stats. One of both users are unranked in the $col(%address,%skill) $+($iif(%minigame,minigame,skill),.) }
+        else {
+          if (%minigame) {
+            .var %s1 = $token($hget(%hash,%skill),1,32), %s2 = $token($hget(%hash,%skill),3,32)
+            %display $col(%address,compare).logo $+([,$col(%address,%skill).fullcol,]) $+($col(%address,$ucword(%rsn)).fullcol,$chr(40),$col(%address,$bytes(%s1,db)).fullcol,$chr(41)) $iif(%s1 > %s2,has $col(%address,$iif($calc(%s1 - %s2) > 0,$v1,$+(-,$v1))).num $col(%address,%skill).fullcol score higher than,$iif(%s1 == %s2,has the same $col(%address,%skill).fullcol score as,has $col(%address,$calc(%s1 - %s2)).num $col(%address,%skill).fullcol score lower than)) $+($col(%address,$ucword(%compare)).fullcol,$chr(40),$col(%address,$bytes(%s2,db)).fullcol,$chr(41),.)     
+          }
+          else {
+            tokenize 32 $hget(%hash,%skill)
+            %display $col(%address,compare).logo $+([,$col(%address,%skill).fullcol,]) $+($col(%address,$ucword(%rsn)).fullcol,$chr(40),level $col(%address,$bytes($1,db)).fullcol,;,$chr(32),$col(%address,$bytes($2,db)).fullcol,exp,$chr(41)) $(|) $+($col(%address,$ucword(%compare)).fullcol,$chr(40),level $col(%address,$bytes($3,db)).fullcol,;,$chr(32),$col(%address,$bytes($4,db)).fullcol,exp,$chr(41))
+
+            var %exp1 = $2, %exp2 = $4         
+            var %level.one = $iif($1 > $iif(%skill == Dungeoneering,120,$iif(%skill == Overall,$1,99)),$iif(%skill == Dungeoneering,120,$iif(%skill == Overall,$1,99)),$v1)
+            var %level.two = $iif($3 > $iif(%skill == Dungeoneering,120,$iif(%skill == Overall,$3,99)),$iif(%skill == Dungeoneering,120,$iif(%skill == Overall,$3,99)),$v1)
+
+            %display $col(%address,compare).logo $+([,$col(%address,%skill).fullcol,]) $col(%address,$ucword(%rsn)).fullcol $iif(%level.one > %level.two,is $col(%address,$bytes($calc(%level.one - %level.two),db)).fullcol $col(%address,%skill).fullcol $+(level,$iif($calc(%level.one - %level.two) > 1,s)) higher than,$iif(%level.one == %level.two,has the same $col(%address,%skill).fullcol level as,is $col(%address,$bytes($calc(%level.two - %level.one),db)).fullcol $col(%address,%skill).fullcol $+(level,$iif($calc(%level.two - %level.one) > 1,s)) lower than)) $+($col(%address,$ucword(%compare)).fullcol,.) $&
+              $col(%address,$ucword(%rsn)).fullcol $iif(%exp1 > %exp2,has $col(%address,$bytes($calc(%exp1 - %exp2),db)).fullcol more $col(%address,%skill).fullcol exp than,$iif(%exp1 == %exp2,has the same $col(%address,%skill).fullcol exp as,has $col(%address,$bytes($calc(%exp2 - %exp1),db)).fullcol less $col(%address,%skill).fullcol exp than)) $+($col(%address,$ucword(%compare)).fullcol,.)
+          }
+        }
+        noop $socketClose($sockname,%hash) | halt   
+      }
+      elseif (%type == statpercent) {
+        var %this = 26
+        while (%this < $Numskill) { 
+          inc %this
+          var %skill = $Numskill(%this)
+          var %data = $gettok($hget(%hash,%skill),2,32)
+          if (!%data) { continue }        
+          var %minigames = %minigames %skill $col(%address,$bytes(%data,db)).fullcol 
+        }
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<hidden>,%rsn)
+        %display $col(%address,%rsn).logo $chr(91) $+ Combat P2P: $col(%address,$gettok($hget(%hash,combatp2p),1,32)) ( $+ $col(%address,$gettok($hget(%hash,combatf2p),1,32)) $+ ) Overall: $col(%address,$bytes($gettok($hget(%hash,Overall),3,32),db)) $+ $chr(93) $&
+          $chr(91) $+ Combat%: $col(%address,$round($calc($hget(%hash,cmbexp) / $gettok($hget(%hash,Overall),3,32) * 100),2)) $+ % ( $+ $col(%address,$bytes($hget(%hash,cmbexp),db)).fullcol  xp) Skill%: $col(%address,$round($calc($hget(%hash,skillexp) / $gettok($hget(%hash,Overall),3,32) * 100),2)) $+ % ( $+ $col(%address,$bytes($hget(%hash,skillexp),db)).fullcol xp) P2P:  $& 
+          $col(%address,$round($calc($hget(%hash,p2pexp) / $gettok($hget(%hash,Overall),3,32) * 100),2)) $+ % $+([,$col(%address,$bytes($hget(%hash,p2pexp),db)).fullcol,$chr(32),xp]) ( $+ $col(%address,$round($calc($hget(%hash,f2pexp) / $gettok($hget(%hash,Overall),3,32) * 100),2)) $+ % F2P $+([,$col(%address,$bytes($hget(%hash,f2pexp),db)).fullcol,$chr(32),xp]) $+ ) $+ $chr(93) 
+        if (%minigames) { %display $+($col(%address,$chr(3)),[Minigames:,$chr(32),%minigames,$chr(93)) }
+        noop $socketClose($sockname,%hash) | halt
+      }
+      elseif (%type == maxed) {
+        var %this = 1
+        while (%this < %skills) {
+          inc %this
+          var %skill = $Numskill(%this), %data = $gettok($hget(%hash,%skill),2,32)
+          if (!%data || %data < 99 || (%skill = Dungeoneering && %data < 120)) { continue }
+          var %maxedline = %maxedline $(|) $Numskill(%this,1) $+([,$col(%address,%data).fullcol,])         
+        }
+
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<hidden>,%rsn)
+        if (!%maxedline) { %display $col(%address,maxed).logo The RSN " $+ $col(%address,%rsn).fullcol $+ " has no maxed skills. }
+        else { %display $col(%address,maxed).logo $+([,$col(%address,%rsn).fullcol,]) $mid(%maxedline,2) }
+        noop $socketClose($sockname,%hash) | halt
+      }
+      elseif (%type == soulwars) {
+        var %rsn = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if (!$hget(%hash,%switch)) { %display $col(%address,error).logo The Runescape Name " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch) skill. 
+          noop $socketClose($sockname,%hash) | halt
+        }
+        else {
+          tokenize 32 $hget(%hash,%switch)
+          var %level = $2, %exp = $3
+          var %tolvl.lvl = $iif(%option <= %level,$calc($v2 + 1),$v1), %tolvl.exp = $calc($lvl(%tolvl.lvl) - %exp)
+          var %point = $SWpoint(%switch,$iif(%level > 99,$v2,$v1)), %point.100 = $calc((100*%point) + (.10*(100*%point)))
+          %display $col(%address,soul wars).logo $+([,$col(%address,%rsn).fullcol,]) Level: $col(%address,%level %switch).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $(|) Exp To Level $+($col(%address,%tolvl.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol $(|) Exp Per Point at Level $+($col(%address,$iif(%level > 99,$v2,$v1)).fullcol,:) $col(%address,$bytes(%point,db)) ( $+ $col(%address,$bytes($floor($calc(%point.100 / 100)),db)).fullcol for 100 Points) 
+          %display $col(%address,soul wars).logo $+([,$col(%address,%rsn).fullcol,]) Level $col(%address,$bytes(%tolvl.lvl,db)).fullcol requires $col(%address,$bytes($ceil($calc(%tolvl.exp / %point)),db)).fullcol single points, or $col(%address,$bytes($ceil($calc(%tolvl.exp / %point.100)),db)).fullcol sets of $col(%address,100).fullcol (+ $+ $col(%address,10%).fullcol saves $col(%address,$bytes($abs($calc($ceil($calc(%tolvl.exp / %point)) - $calc($ceil($calc(%tolvl.exp / %point.100)) * 100))),db)).fullcol points).
+          noop $socketClose($sockname,%hash) | halt
+        } 
+      }
+      elseif (%type == pcontrol) {
+        var %rsn = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if (!$hget(%hash,%switch)) {
+          %display $col(%address,error).logo The Runescape Name " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch) skill. 
+          noop $socketClose($sockname,%hash) | halt
+        }
+        else {
+          tokenize 32 $hget(%hash,%switch)
+          var %level = $2, %exp = $3
+          var %tolvl.lvl = $iif(%option <= %level,$calc($v2 + 1),$v1), %tolvl.exp = $calc($lvl(%tolvl.lvl) - %exp)
+          var %point = $PCpoint(%switch,$iif(%level > 99,$v2,$v1)), %point.10 = $calc((10*%point) + (.01*(10*%point))), %point.100 = $calc((100*%point) + (.10*(100*%point)))
+          %display $col(%address,pest control).logo $+([,$col(%address,%rsn).fullcol,]) Level: $col(%address,%level %switch).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $(|) Exp To Level $+($col(%address,%tolvl.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol $(|) Exp Per Point at Level $+($col(%address,$iif(%level > 99,$v2,$v1)).fullcol,:) $col(%address,$bytes(%point,db)) ( $+ $col(%address,$bytes($floor($calc(%point.100 / 100)),db)).fullcol for 100 Points) 
+          %display $col(%address,pest control).logo $+([,$col(%address,%rsn).fullcol,]) Level $col(%address,$bytes(%tolvl.lvl,db)).fullcol requires $col(%address,$bytes($ceil($calc(%tolvl.exp / %point)),db)).fullcol single points, $col(%address,$bytes($ceil($calc(%tolvl.exp / %point.10)),db)).fullcol sets of $col(%address,10).fullcol (+ $+ $col(%address,1%).fullcol saves $&
+            $col(%address,$bytes($abs($calc($ceil($calc(%tolvl.exp / %point)) - $calc($ceil($calc(%tolvl.exp / %point.10)) * 10))),db)).fullcol points), or $col(%address,$bytes($ceil($calc(%tolvl.exp / %point.100)),db)).fullcol sets of $col(%address,100).fullcol (+ $+ $col(%address,10%).fullcol saves $col(%address,$bytes($abs($calc($ceil($calc(%tolvl.exp / %point)) - $calc($ceil($calc(%tolvl.exp / %point.100)) * 100))),db)).fullcol points). 
+          noop $socketClose($sockname,%hash) | halt
+        }     
+      }
+      elseif (%type == penguin) {
+        var %rsn = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if (!$hget(%hash,%switch)) { %display $col(%address,error).logo The Runescape Name " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch) skill. 
+          noop $socketClose($sockname,%hash) | halt
+        }
+        else {
+          tokenize 32 $hget(%hash,%switch)
+          var %level = $2, %exp = $3
+          var %tolvl.lvl = $iif(%option <= %level,$calc($v2 + 1),$v1), %tolvl.exp = $calc($lvl(%tolvl.lvl) - %exp)
+          var %penguin = $Penguin(%level,%tolvl.exp)
+          %display $col(%address,Penguin).logo $+([,$col(%address,%rsn).fullcol,]) Level $col(%address,$bytes(%tolvl.lvl,db) %switch).fullcol requires $col(%address,$bytes(%penguin,db)).fullcol penguin points for $col(%address,$bytes(%tolvl.exp,db)).fullcol exp.
+          noop $socketClose($sockname,%hash) | halt
+        } 
+      }
+      elseif (%type == skillplan || %type == task) {
+        var %rsn = $iif($gettok($sock($sockname).mark,7,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if ($hget(%hash,%option) == $null) {  }
+        else {
+          tokenize 32 $hget(%hash,%option)
+          var %level = $2, %exp = $3, %exp2next = $4
+          tokenize 124 $token($sock($sockname).mark,6,16)
+          var %num = $token($sock($sockname).mark,4,16)
+          %display $col(%address, SKILL-PLAN).logo $+([, $col(%address, %rsn).fullcol, ]) Original level: $col(%address, %level).fullcol ( $+ $col(%address, $bytes(%exp, b)).fullcol $+ ) $(|) Exp gain from $col(%address,$bytes(%num,b) $1).fullcol $+ : $col(%address,$bytes($calc($2 * %num),b)).fullcol ( $+ $col(%address,$2).fullcol $+ ea) $(|) Final level: $col(%address,$exp($calc(%exp + ($2 * %num)))).fullcol ( $+ $col(%address,$bytes($calc(%exp + ($2 * %num)),b)).fullcol $+ ) $(|) $&
+            Exp needed for $+($col(%address,$calc(%level + 1)).fullcol,:) $col(%address,$bytes(%exp2next,b)).fullcol ( $+ $col(%address,$bytes($ceil($calc(%exp2next / $2)),b) $1).fullcol $+ )
+        }
+        noop $socketClose($sockname,%hash) | halt
+      }
+      elseif (%type == highlow) { 
+        var %rsn = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        var %this = 1, %count = $Numskill(0)
+        while (%this < %count) {
+          inc %this
+          var %skill = $Numskill(%this)
+          if (!$hget(%hash,%skill)) { continue }
+          var %statline = %statline $+ $+($iif(%this != 1,$(|)),$gettok($hget(%hash,%skill),3,32),@,%skill)        
+        }
+        var %statline = $sorttok($mid(%statline,2),124,nr)       
+        if (!%statline) { 
+          %display $col(%address,error).logo No ranked skills matched the parameters for " $+ $col(%address,%rsn).fullcol $+ ". 
+          noop $socketClose($sockname,%hash) | halt
+        }
+        else {
+          if (%switch == highlow) {
+            var %skill.one = $gettok($gettok(%statline,1,124),2,64), %skill.two = $gettok($gettok(%statline,$numtok(%statline,124),124),2,64)
+            var %overall.one = $gettok($hget(%hash,Overall),3,32), %overall.two = $gettok($hget(%hash,Overall),3,32)
+            var %level.one = $gettok($hget(%hash,%skill.one),2,32), %level.two = $gettok($hget(%hash,%skill.two),2,32)
+            var %rank.one = $gettok($hget(%hash,%skill.one),1,32), %rank.two = $gettok($hget(%hash,%skill.two),1,32)
+            var %exp.one = $gettok($hget(%hash,%skill.one),3,32), %exp.two = $gettok($hget(%hash,%skill.two),3,32)
+            var %tolvl.lvl.one = %level.one + 1, %tolvl.lvl.two = %level.two + 1
+            var %tolvl.exp.one = $lvl(%tolvl.lvl.one) - %exp.one, %tolvl.exp.two = $lvl(%tolvl.lvl.two) - %exp.two
+            var %swpoint.one = $SWpoint(%skill.one,$iif(%level.one > 99,$v2,$v1)), %swpoint.two = $SWpoint(%skill.two,$iif(%level.two > 99,$v2,$v1))
+            var %pcpoint.one = $PCpoint(%skill.one,$iif(%level.one > 99,$v2,$v1)), %pcpoint.two = $PCpoint(%skill.two,$iif(%level.two > 99,$v2,$v1))
+            var %tripexp.one = $Tripexp($+($network,:,%address),%skill.one), %tripexp.two = $Tripexp($+($network,:,%address),%skill.two)
+            var %effigy.one = $Effigy($iif(%level.one > 99,$v2,$v1)), %effigy.two = $Effigy($iif(%level.two > 99,$v2,$v1))
+            tokenize 32 $hget(%hash,%skill.one)
+            if (%level.one == 126) { %display $col(%address,high).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill.one) $(|) Level: $col(%address,%level.one).fullcol $(|) Rank: $col(%address,$bytes(%rank.one,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp.one,db)).fullcol $iif(%overall.one > 0,$+($chr(40),$col(%address,$round($calc(%exp.one / %overall.one * 100),2)).fullcol,% of total,$chr(41))) }
+            else { %display $col(%address,high).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill.one) $(|) Level: $col(%address,%level.one).fullcol $(|) Rank: $col(%address,$bytes(%rank.one,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp.one,db)).fullcol $iif(%overall.one > 0,$+($chr(40),$col(%address,$round($calc(%exp.one / %overall.one * 100),2)).fullcol,% of total,$chr(41))) $(|) Exp to level $+($col(%address,%tolvl.lvl.one).fullcol,:) $col(%address,$bytes(%tolvl.exp.one,db)).fullcol $&
+                ( $+ $col(%address,$round($calc((%exp.one - $lvl(%level.one)) / ($lvl(%tolvl.lvl.one) - $lvl(%level.one)) * 100),2)).fullcol $+ % to $col(%address,%tolvl.lvl.one).fullcol $+ ) $iif(%tripexp.one > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp.one / %tripexp.one))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp.one,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($5,db)).fullcol $(|) ToG: $col(%address,$bytes($6,db)).fullcol $&
+              $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp.one / %effigy.one))).fullcol ( $+ $col(%address,$numToString(%effigy.one)).fullcol $+ xp) $iif(%swpoint.one > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp.one / %swpoint.one)),db)).fullcol) $iif(%pcpoint.one > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp.one / %pcpoint.one)),db)).fullcol) }
+            if ($numtok(%statline,124) > 1) {
+              tokenize 32 $hget(%hash,%skill.two) 
+              if (%level.two == 126) { %display $col(%address,low).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill.two) $(|) Level: $col(%address,%level.two).fullcol $(|) Rank: $col(%address,$bytes(%rank.two,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp.two,db)).fullcol $iif(%overall.two > 0,$+($chr(40),$col(%address,$round($calc(%exp.two / %overall.two * 100),2)).fullcol,% of total,$chr(41))) }
+              else { %display $col(%address,low).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill.two) $(|) Level: $col(%address,%level.two).fullcol $(|) Rank: $col(%address,$bytes(%rank.two,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp.two,db)).fullcol $iif(%overall.two > 0,$+($chr(40),$col(%address,$round($calc(%exp.two / %overall.two * 100),2)).fullcol,% of total,$chr(41))) $(|) Exp to level $+($col(%address,%tolvl.lvl.two).fullcol,:) $col(%address,$bytes(%tolvl.exp.two,db)).fullcol $&
+                  ( $+ $col(%address,$round($calc((%exp.two - $lvl(%level.two)) / ($lvl(%tolvl.lvl.two) - $lvl(%level.two)) * 100),2)).fullcol $+ % to $col(%address,%tolvl.lvl.two).fullcol $+ ) $iif(%tripexp.two > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp.two / %tripexp.two))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp.two,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($5,db)).fullcol $(|) ToG: $col(%address,$bytes($6,db)).fullcol $&
+                $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp.two / %effigy.two))).fullcol ( $+ $col(%address,$numToString(%effigy.two)).fullcol $+ xp) $iif(%swpoint.two > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp.two / %swpoint.two)),db)).fullcol) $iif(%pcpoint.two > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp.two / %pcpoint.two)),db)).fullcol) }
+            }
           }
           else { 
-            %display2 $logo(%nick,Error) $c1(Invalid parameter. Please have a look at:) $+($c2(%nick,http://www.vectra-bot.net/forum/viewforum.php?f=19),$c1,.)
-            .unset %items | .sockclosef $sockname | halt
+            var %skill = $gettok($gettok(%statline,$iif(%switch == low,$calc($numtok(%statline,124) - %option + 1),%option),124),2,64), %overall = $gettok($hget(%hash,Overall),3,32)
+            var %level = $gettok($hget(%hash,%skill),2,32), %rank = $gettok($hget(%hash,%skill),1,32), %exp = $gettok($hget(%hash,%skill),3,32)
+            var %tolvl.lvl = %level + 1, %tolvl.exp = $lvl(%tolvl.lvl) - %exp
+            var %swpoint = $SWpoint(%skill.one,$iif(%level > 99,$v2,$v1)), %pcpoint = $PCpoint(%skill,$iif(%level > 99,$v2,$v1)), %tripexp = $Tripexp($+($network,:,%address),%skill), %effigy = $Effigy($iif(%level > 99,$v2,$v1))
+            tokenize 32 $hget(%hash,%skill)
+            if (%level == 126) { %display $col(%address,%switch).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill) $(|) Level: $col(%address,%level).fullcol $(|) Rank: $col(%address,$bytes(%rank,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $iif(%overall > 0,$+($chr(40),$col(%address,$round($calc(%exp / %overall * 100),2)).fullcol,% of total,$chr(41))) }
+            else { %display $col(%address,%switch).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill) $(|) Level: $col(%address,%level).fullcol $(|) Rank: $col(%address,$bytes(%rank,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $iif(%overall > 0,$+($chr(40),$col(%address,$round($calc(%exp / %overall * 100),2)).fullcol,% of total,$chr(41))) $(|) Exp to level $+($col(%address,%tolvl.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol $&
+                ( $+ $col(%address,$round($calc((%exp - $lvl(%level)) / ($lvl(%tolvl.lvl) - $lvl(%level)) * 100),2)).fullcol $+ % to $col(%address,%tolvl.lvl).fullcol $+ ) $iif(%tripexp > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp / %tripexp))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($5,db)).fullcol $(|) ToG: $col(%address,$bytes($6,db)).fullcol $&
+              $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp / %effigy))).fullcol ( $+ $col(%address,$numToString(%effigy)).fullcol $+ xp) $iif(%swpoint > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp / %swpoint)),db)).fullcol) $iif(%pcpoint > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp / %pcpoint)),db)).fullcol) }
+            if (%level < 126) { $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address).c2 For $+($iif(%skill == Dungeoneering,$col(%address,$calc(%level + 1)).fullcol %skill,$col(%address,$bytes(%tolvl.exp,db) %skill).fullcol exp),:) $item2lvl(%address, %skill, %level, %exp, %tolvl.exp, $false) }
           }
         }
-        elseif ($readini(mylist.ini,$address(%nick,3),%method)) {
-          .tokenize 44 $v1
-          .var %x 1     
-          while (%x <= $0) {
-            .var %statcalc2 = $round($calc(%exp2next / $gettok($paramFind(%method,$($+($,%x),2)),4,124)),0)
-            .var %items = %items $c1($($+($,%x),2)) $c2(%nick,$bytes(%statcalc2,db))
-            .inc %x
-          }
-          .var %items $+($c1([),$c2(%nick,Mylist - %method),$c1(])) %items
-        }
-        else { var %items $item2lvl(%method,%exp2next,%nick,%exp) }
-        if (%items && %method != Overall) {
-          tokenize 32 %items 
-          %display2 $c1([For) $c2(%nick,$iif($istok(goal,$gettok(%opperand,1,46),32),$iif($gettok(%opperand,1,46) == goal,$gettok(%opperand,2,46),$expH(%nick,%privacy,%rsn,%exp2next)),%tolevel)) $+($c1,%method,$c1(]:)) $remove($1,$chr(124)) $2-
-        }
+        noop $socketClose($sockname,%hash) | halt
       }
-      .sockclosef $sockname | halt
-    }
-    ;;;Stats Overall;;;
-    elseif ($istok(stats p2f,$gettok($sockname,3,46),32)) {
-      var %type $iif(%method isnum 1-3,$v1,%opperand) 
-      var %x 0, %c $ctime
-      while (%x < 33) {
-        .inc %x 
-        ;.echo -a $gettok($sockname,3,46) ->> $numskill(%x) ->> $hget($sockname,$numskill(%x))
-        if ($gettok($sockname,3,46) == p2f) {
-          if (%extradata == p2p && $istok(1 2 3 4 5 6 7 8 9 10 11 13 14 15 21,%x,32)) { .inc %x | continue }
-          if (%extradata == none && $istok(12 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33,%x,32)) { .inc %x | continue }
-        } 
-        if (%type == 1 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if (%x > 0) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),1,44),db)) }
-        }
-        elseif (%type == 3 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if (%x > 0) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),3,44),db)) }
-        }
-        elseif (%type == percent && %x > 0 && %x <= 25 && !$istok(1 99,$gettok($hget($sockname,$numskill(%x)),2,44),32)) {
-          if ($gettok($hget($sockname,Overall),2,44) == 2376) {  %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $scheck_reverse(%type,%nick) $c1(Has no skill under level) $c2(%nick,99) $+ $c1(.) | .sockclosef $sockname | halt }
-          else { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$round($calc($gettok($hget($sockname,$numskill(%x)),3,44) / 13034431 * 100),2)) $+ $c1(%) }
-        }
-        elseif (%type == next && %x > 0 && %x <= 25 && !$istok(1 99,$gettok($hget($sockname,$numskill(%x)),2,44),32)) {
-          if ($gettok($hget($sockname,Overall),2,44) == 2376) { %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $scheck_reverse(%type,%nick) $c1(Has no skill under level) $c2(%nick,99) $+ $c1(.) | .sockclosef $sockname | halt }
-          else {
-            .var %exp $gettok($hget($sockname,$numskill(%x)),3,44), %exp2next $calc($exp($calc($gettok($hget($sockname,$numskill(%x)),2,44) + 1)) - %exp)
-            .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes(%exp2next,db))
-          }
-        }
-        elseif (%type == equal && %x > 0 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if ($gettok($hget($sockname,$numskill(%x)),2,44) == %method) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)) }
-        }
-        elseif (%type == greaterequal && %x > 0 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if ($gettok($hget($sockname,$numskill(%x)),2,44) >= %method) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)) }
-        }
-        elseif (%type == lessequal && %x > 0 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if ($gettok($hget($sockname,$numskill(%x)),2,44) <= %method) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)) }
-        }
-        elseif (%type == less && %x > 0 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if ($gettok($hget($sockname,$numskill(%x)),2,44) < %method) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)) }
-        }
-        elseif (%type == greater && %x > 0 && %x <= 25 && $gettok($hget($sockname,$numskill(%x)),1,44) != 1) {
-          if ($gettok($hget($sockname,$numskill(%x)),2,44) > %method) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)) }
-        }
-        elseif ($gettok($hget($sockname,$numskill(%x)),2,44) > 1 && %type == -) { 
-          if (%x > 0) { .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $numskill(%x)) $+($c2(%nick,$bytes($gettok($hget($sockname,$numskill(%x)),2,44),db)),$iif($gettok($hget($sockname,$numskill(%x)),2,44) == 99 && $undoexp($gettok($hget($sockname,$numskill(%x)),3,44)) > 99,$+($c1($chr(40)),$c2(%nick,$v1),$c1($chr(41))))) }
-        }        
-      }
-      if ($hget($sockname,StatsLineFinal)) {
-        if ($istok(- 1 3,%type,32) && $gettok($hget($sockname,Overall),2,44) != 1) { .hadd -m $sockname StatsLineFinal $c1(Overall) $c2(%nick,$bytes($gettok($hget($sockname,Overall),$iif(%type isnum 1-3,$v1,2),44),db)) $hget($sockname,StatsLineFinal) }
-        .tokenize 32 $hget($sockname,StatsLineFinal)
-        .sockshorten 3 %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $remove($1,$chr(124)) $2-
-        .sockclosef $sockname | halt
-      } 
-      elseif (!$hget($sockname,StatsLineFinal)) { %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(There are no ranked stats that fit the parameters requested.) | .sockclosef $sockname | halt }     
-    }
-    ;;;;;;;;;;;Check-Start-Stop;;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == start) {
-      var %exp $gettok($hget($sockname,%method),3,44), %level $gettok($hget($sockname,%method),2,44), %rank $gettok($hget($sockname,%method),1,44)
-      !if ($istok(-1,%level,32)) {
-        %display $logo(%nick,error) $c1(The user) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(is not ranked for the skill) $c2(%nick,%method)
-        .sockclosef $sockname | halt
-      }
-      else {
-        writeini -n start.ini $address(%nick,3) %method $+(%rank,.,%level,.,%exp,.,$ctime)
-        $iif($me ison #Devvectra, .msg #DevVectra .do .writeini -n start.ini $address(%nick,3) %method $+(%rank,.,%level,.,%exp,.,$ctime))
-        %display $logo(%nick,start) $c1(You have started recording) $c2(%nick,%method) $c1(with) $c2(%nick,$bytes(%exp,db)) $c1(exp at level) $c2(%nick,%level) $c1([Rank:) $c2(%nick,$bytes(%rank,db)) $+ $c1(] for) $c2(%nick,$rsnH(%nick,%privacy,%rsn))
-        .sockclosef $sockname | halt
-      }
-    }
-    elseif ($istok(stop checkstartstop,$gettok($sockname,3,46),32)) {
-      var %level $gettok($hget($sockname,%method),2,44), %rank $gettok($hget($sockname,%method),1,44), %exp $gettok($hget($sockname,%method),3,44)
-      var %gainedrank $calc(%rank - $gettok($readini(start.ini,$address(%nick,3),%method),1,46))
-      var %gainedlevel $calc(%level - $gettok($readini(start.ini,$address(%nick,3),%method),2,46))
-      var %gainedexp $calc(%exp - $gettok($readini(start.ini,$address(%nick,3),%method),3,46))
-      var %savedtime $gettok($readini(start.ini,$address(%nick,3),%method),4,46)
-      var %expton3xt = $calc($statsxp($calc(%level + 1)) - %exp)
-      var %start.calcexpprh = $calc($ctime - %savedtime)
-      var %start.expprh = $round($calc(%gainedexp / (%start.calcexpprh / 60 / 60)),db)
-      var %start.calc = $calc(%start.calcexpprh / %gainedexp)
-      var %start.timetolvl = $duration($calc( %expton3xt * %start.calc ))
-      %display $logo(%nick,$iif($istok(stop,$gettok($sockname,3,46),32),End,Check)) $c1(You have gained) $iif(%gainedlevel != 0,$c2(%nick,%gainedlevel) $c1(level(s)) $c1(and)) $c2(%nick,$bytes(%gainedexp,db)) $c1(exp) $c1([) $+ $iif(%gainedrank > 0,+,-) $+ $c2(%nick,$bytes($remove(%gainedrank,-),db)) $c1(ranks] in) $c2(%nick,$duration($calc($ctime - $gettok($readini(start.ini,$address(%nick,3),%method),4,46)))) $+ $c1(. Thats around) $c2(%nick,$bytes(%start.expprh,db)) $c1(exp/h.) $iif(!$istok(Overall,%method,32) && %level < 99, $c1(You will reach the next lvl in) $c2(%nick,%start.timetolvl) $c1(at this speed.))
-      if ($gettok($sockname,3,46) == stop) {
-        $iif($me ison #Devvectra, .msg #DevVectra .do .remini -n start.ini $address(%nick,3) %method)
-        remini -n start.ini $address(%nick,3) %method        
-      }
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;Order;;;;;;;;
-    elseif ($gettok($sockname,3,46) == order) {
-      var %x = 1
-      while (%x < 25) {
-        if ($istok(level,%opperand,32)) hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+($gettok($hget($sockname,$numskill(%x)),3,44),|,$exp2($gettok($hget($sockname,$numskill(%x)),3,44)),|,$shortskill(%x))
-        elseif ($istok(rank,%opperand,32)) hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+($gettok($hget($sockname,$numskill(%x)),1,44),|,$bytes($gettok($hget($sockname,$numskill(%x)),1,44),db),|,$shortskill(%x))
-        elseif ($istok(exp,%opperand,32)) hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+($gettok($hget($sockname,$numskill(%x)),3,44),|,$bytes($gettok($hget($sockname,$numskill(%x)),3,44),db),|,$shortskill(%x))
-        elseif ($istok(percent,%opperand,32)) {
-          if ($calc($gettok($hget($sockname,$numskill(%x)),3,44) / 13034431 *100) < 100) {
-            .hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+($v1,|,$+($round($v1,2),%),|,$shortskill(%x))
-          }
-        }
-        elseif ($istok(next,%opperand,32)) {
-          var %exp = $gettok($hget($sockname,$numskill(%x)),3,44), %level = $gettok($hget($sockname,$shortskill(%x)),2,44)
-          if (%level < 99) {
-            .var %next = $bytes($calc($exp($calc(%level + 1)) - %exp),db)
-            .hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+(%next,|,%next,|,$shortskill(%x))
-          }
-        }
-        inc %x
-      }
-      .tokenize 32 $sorttok($hget($sockname,StatsLine),32,$iif($istok(rank,%opperand,32),n,%method))
-      .var %x = 1
-      .while (%x <= $0) {
-        .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $c1($chr(124) $gettok($($+($,%x),2),3,124)) $c2(%nick,$gettok($($+($,%x),2),2,124))
-        .inc %x
-      } 
-      .var %type = $iif(%method == n,Lowest,Highest)  
-      if ($istok(level,%opperand,32)) .var %ordertype = Order by Levels
-      elseif ($istok(rank,%opperand,32)) .var %ordertype = Order by Rank
-      elseif ($istok(exp,%opperand,32)) .var %ordertype = Order by Exp
-      elseif ($istok(percent,%opperand,32)) .var %ordertype = Order by % to 99 
-      elseif ($istok(next,%opperand,32)) .var %ordertype = Order by Exp to Level Up
-      .tokenize 32 $hget($sockname,StatsLineFinal)
-      if ($1) { 
-        .sockshorten 3 %display $logo(%nick,Order) $+($c1,$chr(40),$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,$chr(41)) $+($c1,[,$c2(%nick,%ordertype),$c1,]) $1-
-        .sockclosef $sockname | halt
-      }
-      else {
-        %display $logo(%nick,Order) $+($c1,$chr(40),$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,$chr(41)) $+($c1,[,$c2(%nick,%ordertype),$c1,]) $c1(No stats found for the requested parameters.) 
-        .sockclosef $sockname | halt
-      }
-    }  
-    ;;;;;;;;;;;;;;;;Combat;;;;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == cmb) {
-      var %a = $iif($gettok($hget($sockname,attack),2,44),$v1,1), %s = $iif($gettok($hget($sockname,strength),2,44),$v1,1), %d = $iif($gettok($hget($sockname,defence),2,44),$v1,1), %h = $iif($gettok($hget($sockname,constitution),2,44),$v1,10), %r = $iif($gettok($hget($sockname,ranged),2,44),$v1,1), %p = $iif($gettok($hget($sockname,prayer),2,44),$v1,1), %m = $iif($gettok($hget($sockname,magic),2,44),$v1,1), %su = $iif($gettok($hget($sockname,summoning),2,44),$v1,1)
-      var %cmb $cmbformula(%a,%s,%d,%h,%p,%r,%m,%su)
-      %display $logo(%nick,combat) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(is level) $c2(%nick,$gettok(%cmb,1,32)) $iif(!$istok(-,%susu,32),$+($c1,$chr(91),$c2(%nick,F2P:),$chr(32),$c2(%nick,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m,1),1,32)),$c1,$chr(93))) $+($c1,$chr(40),$c2(%nick,$gettok(%cmb,2,32)),$c1,$chr(41)) $+($c1,ASDCPRM,$chr(40),SU,$chr(41)) $c2(%nick,%a,%s,%d,%h,%p,%r,%m,%su)
-      if ($gettok(%cmb,1,32) < 138) { %display $logo(%nick,combat) $+($c1,For,$chr(32),$c2(%nick,$calc($gettok($gettok(%cmb,1,32),1,46) + 1)),$c1,:) $cmbformula(%a,%s,%d,%h,%p,%r,%m,%su).next
-        .sockclosef $sockname | halt
-      }
-    }
-    ;;;;;;;;;;;;;;;;NextCMB;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == nextcmb) {
-      var %x = 2
-      while (%x <= 25) {
-        if (!$istok(1 99,$gettok($hget($sockname,$numskill(%x)),2,44),32) && $istok(1 2 3 4 5 6 7 24,%x,32)) {
-          var %statline1 = %statline1 $+($calc($statsxp($gettok($hget($sockname,$numskill(%x)),2,44) + 1) - $gettok($hget($sockname,$numskill(%x)),3,44)),.,$numskill(%x))
-        }
-        inc %x
-      }
-      if (!%statline1) { %display $logo(%nick,error) $c1(The username) $+($c1,",$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,") $c1(did not have any combat skills he/she could take to the next level.)
-        .sockclosef $sockname | halt
-      }
-      var %exp = $gettok($sorttok(%statline1,32,n),1,46), %skill = $gettok($gettok($sorttok(%statline1,32,n),1,32),2,46)
-      %display $logo(%n,$rsnH(%nick,%privacy,%rsn)) $c1(Closest combat level up is) $c2(%nick,%skill) $c1(with) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $c1(exp to go.)
-      %display $+($c1,$chr(91),For $c2(%n,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $c1(%skill) $c1, EXP,$chr(93),:) $item2lvl(%skill,%exp,%nick)
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;;;;;;CombatP;;;;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == cmbP) {
-      var %x = 1
-      while (%x < 25) {
-        if ($istok(1 2 3 4 5 6 7 24,%x,32)) { .hinc -m $sockname cmbP $gettok($hget($sockname,$numskill(%x)),3,44) }
-        elseif ($istok(8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23,%x,32)) { .hinc -m $sockname skillP $gettok($hget($sockname,$numskill(%x)),3,44) }
-        inc %x
-      }
-      %display $logo(%nick,cmb%) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(has) $c2(%nick,$bytes($hget($sockname,cmbp),db)) $c1(combat exp and) $c2(%nick,$bytes($hget($sockname,skillp),db)) $+($c1,skill exp,$chr(44)) $c1(making a combat percent of) $+($c2(%nick,$round($calc(($hget($sockname,cmbP) / $gettok($hget($sockname,overall),3,44)) * 100),2)),$c1(%),$c1,.)
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;;;;;;SkillP;;;;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == skillP) {
-      var %x = 1
-      while (%x < 25) {
-        if ($istok(1 2 3 4 5 6 7 8 9 10 12 13 14 15 21,%x,32)) { .hinc -m $sockname f2p $gettok($hget($sockname,$numskill(%x)),3,44) }
-        elseif ($istok(11 16 17 18 19 20 22 23 24,%x,32)) { .hinc -m $sockname p2p $gettok($hget($sockname,$numskill(%x)),3,44) }
-        .inc %x
-      }
-      %display $logo(%nick,skill%) $c2(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(has) $c2(%nick,$bytes($hget($sockname,f2p),db)) $c1(f2p exp) $c2(%nick,$bytes($hget($sockname,p2p),db)) $+($c1,p2p exp and) $c2(%nick,$bytes($gettok($hget($sockname,overall),3,44),db)) $c1(overall exp making a f2p percent of) $+($c2(%nick,$round($calc(($hget($sockname,f2p) / $gettok($hget($sockname,overall),3,44)) * 100),2)),$c1(%)) $c1(and a p2p percent of) $+($c2(%nick,$round($calc(($hget($sockname,p2p) / $gettok($hget($sockname,overall),3,44)) * 100),2)),$c1(%),$c1,.) 
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;;;;;;Skill Plan;;;;;;;;
-    elseif ($istok(skillplan task,$gettok($sockname,3,46),32)) {
-      if (!$hget($sockname,%method)) { %display $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$rsnH(%nick,%privacy,%rsn)),$c1,") $c1(was not found in the RuneScape hiscores for) $+($c2(%n,%method),$c1,.) | .sockclosef $sockname | halt }
-      else {
-        var %level = $gettok($hget($sockname,%method),2,44), %exp = $gettok($hget($sockname,%method),3,44)
-        tokenize 124 $paramFind(%method,%extradata)
-        var %expgained = $calc($4 * %opperand)
-        %display $logo(%nick,$gettok($sockname,3,46)) $+($c1,$chr(40),$c2(%nick,$rsnH(%nick,%privacy,%rsn)),$c1,$chr(41)) $c1(Original level:) $c2(%nick,%level) $+($c1,$chr(40),$c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))),$c2(%nick,exp),$c1,$chr(41)) $c1($chr(124),Exp gain of) $c2(%nick,$bytes(%opperand,db)) $+($c2(%nick,$3),$c1,:) $+($c2(%nick,$bytes(%expgained,db)),$c2(%nick,exp)) $+($c1,$chr(40),$c2(%nick,$4),$c2(%nick,ea),$c1,$chr(41)) $c1($chr(124),Final level:) $c2(%nick,$undoexp($calc(%expgained + %exp))) $+($c1,$chr(40),$c2(%nick,$expH(%nick,%privacy,%rsn,$bytes($calc(%expgained + %exp),db))),$c2(%nick,exp),$c1,$chr(41))
-        .sockclosef $sockname | halt
-      }  
-    }
-    ;;;;;;;;;;;;;;;;;;;;HighLow;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == highlow) {
-      var %x = 1
-      while (%x < 25) { .hadd -m $sockname StatsLine $hget($sockname,StatsLine) $+($gettok($hget($sockname,$numskill(%x)),3,44),|,$exp2($gettok($hget($sockname,$numskill(%x)),3,44)),|,$numskill(%x)) | .inc %x }
-      if ($istok(high highlow,%opperand,32)) {
-        .hadd -m $sockname StatsLine $sorttok($hget($sockname,StatsLine),32,nr)
-        .var %data = $gettok($hget($sockname,StatsLine),$iif($istok(none,%method,32),1,$iif(%method isnum 1-24,$v1,1)),32), %skill $gettok(%data,3,124), %exp $gettok(%data,1,124), %level $gettok(%data,2,124)
-        %display $logo(%nick,$rsnh(%nick,%privacy,%rsn)) $+($c1,$chr(91),$c2(%nick,$+(High,$iif(!$istok(none,%method,32),$+($chr(32),$chr(35),%method)))),$c1,$chr(93)) $c1(Skill:) $c2(%nick,%skill) $c1($chr(124),Level:) $c2(%nick,%level) $iif(%exp >= 14391160, $+($c1,$chr(91),$c2(%nick,$undoexp(%exp)),$c1,$chr(93))) $c1($chr(124),Exp:) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $&
-          $+($c1,$chr(40),$c2(%nick,$round($calc((%exp / $gettok($hget($sockname,Overall),3,44)) * 100),2)),$c1,% of total,$chr(41))
-      }
-      if ($istok(low highlow,%opperand,32)) {
-        .hadd -m $sockname StatsLine $sorttok($hget($sockname,StatsLine),32,n)
-        .var %data = $gettok($hget($sockname,StatsLine),$iif($istok(none,%method,32),1,$iif(%method isnum 1-24,$v1,1)),32), %skill $gettok(%data,3,124), %exp $gettok(%data,1,124), %level $gettok(%data,2,124)
-        %display $logo(%nick,$rsnh(%nick,%privacy,%rsn)) $+($c1,$chr(91),$c2(%nick,$+(Low,$iif(!$istok(none,%method,32),$+($chr(32),$chr(35),%method)))),$c1,$chr(93)) $c1(Skill:) $c2(%nick,%skill) $c1($chr(124),Level:) $c2(%nick,%level) $iif(%exp >= 14391160, $+($c1,$chr(91),$c2(%nick,$undoexp(%exp)),$c1,$chr(93))) $c1($chr(124),Exp:) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%exp,db))) $&
-          $+($c1,$chr(40),$c2(%nick,$round($calc((%exp / $gettok($hget($sockname,Overall),3,44)) * 100),2)),$c1,% of total,$chr(41))
-      }
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;;;;;;;;;;Soul Wars;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == soul) {
-      if ($hget($sockname,%method)) {
-        if (%opperand != -) { 
-          var %goal = %opperand
-          !if (%goal <= $gettok($hget($sockname,%method),2,44)) {  
-            %display $logo(%nick,Soul Wars) $c1(Your goal needs to be higher than your level)
-            .sockclosef $sockname | halt
-          }
-          if (13034430 >= $gettok($hget($sockname,%method),3,44)) { .var %forpoints = $calc($statsxp(%goal) - $gettok($hget($sockname,%method),3,44)) }
-          if (13034431 <= $gettok($hget($sockname,%method),3,44)) { .var %forpoints = $calc($statsxp($calc($gettok($hget($sockname,%method),2,44) + 1)) - $undoexp($gettok($hget($sockname,%method),3,44))) }
-          var %exp-pt = $swData(%method,$gettok($hget($sockname,%method),2,44)), %points = $round($calc(%forpoints / %exp-pt),db)
-          var %total = $bytes($calc(%points * %exp-pt),db)
-          %display $logo(%nick,Soul Wars) $+($c1,$chr(40),$c2(%nick,$rsnh(%nick,%privacy,%rsn)),$c1,$chr(41)) $c1(You need) $c2(%nick,$bytes(%points,db)) $+($c1,$chr(32),points $chr(40),$c2(%nick,%total),$c1,$chr(32),Exp,$chr(41)) $c1(for) $c2(%nick,%goal %method) $c1(with) $c2(%nick,$bytes(%exp-pt,db)) $c1(Exp each point.)
-          .sockclosef $sockname | halt
-        }
-        if (13034430 >= $gettok($hget($sockname,%method),3,44)) { .var %forpoints = $calc($statsxp($calc($gettok($hget($sockname,%method),2,44) + 1)) - $gettok($hget($sockname,%method),3,44)) }
-        if (13034431 <= $gettok($hget($sockname,%method),3,44)) { .var %forpoints = $calc($statsxp($calc($gettok($hget($sockname,%method),2,44) + 1)) - $undoexp($gettok($hget($sockname,%method),3,44))) }
-        var %exp-pt = $swData(%method,$gettok($hget($sockname,%method),2,44)), %points = $round($calc(%forpoints / %exp-pt),db)
-        var %total = $bytes($calc(%points * %exp-pt),db)
-        %display $logo(%nick,Soul Wars) $+($c1,$chr(40),$c2(%nick,$rsnh(%nick,%privacy,%rsn)),$c1,$chr(41)) $c1(You need) $c2(%nick,$bytes(%points,db)) $+($c1,$chr(32),points $chr(40),$c2(%nick,%total),$c1,$chr(32),Exp,$chr(41)) $c1(for) $c2(%nick,$calc($undoexp($gettok($hget($sockname,%method),3,44)) + 1) %method) $c1(with) $c2(%nick,$bytes(%exp-pt,db)) $c1(Exp each point.)
-        .sockclosef $sockname | halt
-      }
-      else { %display $logo(%nick,Soul Wars) $c1(User) $c2(%nick,$rsnh(%nick,%privacy,%rsn)) $c1(is not ranked for skill) $c2(%nick,%skill) $+ $c1(.) | .sockclosef $sockname | halt }
-    }
-    ;;;;;;;;;;;;;;;;;;;;Far/Next;;;;;;;;;;;;;;;;
-    elseif ($istok(furthest closest,$gettok($sockname,3,46),32)) {
-      if ($gettok($hget($sockname,Overall),2,44) == 2376) { %display $logo(%nick,$rsnH(%nick,%privacy,%rsn)) $c1(Has no skill under level) $c2(%nick,99) $+ $c1(.) | .sockclosef $sockname | halt }
-      else {
-        var %x = 1
-        while (%x < 25) {
-          if (!$istok(1 99,$gettok($hget($sockname,$numskill(%x)),2,44),32)) {
-            .var %exp $gettok($hget($sockname,$numskill(%x)),3,44), %exp2next $calc($exp($calc($gettok($hget($sockname,$numskill(%x)),2,44) + 1)) - %exp)
-            .hadd -m $sockname StatsLineFinal $hget($sockname,StatsLineFinal) $+(%exp2next,.,%exp,.,$numskill(%x))
-          }
-          .inc %x
-        }
-        .var %data $gettok($sorttok($hget($sockname,StatsLineFinal),32,%method),1,32), %level $undoexp($gettok(%data,2,46)), $exp $gettok(%data,2,46), %next $gettok(%data,1,46)
-        %display $logo(%nick,$rsnh(%nick,%privacy,%rsn)) $c1(Next level up is:) $c2(%nick,$gettok(%data,3,46)) $c1(with) $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%next,db))) $c1(exp to go.)
-        %display $+($c1,$chr(91),For $c2(%nick,$expH(%nick,%privacy,%rsn,$bytes(%next,db)))) $c1($gettok(%data,3,46)) $+($c1,EXP,$chr(93),:) $item2lvl($gettok(%data,3,46),%next,%nick)
-      }
-      .sockclosef $sockname | halt
-    }
-    ;;;;;;;;;;;;;;;;;;;;Pest Control;;;;;;;;;;;;;;;;
-    elseif ($gettok($sockname,3,46) == pcp) {
-      if (!$istok(-,%opperand,32)) && ($istok(99,$gettok($hget($sockname,%method),2,44),32)) { %display $logo(%nick,error) $c1(The requested goal can not be calculated because the stat) $c2(%nick,%method) $c1(is already level) $c2(%nick,99) $+ $c1(.) | .sockclosef $sockname | halt }
-      elseif (!$istok(-,%opperand,32)) && ($gettok($hget($sockname,%method),2,44) > %opperand) { %display $logo(%nick,error) $c1(The requested goal can not be calculated because the level for) $c2(%nick,%method) $c1(is greater then or equal to the goal.) | .sockclosef $sockname | halt }
-      elseif ($istok(99,$gettok($hget($sockname,%method),2,44),32)) { %display $logo(%nick,error) $c1(The stat) $c2(%nick,%method) $c1(is already level) $c2(%nick,99) $+ $c1(.) | .sockclosef $sockname | halt }
-      else {
-        .var %level $gettok($hget($sockname,%method),2,44),%exp $gettok($hget($sockname,%method),3,44),%targetLvl $iif(!$istok(-,%opperand,32),%opperand,%level),%targetExp = $floor($calc($exp($calc($iif(!$istok(-,%opperand,32),%opperand,%level) + 1)) - %exp)),%pcp $pcp(%method,%level,%exp)
-        .tokenize 124 %pcp
-        .var %10 = $floor($calc($1 * 1.01)),%100 = $floor($calc($1 * 1.10))
-        %display $logo(%nick,Pest control) $+($c1,$chr(40),$c2(%nick,$rsnh(%nick,%privacy,%rsn)),$c1,$chr(41)) Skill: $c2(%nick,%method) $&
-          $chr(124) Points for $c2(%nick,$iif(%targetLvl < 99, $calc($v1 + 1), $v1)) $+ : Turn In (10): $c2(%nick,$comma($floor($calc(%targetExp / %10)))) $+($chr(40),$c2(%nick,$roundup($floor($calc(%targetExp / %10)),10)),$chr(32),Sets,$chr(41)) $&
-          $chr(124) Turn In (100): $c2(%nick,$comma($floor($calc(%targetExp / %100)))) $+($chr(40),$c2(%nick,$roundup($floor($calc(%targetExp / %100)),100)),$chr(32),Sets,$chr(41))
-        .sockclosef $sockname | halt
-      }
-    }
-    .sockclosef $sockname | .halt
-  }
-}
-#ZybezLINK
-on *:SOCKOPEN:ZybezL.*:{ 
-  if ($sockerr) { 
-    .msg #devvectra ZybezLINK failed to connect with noep.info
-    .sockclosef $sockname 
-    .halt 
-  }
-  .sockwrite -nt $sockname GET /clantrackpmg/z.php?68094f2b998a7ed1d7560d0b76d3d742= $+ $gettok($sock($sockname).mark,2,58) HTTP/1.1
-  .sockwrite -nt $sockname Host: noep.info
-  .sockwrite -nt $sockname $crlf $crlf
-}
-on *:SOCKREAD:ZybezL.*:{
-  if ($sockerr) { 
-    .msg #devvectra ZybezLINK failed to connect with noep.info
-    .sockclosef $sockname 
-    .halt 
-  }
-  .var %n = $gettok($sock($sockname).mark,3,58), %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/Title: (.+) \| Description: (.*) \| Starter: (.+) \| Posted: (.+) \|/i)) {
-    .var %starter = $regml(3), %posted = $regml(4), %desc = $regml(2)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,RSC) $c1(Title:) $c2(%n,$htmlchars($regml(1))) $c1($chr(124) Description:) $c2(%n,$iif(%desc == $null,None,$v1)) $c1($chr(124) Starter:) $c2(%n,%starter) $c1($chr(124) Posted:) $c2(%n,%posted)
-    .sockclosef $sockname | .halt
-  }
-}
-on *:sockopen:country.*: {
-  sockwrite  -nt $sockname GET $+(/parsers/country.php?x=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: vectra-bot.net
-  sockwrite  -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:country.*: {
-  var %sockreader
-  sockread %sockreader
-  if ($regex(%sockreader,/(.*) Found: (.*)/)) {
-    var %n = $gettok($sock($sockname).mark,1,58)
-    if ($regml(1) == Country) {
-      $gettok($sock($sockname).mark,2,58) $logo(%n,Country) $c1(Country:) $c2(%n,$regml(2)) $c1(ISO:) $c2(%n,$upper($gettok($sock($sockname).mark,3,58)))
-      .sockclose $sockname | .halt
-    }
-    elseif ($regml(1) == ISO) {
-      $gettok($sock($sockname).mark,2,58) $logo(%n,Country) $c1(Country:) $c2(%n,$gettok($sock($sockname).mark,3,58)) $c1(ISO:) $c2(%n,$regml(2))
-      .sockclose $sockname | .halt
-    }
-  }
-  if ($regex(%sockreader,/Not found/)) {
-    var %n = $gettok($sock($sockname).mark,1,58)
-    $gettok($sock($sockname).mark,2,58) $logo(%n,Country) $c1(your search ") $+ $c2(%n,$upper($gettok($sock($sockname).mark,3,58))) $+ $c1(" did not match anything) 
-    .sockclose $sockname | .halt
-  }
-}
-#GOOGLEFIGHT
-on *:SOCKOPEN:googlefight.*:{ 
-  .sockwrite -nt $sockname GET $+(/?type=googlefight&search1=,$gettok($sock($sockname).mark,3,58),&search2=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:googlefight.*:{
-  .var %display $gettok($sock($sockname).mark,1,58), %n $gettok($sock($sockname).mark,2,58), %search1 $gettok($sock($sockname).mark,3,58), %search2 $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { %display $logo(%n,error) $c1(Socket error) | .sockclosef $sockname | halt }
-  else {
-    .var %sockreader 
-    .sockread %sockreader 
-    .tokenize 32 %sockreader
-    if (SEARCH isincs $1) {
-      .sockmark $sockname $+($sock($sockname).mark,:,$2,:,$remove($3,$chr(44)))
-    }
-    if ($istok(END,$1,32)) {
-      if ($gettok($sock($sockname).mark,5,58) > 0 && $gettok($sock($sockname).mark,6,58) > 0) {
-        .var %s1 $gettok($sock($sockname).mark,6,58), %s2 $gettok($sock($sockname).mark,8,58)      
-        %display $logo(%n,Google Fight) $c2(%n,$iif(%s1 > %s2,$gettok($sock($sockname).mark,5,58),$gettok($sock($sockname).mark,7,58))) $c1(beats) $c2(%n,$iif(%s1 > %s2,$gettok($sock($sockname).mark,7,58),$gettok($sock($sockname).mark,5,58))) $&
-          $c1(in a google fight by) $c2(%n,$bytes($iif(%s1 > %s2,$calc($v1 - $v2),$calc($v2 - $v1)),db)) $c1(results!!)
-      }
-      else {
-        %display $logo(%n,Google Fight) $c1(Both) $c2(%n,%search1) $c1(and) $c2(%n,%search2) $c1(fail because they generated) $c2(%n,0) $c1(results.)
-      }
-      .sockclosef $sockname
-      .halt
-    }
-  }
-}
-#CLANRANK
-on *:SOCKOPEN:clanrank.*:{ 
-  .sockwrite -nt $sockname GET $+(/?type=clanrank&rank=,$gettok($sock($sockname).mark,3,58),&clan=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:clanrank.*:{
-  .var %display $gettok($sock($sockname).mark,1,58), %n $gettok($sock($sockname).mark,2,58), %rank $gettok($sock($sockname).mark,3,58), %clan $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { %display $logo(%n,error) $c1(Socket error) | .sockclosef $sockname | halt }
-  else {
-    .var %sockreader 
-    .sockread %sockreader 
-    .tokenize 32 %sockreader
-    if (*does not have* iswm %sockreader) {
-      %display $logo(%n,error) $c1(Clan) $c2(%n,%clan) $c1(does not contain a rank) $c2(%n,%rank) $+ $c1(.)
-      .sockclosef $sockname
-      .halt
-    }
-    if (PHP:*not found* iswm %sockreader) {
-      %display $logo(%n,error) $c1(No search results found for) $c2(%n,%clan) $c1(in the RSHSC clan database.)
-      .sockclosef $sockname
-      .halt
-    }
-    if ($regex($1,/(USER|COMBAT|HITPOINTS|CONSTITUTION|OVERALL|HIGHEST|ML):/Si)) {
-      .sockmark $sockname $+($sock($sockname).mark,:,$2-)
-    }
-    if ($istok(END,$1,32)) {
-      .tokenize 58 $sock($sockname).mark
-      %display $logo(%n,ClanRank) $c1(User:) $c2(%n,$5) $c1($chr(124)) $c1(Rank:) $c2(%n,%rank) $c1($chr(124)) $c1(Clan:) $+($c2(%n,%clan),$chr(32),$c1($chr(40)),$c2(%n,$replace($10-,$chr(32),:)),$c1($chr(41))) $&
-        $c1($chr(124)) $c1(Overall:) $c2(%n,$8) $c1($chr(124)) $c1(Combat:) $c2(%n,$6) $c1($chr(124)) $c1(Constitution:) $c2(%n,$7) $c1($chr(124)) $c1(Highest:) $c2(%n,$9) 
-      .sockclosef $sockname
-      .halt
-    }
-  }
-}
-#CLANCOMPARE
-on *:SOCKOPEN:clancompare.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=clancompare&clan1=,$gettok($sock($sockname).mark,3,58),&clan2=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:clancompare.*:{
-  .var %display $gettok($sock($sockname).mark,1,58), %n $gettok($sock($sockname).mark,2,58), %clan1 $gettok($sock($sockname).mark,3,58), %clan2 $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { %display $logo(%n,error) $c1(Socket error) | .sockclosef $sockname | halt }
-  else {
-    .var %sockreader 
-    .sockread %sockreader 
-    .tokenize 32 %sockreader
-    if (zero results for isin %sockreader) {
-      %display $logo(%n,error) $c1(No search results found for) $c2(%n,$6-) $c1(in the RSHSC clan database.)
-      .sockclosef $sockname
-      .halt
-    }
-    if ($regex(%sockreader,/CLAN(\d):/Si)) {
-      .hadd -m $sockname $+(clan,$regml(1),.initials) $2
-      .hadd -m $sockname $+(clan,$regml(1),.name) $3
-      .hadd -m $sockname $+(clan,$regml(1),.ml) $4
-    }
-    if ($regex(%sockreader,/(MEMBERS|CMBF2P|CMBP2P|HITPOINTS|CONSTITUTION|SKILLTOTAL|MAGIC|RANGED):/Si)) {
-      .hadd -m $sockname $+(clan.,$lower($regml(1))) $2 $3
-    }
-    if ($istok(END,$1,32)) {
-      %display $logo(%n,Clan Compare) $c1(Comparing) $+($c1,[,$c2(%n,$hget($sockname,clan1.initials)),$c1,],$chr(32),$c2(%n,$replace($hget($sockname,clan1.name),_,$chr(32))),$chr(32),$chr(40),$c2(%n,$hget($sockname,clan1.ml)),$c1,$chr(41)) $c1(to) $+($c1,[,$c2(%n,$hget($sockname,clan2.initials)),$c1,],$chr(32),$c2(%n,$replace($hget($sockname,clan2.name),_,$chr(32))),$chr(32),$chr(40),$c2(%n,$hget($sockname,clan2.ml)),$c1,$chr(41)) $&
-        $c1($chr(124) Format:) $+($c2(%n,$hget($sockname,clan1.initials)),/,$c2(%n,$hget($sockname,clan2.initials)),$chr(32),$c1,$chr(40),$c2(%n,$hget($sockname,clan1.initials)),$chr(32),$c1,difference,$chr(41))
-      %display $logo(%n,Clan Compare) $+($c2(%n,$hget($sockname,clan1.initials)),/,$c2(%n,$hget($sockname,clan2.initials))) $c1($chr(124) Members:) $+($c2(%n,$gettok($hget($sockname,clan.members),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.members),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.members),1,32) - $gettok($hget($sockname,clan.members),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41)) $&
-        $c1($chr(124) AvgCMB:) $+($c1,$chr(40),F2P:,$chr(32),$c2(%n,$gettok($hget($sockname,clan.cmbf2p),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.cmbf2p),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.cmbf2p),1,32) - $gettok($hget($sockname,clan.cmbf2p),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41)) $&
-        $c1($chr(124)) $+($c1,P2P:,$chr(32),$c2(%n,$gettok($hget($sockname,clan.cmbp2p),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.cmbp2p),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.cmbp2p),1,32) - $gettok($hget($sockname,clan.cmbp2p),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41),$chr(41)) $& 
-        $c1($chr(124) Cons:) $+($c2(%n,$gettok($hget($sockname,clan.hitpoints),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.hitpoints),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.hitpoints),1,32) - $gettok($hget($sockname,clan.hitpoints),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41)) $&
-        $c1($chr(124) Mage:) $+($c2(%n,$gettok($hget($sockname,clan.magic),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.magic),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.magic),1,32) - $gettok($hget($sockname,clan.magic),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41)) $&
-        $c1($chr(124) Range:) $+($c2(%n,$gettok($hget($sockname,clan.ranged),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.ranged),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.ranged),1,32) - $gettok($hget($sockname,clan.ranged),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41)) $&
-        $c1($chr(124) Skill Total:) $+($c2(%n,$gettok($hget($sockname,clan.skilltotal),1,32)),/,$c2(%n,$gettok($hget($sockname,clan.skilltotal),2,32)),$chr(32),$c1,$chr(40),$c2(%n,$iif(-* iswm $calc($gettok($hget($sockname,clan.skilltotal),1,32) - $gettok($hget($sockname,clan.skilltotal),2,32)),$+(4,$v2),$+(3,+,$v2))),$c1,$chr(41))
-      .sockclosef $sockname 
-      .halt
-    }
-  } 
-}
-#QFC 
-on *:SOCKOPEN:qfc.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=rsforum&query=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:qfc.*:{
-  if ($sockerr) { .sockclosef $sockname | halt }
-  else {
-    var %src, %n $gettok($sock($sockname).mark,2,58)
-    .sockread %src
-    if (no threads found isin %src) { 
-      $gettok($sock($sockname).mark,1,58) $logo(%n,qfc) $c1(Nothing foound for the searched qfc.)
-      .sockclosef $sockname | halt  
-    }
-    if (POST isin %src) {
-      .tokenize 124 $gettok(%src,2-,32)
-      $gettok($sock($sockname).mark,1,58) $logo(%n,rsforums) $c2(%n,$1) $c1($chr(124) Category:) $c2(%n,$3) $c1($chr(124) Date:) $c2(%n,$4) $c1($chr(124) Link:) $c2(%n,$2)
-      .sockclosef $sockname | halt
-    }
-    if (SECTION isin %src) {
-      .tokenize 124 $gettok(%src,2-,32)
-      $gettok($sock($sockname).mark,1,58) $logo(%n,qfc) $c2(%n,$2) $c1($chr(124) Category:) $c2(%n,$1) $c1($chr(124) Date:) $c2(%n,$5) $c1($chr(124) Posted By:) $c2(%n,$4) $c1($chr(124) Pages:) $c2(%n,$3) $c1($chr(124) Link:) $c2(%n,$+(http://services.runescape.com/m=forum/forums.ws?,$gettok($sock($sockname).mark,3,58)))
-      .sockclosef $sockname | halt
-    }
-    if (END isin %src) { .sockclosef $sockname | halt }
-  }
-}
-#SPEC
-on *:sockopen:spec.*: {
-  .tokenize 58 $sock($sockname).mark
-  if ($4) { .sockwrite -nt $sockname GET $+(/?type=spec&spec=,$2) HTTP/1.1 }
-  else {
-    .sockwrite -nt $sockname GET $+(/?type=spec&weapon=,$2) HTTP/1.1
-  }
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $crlf
-}
-on *:sockread:spec.*:{
-  var %n = $gettok($sock($sockname).mark,3,58),%display = $gettok($sock($sockname).mark,1,58)
-  if ($sockerr) { %display $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else { 
-    .var %sockreader 
-    .sockread %sockreader
-    if (No weapon or special isin %sockreader) { 
-      %display $logo(%n,Specials) $c1(No special attack found for) $c2(%n,$qt($replace($gettok($sock($sockname).mark,2,58),+,$chr(32))))
-      .sockclosef $sockname | .halt
-    }
-    elseif (SPEC: isin %sockreader) {
-      hadd -m $sockname specLine $+($c1($chr(124)),$chr(32),$c2(%n,$replace($gettok(%sockreader,3-,32),_,$chr(32))),$chr(32),$c1($chr(40)),$c2(%n,$replace($gettok(%sockreader,2,32),_,$chr(32))),$c1($chr(41)),$chr(32),$hget($sockname,specLine))
-    }
-    elseif ($istok(WEAPON: SPECIAL: POWER: EFFECT: REQS:,$gettok(%sockreader,1,32),32)) {
-      hadd -m $sockname $lower($remove($gettok(%sockreader,1,32),:))) $gettok(%sockreader,2-,32)
-    }
-    if (END isin %sockreader) {
-      if ($hget($sockname,specLine)) {
-        %display $logo(%n,Specials) $c1(No exact special was found. Some possible ones are:) $mid($hget($sockname,specLine),2)
-      }
-      else {
-        %display $logo(%n,Specials) $c2(%n,$hget($sockname,weapon)) $+($c1($chr(40)),$c2(%n,$hget($sockname,special)),$c1($chr(41))) $c1($chr(124) Power:) $+($c2(%n,$hget($sockname,power)),$c1(%)) $c1($chr(124) Requirements:) $c2(%n,$hget($sockname,reqs))
-        %display $logo(%n,Specials) $c2(%n,$hget($sockname,weapon)) $c1(effect:) $c2(%n,$hget($sockname,effect))
-      }
-      .sockclosef $sockname | .halt
-    }
-  }
-}
-#DROP
-on *:sockopen:drop.*:{
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=npc&npc=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  sockwrite -nt $sockname host: $+(parsers.phantomnet.net,$crlf,$crlf)
-}
-on *:sockread:drop.*:{
-  .var %return $gettok($sock($sockname).mark,1,58), %n $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    .var %sockreader | .sockread %sockreader 
-    .tokenize 32 %sockreader    
-    if (No npcs found isin %sockreader) {
-      %return $logo(%n,drops) $c1(Nothing found for the search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58)))
-      .sockclosef $sockname | halt
-    }
-    if (NPC: isin %sockreader) {      
-      .var %count = 1, %c $ticks
-      while (END !isin %sockreader) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if (NPC: isin %sockreader) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($up($replace($gettok(%sockreader,2,32),_,$chr(32)))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockreader,3,32)),$c1($chr(41))) | .inc %count }  
-        if (%count >= 5) { %return $logo(%n,drop) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!drop #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) $+($c1($chr(40)),$c2(%n,zybez.net),$c1($chr(41))) | .sockclosef $sockname | halt }
-        .sockread %sockreader
-      } 
-      if (END isin %sockreader) { %return $logo(%n,drop) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!drop #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) $+($c1($chr(40)),$c2(%n,zybez.net),$c1($chr(41))) | .sockclosef $sockname | halt }
-    }
-    if ($gettok($sock($sockname).mark,4,58) == 0 && $istok(TDROPS:,$1,32)) {
-      %return $logo(%n,top-Drops) $gettok($gettok(%sockreader,2-,32),1-12,44) $zybez(%n)
-      .sockclosef $sockname | halt
-    }
-    if ($gettok($sock($sockname).mark,4,58) == 1 && $istok(DROPS:,$1,32)) {
-      %return $logo(%n,Common-Drops) $gettok($gettok(%sockreader,2-,32),1-12,44) $zybez(%n)
-      .sockclosef $sockname | halt
-    }
-    if (END isincs %sockreader) { .sockclosef $sockname | halt }    
-  }
-}
-#SPELLCHECK
-on *:SOCKOPEN:spellcheck.*: {
-  sockwrite  -nt $sockname GET $+(/cgi-bin/spell.exe?action=CHECKWORD&string=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: www.spellcheck.net
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:spellcheck.*: {
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if $regex(%sockreader,/<B>"(.*)" is spelled correctly.<\/B><\/font><P><BR>/Si) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,spellcheck) $c1(The word) $+($c1,",$c2(%n,$regml(1)),$c1,") $c1(is spelt correctly.)
-      .sockclosef $sockname | halt
-    }
-    elseif $regex(%sockreader,/<B>"(.*)" is misspelled.<\/B><\/font>/sI) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,spellcheck) $c1(The word) $+($c1,",$c2(%n,$regml(1)),$c1,") $c1(is misspelled.)
-      .var %x = 1, %c $ticks
-      .sockread %sockreader
-      .sockread %sockreader
-      while (%x) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if $regex(%sockreader,/(.*)<BR>/Si) {
-          .var %word = %word $+($c2(%n,$regml(1)),$c1,$chr(44))
-        }
-        if $regex(%sockreader,/<\/BLOCKQUOTE>/Si) {
-          if (%word) {
-            $gettok($sock($sockname).mark,1,58) $logo(%n,spellcheck) $c1(Suggestions:) $left(%word,-1)
-          }
-          .sockclosef $sockname | halt
-        }
-        .sockread %sockreader | inc %x
-      }
-    }
-  }
-}
-#FACT
-on *:SOCKOPEN:fact.*: {
-  sockwrite  -nt $sockname GET /Parsers.php HTTP/1.1
-  sockwrite  -nt $sockname Host: parsers.phantomnet.net
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:fact.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if $regex(%sockreader,/Random fact: (.*)/Si) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,random fact) $c1($htmlfree($regml(1)))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#CYBORG
-on *:SOCKOPEN:cyborg.*: {
-  sockwrite -nt $sockname GET $+(/index.php?acronym=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite -nt $sockname Host: cyborg.namedecoder.com
-  sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  sockwrite -nt $sockname $crlf
-}
-on *:SOCKREAD:cyborg.*: {
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if ($regex(%sockreader,/<p class="mediumheader">(.+?)<\/p>/Si)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,cyborg) $c1($regml(1))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-
-#ARMORY
-on *:SOCKOPEN:armorylookup.*: {
-  sockwrite  -nt $sockname GET $+(/character-sheet.xml?r=,$gettok($sock($sockname).mark,6,58),&n=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: $gettok($sock($sockname).mark,4,58)
-  sockwrite  -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  sockwrite  -nt $sockname $crlf
-}
-
-on *:SOCKREAD:armorylookup.*: {
-  .var %n = $gettok($sock($sockname).mark,5,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else { 
-    var %sockreader
-    sockread %sockreader
-    if $regex(%sockreader,/span class="">Level&nbsp;</span><span class="">(.*)&nbsp;</span><span class="">(.*)&nbsp;</span><span class="">(.*)</span>/) { 
-      hadd -m $sockname stats $regml(1) $regml(2) $regml(3)
-    }
-    if (*<h3>*</h3> iswm %sockreader) {
-      hadd -m $sockname guild $htmlfree(%sockreader)
-    }
-    if (*function defensesArmorObject() * iswm %sockreader) {
-      sockread %sockreader
-      if $regex(%sockreader,/this.base=(.*);) {
-        hadd -m $sockname armor $regml(1)
-      }
-    }
-    if $regex(%sockreader,/pan>(.*) / (.*) / (.*)</span>/) {
-      hadd -m $sockname skills $+($regml(1),/,$regml(2),/,$regml(3))
-    }
-    if (*<h4>Health:</h4>* iswm %sockreader) {
-      sockread %sockreader
-      sockread %sockreader
-      hadd -m $sockname health $htmlfree(%sockreader)
-    }
-    if (*<h4>Mana:</h4>* iswm %sockreader) {
-      sockread %sockreader
-      sockread %sockreader
-      hadd -m $sockname mana $htmlfree(%sockreader)
-    }
-    if $regex(%sockreader,/<img src="/images/icons/professions/(.*)-sm.gif"></div>/) {
-      inc %LOL2
-      hadd -m $sockname $+(armory.profession.,%LOL2) $up($regml(1))
-    }
-    if $regex(%sockreader,/<img class="ieimg" height="1" src="/images/pixel.gif" width="1"><b style=" width:(.*)"></b><span>(.*) / (.*)</span>/) {
-      inc %LOL3
-      hadd -m $sockname $+(armory.prof.,%LOL3) $regml(2)
-    }
-    if $regex(%sockreader,/h3>Lifetime Honorable Kills: <strong>(.*)</strong/) {
-      hadd -m $sockname HKS $regml(1)
-    }
-    if (*<div style="clear:both;"></div>* iswm %sockreader) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$upper($gettok($sock($sockname).mark,3,58) armory)) $c1(Character:) $c2(%n,$replace($gettok($sock($sockname).mark,2,58),$chr(37) $+ C3 $+ $chr(37) $+ A9,?)) $c1($chr(124)) $c1(Level:) $c2(%n,$hget($sockname,stats)) $+($c1,$chr(40),$c2(%n,$iif($remove($hget($sockname,mana.1),$chr(32)) == 0/0/0, Untalented, $remove($hget($sockname,skills),$chr(32)))),$c1,$chr(41))) $c1($chr(124)) $c1(Guild:) $c2(%n,$iif(!$hget($sockname,guild), None, $hget($sockname,guild))) $c1($chr(124)) $c1(Realm:) $c2(%n,$gettok($sock($sockname).mark,6,58))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$upper($gettok($sock($sockname).mark,3,58) armory)) $c1(Health:) $c2(%n,$hget($sockname,health)) $c1($chr(124)) $iif($hget($sockname,mana) == 100, $c1(Energy:) $c2(%n,100), $c1(Mana:) $c2(%n,$hget($sockname,mana))) $c1($chr(124)) $c1(Honor Kills:) $c2(%n,$iif($hget($sockname,HKS),$hget($sockname,HKS),None)) $c1($chr(124)) $c1(Armor:) $c2(%n,$hget($sockname,Armor)) $iif($hget($sockname,armory.profession.1) != none, $c1($chr(124)) $c2(%n,$hget($sockname,armory.prof.1)) $c1($hget($sockname,armory.profession.1))) $iif($hget($sockname,armory.profession.2) != none, $c2(%n,$hget($sockname,armory.prof.2)) $c1($hget($sockname,armory.profession.2)))
-      sockclosef $sockname | unset %LOL*
-    }
-    elseif (<br>The character you are trying to view is not currently available on the Armory.*</div> iswm %sockreader) { 
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$upper($gettok($sock($sockname).mark,3,58) armory)) $c1(Character:) $c2(%n,$replace($gettok($sock($sockname).mark,3,58),$chr(37) $+ C3 $+ $chr(37) $+ A9,?)) $c1($chr(124)) $c1(Level:) $c2(%n,$hget($sockname,stats)) $c1($chr(124)) $c1(Guild:) $c2(%n,$iif(!$hget($sockname,guild), None, $hget($sockname,guild))) $c1($chr(124)) $c1(Realm:) $c2(%n,$gettok($sock($sockname).mark,2,58))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$upper($gettok($sock($sockname).mark,3,58) armory)) $c1($htmlfree(%sockreader))
-      sockclosef $sockname | unset %LOL*
-    }
-    elseif (</html> isin %sockreader) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$upper($gettok($sock($sockname).mark,3,58) armory)) The realm or username specified could not be found. Please try again.
-      sockclosef $sockname | unset %LOL*
-    }
-  }
-}
-#RSMUSIC
-on *:SOCKOPEN:rsmusic.*: {
-  .sockwrite -nt $sockname GET /Parsers.php?type=zybezradio HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $crlf
-}
-on *:SOCKREAD:rsmusic.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    .var %sock,%sn = $sockname,%nick = $token($sock(%sn).mark,2,58),%o = $token($sock(%sn).mark,1,58)
-    .sockread %sock | .tokenize 124 %sock
-    if (*|* iswm %sock) {
-      if (*up and public.* iswm $1) {
-        %o $c1(Current DJ:) $c2(%nick,$gettok($2,2,45)) $c1(Song:) $c2(%nick,$4) $c1(Genre:) $c2(%nick,$3) $&
-          $c1(Listeners:) $c2(%nick,$5) $c1(To listen in vist:) $c2(%nick,$6)
-        .sockclosef %sn | halt
-      }
-      else {
-        %o $c1(Zybez radio is currently down, please visit) $c2(%nick,http://www.zybez.net/radio) $c1(for more info.)
-        .sockclosef %sn | halt
-      }
-    }
-  }
-}
-#GECOMPARE
-on *:sockopen:gecompare.*: {
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=gecompare&item1=,$gettok($sock($sockname).mark,3,58),&item2=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf $crlf
-}
-on *:sockread:gecompare.*: {
-  var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { 
-    .sockclose $sockname
-    .halt 
-  }
-  var %sockreader
-  sockread %sockreader
-  if (*Nothing found* iswm %sockreader) { 
-    $gettok($sock($sockname).mark,1,58) $logo(%n,gecompare) $c1(One of the items was not found in the Grand Exchange) 
-    .sockclosef $sockname 
-    halt 
-  }
-  if ($regex(%sockreader,/ITEM: (.*) (.*) (.*) (.*) (.*)/)) {
-    if (!$hget($sockname,iteminfo)) {
-      .hadd -m $sockname iteminfo $+($regml(1),:,$regml(2),:,$regml(3),:,$regml(4),:,$regml(5))
-    }
-    else {
-      .hadd -m $sockname iteminfo2 $+($regml(1),:,$regml(2),:,$regml(3),:,$regml(4),:,$regml(5))
-      if ($gettok($hget($sockname,iteminfo),3,58) > $gettok($hget($sockname,iteminfo2),3,58)) {
-        .hadd -m $sockname win.name $replace($gettok($hget($sockname,iteminfo),2,58),_,$chr(32))
-        .hadd -m $sockname lose.name  $replace($gettok($hget($sockname,iteminfo2),2,58),_,$chr(32))
-      }
-      else { 
-        .hadd -m $sockname win.name $replace($gettok($hget($sockname,iteminfo2),2,58),_,$chr(32)) 
-        .hadd -m $sockname lose.name $replace($gettok($hget($sockname,iteminfo),2,58),_,$chr(32))
-      }
-      .hadd -m $sockname min $gecompare($remove($calc($gettok($hget($sockname,iteminfo2),3,58) - $gettok($hget($sockname,iteminfo),3,58)),-))
-      .hadd -m $sockname market $gecompare($remove($calc($gettok($hget($sockname,iteminfo2),4,58) - $gettok($hget($sockname,iteminfo),4,58)),-))
-      .hadd -m $sockname max $gecompare($remove($calc($gettok($hget($sockname,iteminfo2),5,58) - $gettok($hget($sockname,iteminfo),5,58)),-))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,gecompare) $c1(Comparing) $c2(%n,$hget($sockname,win.name)) $c1(with) $c2(%n,$hget($sockname,lose.name)) $c1($chr(124) Cheapest: ) $c2(%n,$hget($sockname,lose.name)) $c1($chr(124) Price difference: Minimum:) $c2(%n,$hget($sockname,min)) $c1($chr(124) Market:) $c2(%n,$hget($sockname,market)) $c1($chr(124) Maximum:) $c2(%n,$hget($sockname,max))
-      sockclosef $sockname | halt
-    }
-  }
-  if ($regex(%sockreader,/END/)) { .sockclosef $sockname | halt }
-}
-
-#WEATHER
-on *:SOCKOPEN:weather.*: {
-  if ($gettok($sock($sockname).mark,3,58) != NOTHING) || ($gettok($sock($sockname).mark,4,58) == US) {
-    .sockwrite -nt $sockname GET $+(/us/,$gettok($sock($sockname).mark,2,58),/city-weather-forecast.asp?partner=accuweather&u=1&traveler=0) HTTP/1.1
-  }
-  if ($gettok($sock($sockname).mark,3,58) == NOTHING) {
-    if ($gettok($sock($sockname).mark,4,58) == UK) {
-      .sockwrite -nt $sockname GET $+(/ukie/index-forecast.asp?postalcode=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-    }
-    if ($gettok($sock($sockname).mark,4,58) == CA) {
-      .sockwrite -nt $sockname GET $+(/canada-weather-forecast.asp?postalcode=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-    }
-    elseif ($gettok($sock($sockname).mark,4,58) == INT) {
-      .sockwrite -nt $sockname GET $+(/world-index-forecast.asp?partner=forecastfox&locCode=,$gettok($sock($sockname).mark,2,58),&u=1) HTTP/1.1
-    } 
-  }
-  .sockwrite -nt $sockname Host: $+(www.accuweather.com,$crlf,$crlf)
-}
-on *:SOCKREAD:weather.*: {
-  .var %n = $gettok($sock($sockname).mark,5,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else { 
-    .var %sockreader
-    .sockread %sockreader
-    if (*Object Moved* iswm %sockreader) || (*We're sorry - we could not find any locations that matched your entry* iswm %sockreader) {
-      $gettok($sock($sockname).mark,1,58)) $logo(%n,error) $c1(Weather for) $c2(%n,$replace($gettok($sock($sockname).mark,2,58),$chr(37) $+ 20, $chr(32))) $c1(was not found. Try another location or zipcode $+ $chr(44) if you can use a zipcode this might get the best result. Remember you can use !weather -ca <Search> for weather in Canada or !weather -uk <Search> for weather in the UK.)
-      .sockclosef $sockname | halt
-    }
-    if $regex(%sockreader,/class="cityTitle">(.*) (.*)</a></div>/) || $regex(%sockreader,/>Complete Index Profile for (.*)</a></div>/) || $regex(%sockreader,/>Complete (.*) Hourly Forecast</a>/) {
-      hadd -m $sockname place $regml(1)
-    }
-    if $regex(%sockreader,/>Currently At (.*)</a>/) || $regex(%sockreader,/Currently</span> At (.*)</div>) || $regex(%sockreader,/>Currently at (.*)</a>/) {
-      hadd -m $sockname time $regml(1)
-    }
-    if $regex(%sockreader,/<span class="textsmallbold">(.*)</span>/) || $regex(%sockreader,/<div style="float: left; width: 330px;">(.*)</div>/) {
-      hadd -m $sockname date $regml(1)
-    }
-    if $regex(%sockreader,/<div id="quicklook_current_temps">(.*)</div>/) {
-      hadd -m $sockname temp $replace($regml(1),&deg;,$chr(176))
-    }
-    if $regex(%sockreader,/<div id="quicklook_current_rfval">(.*)</div>) {
-      hadd -m $sockname realfeel $replace($regml(1),&deg;,$chr(176))
-    } 
-    if $regex(%sockreader,/<div class="textsmall" style="margin-top:3px;">Winds: (.*)<br/> (.*)</div>/) {
-      hadd -m $sockname wind $regml(1) $regml(2)
-    }
-    if $regex(%sockreader,/<div id="quicklook_current_wxtext">(.*)</div>/) {
-      hadd -m $sockname condition $regml(1) 
-    }
-    if $regex(%sockreader,/Humidity:(.*)<br />/) {
-      hadd -m $sockname humidity $regml(1)
-    }
-    if $regex(%sockreader,/Dew Point: (.*)/) {
-      hadd -m $sockname dewpoint $replace($regml(1),&deg;,$chr(176),$chr(32),)
-    } 
-    if $regex(%sockreader,/<div class="textxsmall">Pressure: (.*)</div>/) || $regex(%sockreader,/<span class="textsmall">Pressure: (.*)</span><br />/) || $regex(%sockreader,/<span class="textxsmall">Pressure: (.*)</span><br />/) || $regex(%sockreader,/Pressure:(.*) <br />/) { 
-      hadd -m $sockname pressure $regml(1)
-    }
-    if $regex(%sockreader,/Visibility: (.*)/) {
-      hadd -m $sockname visibility $remove($regml(1),&nbsp;) 
-    } 
-    if (</html> isin %sockreader) {
-      $gettok($sock($sockname).mark,1,58)) $logo(%n,Weather) $c1(Weather for) $c2(%n,$up($lower($hget($sockname,place)))) $c1(at) $c2(%n,$hget($sockname,date) $hget($sockname,time))
-      $gettok($sock($sockname).mark,1,58)) $logo(%n,Weather) $c1(Conditions:) $c2(%n,$hget($sockname,condition)) $c1($chr(124) Temp:) $c2(%n,$hget($sockname,temp)) $c1($chr(124) RealFeel:) $c2(%n,$hget($sockname,realfeel)) $&
-        $c1($chr(124) Wind:) $c2(%n,$iif($hget($sockname,wind),$hget($sockname,wind),N/A)) $c1($chr(124) Humidity:) $c2(%n,$hget($sockname,humidity)) $c1($chr(124) Dew Point:) $c2(%n,$hget($sockname,dewpoint)) $c1($chr(124) Pressure:) $c2(%n,$hget($sockname,pressure)) $c1($chr(124) Visibility:) $c2(%n,$hget($sockname,visibility))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#FML
-on *:SOCKOPEN:fml.*: {
-  sockwrite  -nt $sockname GET /random HTTP/1.1
-  sockwrite  -nt $sockname Host: www.fmylife.com
-  sockwrite  -nt $sockname $str($lf,2)
-}
-on *:SOCKREAD:fml.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if ($regex(%sockreader,/class="fmllink">(.*)</a></p>/)) {
-      hadd -m $sockname text $htmlfree($regml(1))
-    }
-    if ($regex(%sockreader,/summary:'(.*)'/)) {
-      hadd -m $sockname summary $replace($regml(1),&quot;,$chr(34))
-    }
-    if ($regex(%sockreader,/class="left_part"><a href="(.*)" id=(.*) name=(.*)/)) {
-      hadd -m $sockname url http://www.fmylife.com $+ $regml(1)
-    }
-    if ($regex(%sockreader,/ your life (.*)</a> (.*)</span> (.*)you (.*)</a> (.*)</span>/)) {
-      hadd -m $sockname vote1 $remove($regml(2),$chr(40),$chr(41))
-      hadd -m $sockname vote2 $remove($regml(5),$chr(40),$chr(41))
-    }
-    if ($regex(%sockreader,/>On (.*) - <a class="liencat"/)) {
-      hadd -m $sockname add Submitted on $c2(%n,$regml(1))
-    }
-    if (*<div class="clear"></div></div>* iswm %sockreader) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,FML) $c1($hget($sockname,text))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,FML) $c2(%n,$hget($sockname,vote1)) voted $+($c1,",$c2(%n,Agree),$c1,") $chr(124) $c2(%n,$hget($sockname,vote2)) voted $+($c1,",$c2(%n,Deserved),$c1,") $chr(124) $hget($sockname,add)) $par(%n,$hget($sockname,url))
-      .sockclose $sockname | halt
-    }                                                                                
-  }
-}
-#CHUCK
-on *:SOCKOPEN:chuck.*: {
-  sockwrite  -nt $sockname GET /random-fact.php HTTP/1.1
-  sockwrite  -nt $sockname Host: chucknorrisjokes.linkpress.info
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:chuck.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader 
-    if ($regex(%sockreader,/<p style="font-size: 2.5em;">(.*)</p>/)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,Chuck norris) $c1($remove($replace($regml(1),&quot;,"),$chr(9)))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#VIN
-on *:SOCKOPEN:vin.*: {
-  sockwrite  -nt $sockname GET /index.php?pid=fact&person=vin HTTP/1.1
-  sockwrite  -nt $sockname Host: 4q.cc
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:vin.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if ($regex(%sockreader,/<div id="factbox">/)) {
-      .sockread %sockreader
-      $gettok($sock($sockname).mark,1,58) $logo(%n,vin diesel) $c1($remove($replace($htmlfree(%sockreader),&quot;,"),$chr(9)))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#YOMAMA
-on *:SOCKOPEN:yomama.*: {
-  sockwrite  -nt $sockname GET /rand/yomama.shtml HTTP/1.1
-  sockwrite  -nt $sockname Host: www.asandler.com
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:yomama.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if ($regex(%sockreader,/<!-- (.*) -->Yo (.*)/)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,yomama $+($chr(35),$regml(1))) $c1(Yo $regml(2))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#RSNAME
-on *:SOCKOPEN:rsname.*: {
-  if ($len($gettok($sock($sockname).mark,2,58)) > 12) {
-    $gettok($sock($sockname).mark,1,58) $logo($gettok($sock($sockname).mark,3,58),error) $c1(Username has to contain $+(Spaces,$chr(44)) $+(underscores,$chr(44)) $+(numbers,$chr(44)) letters and 12 characters max.)
-    .sockclosef $sockname | halt
-  }
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=checkrsn&rsn=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite -nt $sockname Host: parsers.phantomnet.net
-  sockwrite -nt $sockname $crlf
-}
-on *:SOCKREAD:rsname.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    .sockread %sockreader
-    if (RESULT isin %sockreader) {
-      if (taken isin $v2) {
-        $gettok($sock($sockname).mark,1,58) $logo(%n,checkrsn) $c1(The Runescape name) $c2(%n,$gettok($sock($sockname).mark,2,58)) $c1(is currently taken.)
-        .sockclosef $sockname | halt
-      }
-      else {
-        .sockread %sockreader
-        $gettok($sock($sockname).mark,1,58) $logo(%n,checkrsn) $c1(The Runescape name) $c2(%n,$gettok($sock($sockname).mark,2,58)) $c1(is currently availible. To sign up with it, please go to:) $c2(%n,$gettok(%sockreader,2,32))
-        .sockclosef $sockname | halt
-      }
-    }
-    if (END isin %sockreader) { .sockclosef $sockname | halt }
-  }
-}
-#RSWORLD
-on *:SOCKOPEN:rsworld.*: {
-  sockwrite  -nt $sockname GET $+(/parsers/world.php?world=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: vectra-bot.net
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:rsworld.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader
-    .sockread %sockreader
-    if ($regex(%sockreader,/Not found/i)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No world found for) $+($c1,",$c2(%n,$gettok($sock($sockname).mark,2,58)),$c1,") $c1(in the RuneScape world list.)
-      .sockclosef $sockname | halt
-    }
-    if ($regex(%sockreader,/World: (.*) Players: (.*) Activity/Location: (.*) Lootshare: (.*) Type: (.*) Link: (.*)/Si)) { 
-      if (!$regml(5)) {
-        $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No world found for) $+($c1,",$c2(%n,$gettok($sock($sockname).mark,2,58)),$c1,") $c1(in the RuneScape world list.)
-        .sockclosef $sockname | halt
-      }
-      $gettok($sock($sockname).mark,1,58) $logo(%n,rsworld) $c1(World:) $c2(%n,$regml(1)) $c1($chr(124),Players:) $c2(%n,$regml(2)) $+($c1,$chr(40),$c2(%n,$calc(($replace($regml(2),full,2000) / 2000) * 100)),$c1,%) $+($c1,capacity,$chr(41)) $c1($chr(124),Type:) $c2(%n,$regml(5)) $c1($chr(124),Location/Activity:) $c2(%n,$regml(3)) $c1($chr(124) Lootshare:) $c2(%n,$regml(4)) $c1($chr(124),Link:) $c2(%n,$regml(6))
-      .sockclosef $sockname | halt
-    }
-  }
-} 
-#URBAN
-on *:SOCKOPEN:urban.*: {
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=urban&q=,$gettok($sock($sockname).mark,2,58),&num=1) HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:urban.*: {
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    .var %sockreader | .sockread %sockreader
-    if (DEF: isin %sockreader) { .hadd -m $sockname Def $gettok(%sockreader,2-,32) }
-    elseif (EXAMPLE: isin %sockreader) { .hadd -m $sockname Example $gettok(%sockreader,2-,32) }
-    elseif (END isin %sockreader) {
-      .var %search $replace($gettok($sock($sockname).mark,2,58),+,$chr(32))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,urban) $+($c1,[",$c2(%n,%search),$c1,"]:) $replace($hget($sockname,Def),%search,$c2(%n,%search))
-      $gettok($sock($sockname).mark,1,58) $logo(%n,urban) $+($c1,[,$c2(%n,Example),$c1,]:) $replace($hget($sockname,Example),%search,$c2(%n,%search))
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#HALO3
-on *:SOCKOPEN:halo3.*:{
-  sockwrite  -nt $sockname GET $+(/parsers/halo.php?name=,$gettok($sock($sockname).mark,1,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: vectra-bot.net
-  sockwrite  -nt $sockname $crlf $crlf
-}
-on *:SOCKREAD:halo3.*:{
-  .var $hget($+(id.,$cid),$me) = $gettok($sockname,2,46), %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else { 
-    .var %sockread | .sockread %sockreader
-    if $regex(%sockreader,/Not found/) { 
-    $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c1(The gamertag) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,1,58),$+($chr(37),20),$chr(32))),$c1,") $c1(was not found in the HALO 3 hiscores.) | .sockclosef $sockname | .halt }
-    elseif ($regex(%sockreader,/ODST: Total games: (.*) Campaign: (.*) Firefight: (.*) Total score: (.*) Campaign score: (.*) on (.*) Firefight score: (.*) on (.*)/)) {
-      $gettok($sock($sockname).mark,2,58) $logo(%n,ODST) $c1(Games: ) $c2(%n,$regml(1)) $c1(Campaign: ) $c2(%n,$regml(2)) $c1(Firefight: ) $c2(%n,$regml(3)) $c1(score: ) $c2(%n,$regml(4)) $c1(Campaign score: ) $c2(%n,$regml(5)) $c1(Firefight score: ) $c2(%n,$regml(6))
-    }
-    elseif ($regex(%sockreader,/HALO 3: Total games: (.*) Campaign: (.*) Ranked: (.*) Social: (.*) Custom: (.*) Highest Skill: (.*) Total EXP: (.*?) :: (.*): (.*) :: (.*): (.*)</pre>/)) {
-      $gettok($sock($sockname).mark,2,58) $logo(%n,Halo 3) $c1(Games: ) $c2(%n,$regml(1)) $c1(Campaign: ) $c2(%n,$regml(2)) $c1(Ranked: ) $c2(%n,$regml(3)) $c1(Social: ) $c2(%n,$regml(4)) $c1(Custom: ) $c2(%n,$regml(5)) $c1(Highest skill: ) $c2(%n,$regml(6)) $c1(Total exp: ) $c2(%n,$regml(7)) $c1($regml(8) $+ : ) $c2(%n,$regml(9)) $c1($regml(10) $+ : ) $c2(%n,$regml(11))
-      .sockclosef $sockname | .halt
-    }
-  }
-}
-#WPCOMPARE
-on *:SOCKOPEN:wpcompare.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=wpcompare&user1=,$gettok($sock($sockname).mark,2,58),&user2=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:wpcompare.*:{
-  .var %n = $gettok($sock($sockname).mark,4,58), %display = $gettok($sock($sockname).mark,1,58), %u1 = $gettok($sock($sockname).mark,2,58), %u2 = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if (Not Found isin %sockreader) {
-    .tokenize 32 %sockreader
-    %display $logo(%n,Error) $c2(%n,$up($2)) $c1(is not found in the) $c2(%n,WhatPulse.org) $c1(database.)
-    .sockclosef $sockname | halt
-  }
-  if (Has not yet pulsed isin %sockreader) {
-    .tokenize 32 %socket
-    %display $logo(%n,Error) $c2(%n,$up($2)) $c1(has not pulsed to) $c2(%n,WhatPulse.org) $c1(yet.)
-    .sockclosef $sockname | halt
-  }
-  else {
-    .tokenize 32 %sockreader
-    if (USER isin $1) { 
-      .tokenize 32 $2-
-      .hinc -m $sockname ucount 1
-      hadd -m $sockname $+(user,$hget($sockname,ucount),.keys)  $1
-      hadd -m $sockname $+(user,$hget($sockname,ucount),.clicks) $2
-    }
-    if ($1 == END) {
-      .var %clicks $abs($calc($hget($sockname,user1.clicks) - $hget($sockname,user2.clicks)))
-      .var %keys $abs($calc($hget($sockname,user1.keys) - $hget($sockname,user2.keys)))
-      if (%keys == 0) {
-        %display $logo(%n,whatpulse-compare) $c2(%n,%u1) $+ $c1 and $c2(%n,%u2) $+ $c1 have the same number of keys $+ $c1 $+ .
-        if (%clicks == 0) {
-          %display $logo(%n,whatpulse-compare) $c2(%n,%u1) $+ $c1 and $c2(%n,%u2) $+ $c1 have the same number of clicks $+ $c1 $+ .
-        }
-        .sockclosef $sockname | halt
-      }
-      if (%clicks == 0) {
-        %display $logo(%n,whatpulse-compare) $c2(%n,%u1) $+ $c1 and $c2(%n,%u2) $+ $c1 have the same number of clicks $+ $c1 $+ .
-        if (%keys == 0) {
-          %display $logo(%n,whatpulse-compare) $c2(%n,%u1) $+ $c1 and $c2(%n,%u2) $+ $c1 have the same number of keys $+ $c1 $+ .
-        }
-        .sockclosef $sockname | halt
-      }
-      elseif (%keys > 0 && %clicks > 0) {
-        .var %clicks $iif(%clicks == 0,has the same click count as,is $c2(%n,$bytes(%clicks,db)) $+ $c1 clicks higher than)
-        .var %clickcount $abs($calc($hget($sockname,user1.clicks) - $hget($sockname,user2.clicks)))
-        .var %winner.clicks $iif($hget($sockname,user1.clicks) > $hget($sockname,user2.clicks),1,2)
-        .var %winner.keys $iif($hget($sockname,user1.keys) > $hget($sockname,user2.keys),1,2)
-        .var %loser.clicks $iif(%winner.clicks == 1,2,1)
-        .var %loser.keys $iif(%winner.keys == 1,2,1)
-        %display $logo(%n,whatpulse-compare) $c2(%n,$($+(%,u,%loser.clicks),2)) $c1 $+ ( $+ $c2(%n,$bytes($hget($sockname,$+(user,%winner.clicks,.clicks)),db)) $+ $c1 $+ ) %clicks $c2(%n,$($+(%,u,%winner.clicks),2)) $c1 $+ ( $+ $c2(%n,$bytes($hget($sockname,$+(user,%loser.clicks,.clicks)),db)) $+ $c1 $+ ). $&
-          $c2(%n,$($+(%,u,%winner.keys),2)) $c1 $+ ( $+ $c2(%n,$bytes($hget($sockname,$+(user,%winner.keys,.keys)),db)) $+ $c1 $+ ) $iif(%keys == 0,has the same key count as,is $c2(%n,$bytes(%keys,db)) $+ $c1 keys higher than) $c2(%n,$($+(%,u,%loser.keys),2)) $c1 $+ ( $+ $c2(%n,$bytes($hget($sockname,$+(user,%loser.keys,.keys)),db)) $+ $c1 $+ ). 
-        .sockclosef $sockname
-      }
-    }
-  }
-}
-#PLAYERS
-on *:SOCKOPEN:players.*: {
-  .sockwrite -nt $sockname GET /title.ws HTTP/1.1
-  .sockwrite -nt $sockname Host: runescape.com
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:players.*: {
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if $regex(%sockreader,/There are currently (.*) people playing/) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,players) $c1(There are currently) $c2(%n,$regml(1)) $c1(people playing runescape.)
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#CLAN
-on *:SOCKOPEN:clan.*: {
-  if ($sockerr == 3) { 
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(Runehead.com seems to be offline at the moment.) 
-    .sockclosef $sockname | .halt
-  }
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($len($gettok($sock($sockname).mark,2,58)) > 12) || ($chr(36) isin $gettok($sock($sockname).mark,2,58)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(Username has to contain $+(Spaces,$chr(44)) $+(underscores,$chr(44)) $+(numbers,$chr(44)) letters and 12 characters max.)
-    .sockclosef $sockname | .halt
-  }
-  .sockwrite -nt $sockname GET $+(/feeds/lowtech/searchuser.php?type=2&user=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname Host: www.runehead.com
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:clan.*: {
-  .var %n $gettok($sock($sockname).mark,3,58), %t $gettok($sock($sockname).mark,4,58), %rsn $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { .msg #devvectra Failed to connect with Runehead.com (!clan command) | $gettok($sock($sockname).mark,3,58) $logo(%n,error) Connecting to runehead.com failed, the page might be offline. | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if $regex(%sockreader,/Not Found/) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$rsnH(%n,%t,%rsn)),$c1,") $c1(was not found in RSHSC clan database.)
-      .sockclosef $sockname | halt
-    }
-    else {
-      if $regex(%sockreader,/(.*)\|(.*)/si) {
-        .hinc -m $sockname ID
-        hadd -m $sockname $+(link.,$hget($sockname,ID)) $regml(2)
-        hadd -m $sockname $+(name.,$hget($sockname,ID)) $regml(1)
-      }
-      if $regex(%sockreader,/@@end/) {
-        .var %x = 1
-        while (%x <= $hget($sockname,id)) {
-          hadd -m $sockname final $hget($sockname,final) $+($hget($sockname,$+(name.,%x)),$iif(%x != $hget($sockname,id),$chr(44)))
-          inc %x
-        }
-        $gettok($sock($sockname).mark,1,58) $logo(%n,clan) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(is in) $c2(%n,$hget($sockname,id)) $c1($iif($hget($sockname,id) == 1,clan:,clans:)) $c2(%n,$hget($sockname,final)) $iif($hget($sockname,id) == 1,$+($c1,$chr(40),Link:) $+($c2(%n,$hget($sockname,link.1)),$c1,$chr(41)))
-        .sockclosef $sockname | halt
-      }
-    }
-  }
-}
-
-#GOOGLE
-on *:SOCKOPEN:google.*: {
-  .sockwrite -nt $sockname GET $+(/jeffreims/google.php?search=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname Host: www.vectra-bot.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:google.*: {
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockreader 
-    sockread %sockreader
-    if ($regex(%sockreader,/TITLE: (.*?) (- [ Translate this page ])?/)) {
-      hadd -m $sockname google.title $regml(1)
-    }
-    if ($regex(%sockreader,/LINK: (.*)/Si)) {
-      hadd -m $sockname google.link $regml(1)
-    }
-    if ($regex(%sockreader,/CONTENT: (.*)\.\.\./Si)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,$iif($network == bitlbee,google,12g4o7o12g3l4e)) $c1(Title:) $c2(%n,$hget($sockname,google.title)) $c1(Link:) $c2(%n,$hget($sockname,google.link)) $c1( - ) $c2(%n,$left($regml(1) $+ ...,200))
-      .sockclosef $sockname
-    }
-    elseif ($regex(%sockreader,/Not found/Si)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No results found for) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,2,58),$chr(43),$chr(32))),".)
-      .sockclosef $sockname
-    }
-  }
-}
-#SPELL
-on *:sockopen:spell.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=spells&spell=,$gettok($sock($sockname).mark,2,58),&amount=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:spell.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58), %amount $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/^(NAME|LEVEL|EXP|MAX|DESC|RUNES|COST)/Si)) { .hadd -m $sockname $lower($regml(1)) $gettok(%sockreader,2-,32) }
-  if (END isin %sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Spell) $c2(%n,$hget($sockname,name)) $c1($chr(124),Level:) $c2(%n,$hget($sockname,level)) $c1($chr(124),Runes Needed:) $c2(%n,$hget($sockname,runes)) $&
-      $+($c1([Min:),$chr(32),$c2(%n,$bytes($gettok($hget($sockname,cost),1,44),db)),$chr(32),$c1(Market:),$chr(32),$c2(%n,$bytes($gettok($hget($sockname,cost),2,44),db)),$chr(32),$c1(Max:),$chr(32),$c2(%n,$bytes($gettok($hget($sockname,cost),3,44),db)),$c1(]))  $c1($chr(124),Exp:) $+($c2(%n,$hget($sockname,exp)),$chr(32),$c1(x),$c2(%n,%amount)) $c1($chr(124),Max hit:) $c2(%n,$hget($sockname,max))
-    .sockclosef $sockname | halt
-  }
-}
-on *:sockopen:rsnchange.*: {
-  sockwrite -n $sockname POST /namechange.php HTTP/1.1
-  sockwrite -n $sockname Host: runetracker.org
-  sockwrite -n $sockname Content-Type: application/x-www-form-urlencoded 
-  sockwrite -n $sockname Content-Length: $len($gettok($sock($sockname).mark,3,58))
-  sockwrite -n $sockname $+($crlf,$gettok($sock($sockname).mark,3,58)) 
-}
-on *:sockread:rsnchange.*: { 
-  var %n = $gettok($sock($sockname).mark,1,58)
-  if ($sockerr) { 
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(Couldn't connect with runetracker.org)
-    .sockclosef $sockname
-    halt 
-  }
-  var %sockread | sockread %sockread
-  if ($regex(%sockread,/This name was already merged/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(Sorry, this rsname has already been merged on runetracker.)
-    sockclose $sockname
-  }
-  elseif ($regex(%sockread,/Old name was not found in RuneTracker Database. Perhaps it was already merged/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(Sorry, the old rsname was not found in hiscores.)
-    sockclose $sockname
-  }
-  elseif ($regex(%sockread,/New name is not on the hiscores. Did you enter a correct name/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(Sorry, the new rsname was not found in hiscores.)
-    sockclose $sockname
-  }
-  elseif ($regex(%sockread,/We cannot validate this request/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(Sorry, the rsnames did not match.)
-    sockclose $sockname
-  }
-  elseif ($regex(%sockread,/Merge Completed Successfully/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(The rsnames have been merged!)
-    sockclose $sockname
-  }
-  elseif ($regex(%sockread,/Old name is still on the/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,name change) $c1(The old rsname is still on the hiscores)
-    sockclose $sockname
-  }
-}
-#CLANAVG
-on *:sockopen:clanavg.*:{
-  .sockwrite -nt $sockname GET $+(/parser/clanavg.php?name=,$gettok($sock($sockname).mark,2,58),&skill=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  .sockwrite -nt $sockname host: $+(vectra-bot.net,$crlf,$crlf)
-}
-on *:sockread:clanavg.*:{
-  .var %n = $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader | .sockread %sockreader
-  if ($regex(%sockreader,/Members:(.*)/i)) {
-    hadd -m $sockname Members $regml(1)
-  }
-  if ($regex(%sockreader,/Skill avg:(.*)/i)) {
-    hadd -m $sockname skillavg $regml(1)
-  }
-  if ($regex(%sockreader,/Rank:(.*)/i)) {
-    hadd -m $sockname Rank $regml(1)
-  }
-  if ($regex(%sockreader,/name:(.*)/i)) {
-    hadd -m $sockname name $regml(1)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Clan Average) $c1(Clan:) $+($c2(%n,$hget($sockname,name)),$chr(32),$c1,$chr(40),$c2(%n,$hget($sockname,members)),$chr(32), $c1(members),$chr(41),$chr(32),$chr(124),$chr(32),Skill Average:)) $c2(%n,$replace($hget($sockname,skillavg),-,$chr(46))) $c1($chr(124) Skill Rank:) $c2(%n,$replace($hget($sockname,rank),-,$chr(44))) 
-    .sockclosef $sockname
-  }
-}
-#MONSTER
-on *:sockopen:monster.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=npc&npc=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  .sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -nt $sockname host: $+(parsers.phantomnet.net,$crlf,$crlf)
-}
-on *:sockread:monster.*:{
-  .var %return $gettok($sock($sockname).mark,1,58),%n $gettok($sock($sockname).mark,2,58)
-  .if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .else {
-    .var %sockread
-    .sockread %sockread
-    if (No npcs found isin %sockread) {
-      %return $logo(%n,npc) $c1(Nothing found for the search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58)))
-      .sockclosef $sockname | halt
-    }
-    if (NPC: isin %sockread) {      
-      .var %count = 1, %c $ticks
-      while (END !isin %sockread) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if (NPC: isin %sockread) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($up($replace($gettok(%sockread,2,32),_,$chr(32)))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockread,3,32)),$c1($chr(41))) | .inc %count }  
-        if (%count >= 5) { %return $logo(%n,npc) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!npc #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) $+($c1($chr(40)),$c2(%n,zybez.net),$c1($chr(41))) | .sockclosef $sockname | halt }
-        .sockread %sockread
-      } 
-      if (END isin %sockread) { %return $logo(%n,npc) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!npc #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) $+($c1($chr(40)),$c2(%n,zybez.net),$c1($chr(41))) | .sockclosef $sockname | halt }
-    }
-    if ($regex(%sockread,/(NAME|LEVEL|RACE|HP|LOCATION|MEMBERS|LINK):/Si)) {
-      .hadd -m $sockname $lower($regml(1)) $gettok(%sockread,2-,32)
-    }
-    if (END isincs %sockread) {
-      if ($hget($sockname,name)) {
-        %return $logo(%n,Npc) $c2(%n,$gettok($hget($sockname, name),1,58)) $+($c1($chr(40)),$c1($chr(35)),$c2(%n,$remove($gettok($hget($sockname, name),2,58),$chr(35))),$c1($chr(41))) $c1($chr(124) Level:) $c2(%n,$hget($sockname, level)) $c1($chr(124) Members:) $iif($hget($sockname,members) == 1,3Yes,4No) $c1($chr(124) Race:) $c2(%n,$hget($sockname, race)) $c1($chr(124) Cons:) $c2(%n,$hget($sockname, hp)) $+($c1($chr(40)),$c2(%n,$calc($hget($sockname, hp) * 4)),exp,$c1($chr(41))) $zybez(%n)
-        %return $logo(%n,Npc) $c1(Location:) $c2(%n,$hget($sockname, location)) $c1($chr(124) Link:) $c2(%n,$hget($sockname, link)) $zybez(%n)
-      }
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#POUCHES
-on *:sockopen:pouch.*: {
-  sockwrite  -nt $sockname GET $+(/Parsers.php?type=pouches&pouch=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  sockwrite  -nt $sockname Host: parsers.phantomnet.net
-  sockwrite  -nt $sockname $str($crlf,2)
-}
-on *:sockread:pouch.*: {
-  var %n $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockread | sockread %sockread
-    if ($regex(%sockread,/returned found no results/i)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,pouches) $c1(Sorry, we couldn't find that pouch.)
-      .sockclosef $sockname | halt  
-    }
-    elseif (NAMES isincs %sockread) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,pouches) $c1(Sorry, we couldn't find that pouch because to many results were returned.)
-      .sockclosef $sockname | halt  
-    }
-    elseif ($regex(%sockread,/(NAME|LEVEL|CHARM|SHARDS|SECOND|EXP|TIME|FOCUS|OTHER):/Si)) {
-      hadd -m $sockname $lower($regml(1)) $gettok(%sockread,2-,32)
-    }
-    elseif (END isincs %sockread) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,pouches) $c1(Name:) $c2(%n,$hget($sockname,name)) $c1($chr(124) Level required:) $c2(%n,$hget($sockname,level)) $c1($chr(124) Shards:) $c2(%n,$hget($sockname,shards)) $c1($chr(124) Charm:) $c2(%n,$hget($sockname,charm)) $&
-        $c1($chr(124) Component:) $c2(%n,$hget($sockname,second)) $c1($chr(124) Exp:) $c2(%n,$hget($sockname,exp)) $c1($chr(124) Time:) $c2(%n,$hget($sockname,time)) $c1($chr(124) Focus:) $c2(%n,$hget($sockname,focus)) $c1($chr(124) Style:) $c2(%n,$hget($sockname,other))
-      .sockclosef $sockname | halt  
-    }
-  }
-}
-#SLOGAN
-on *:sockopen:slogan.*:{
-  .sockwrite -nt $sockname GET $+(/slogan.cgi?word=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: www.thesurrealist.co.uk
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-
-on *:sockread:slogan.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if $regex(%sockreader,/<p class="mov">Paste <b>(.*)</b> into a web/) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,slogan) $c1(The word) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,2,58),+,$chr(32))),$c1,") $c1(returned slogan:) $c2(%n,$regml(1))
-    .sockclosef $sockname
-  }
-}
-
-#1881
-on *:sockopen:1881.*:{
-  .sockwrite -nt $sockname GET $+(/?Query=,$gettok($sock($sockname).mark,2,58),&qt=8) HTTP/1.1
-  .sockwrite -nt $sockname HOST: www.1881.no
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:1881.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/Ingen treff/Si) || $regex(%sockreader,/treff<\/h2>/Si)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(Fant ingen treff p?) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,2,58),+,$chr(32))),$c1,") $c1(i 1881.no's register.) $+($c1,$chr(40),$c2(%n,1881.no),$c1,$chr(41))
-    .sockclosef $sockname | halt
-  }
-  if (!$hget($sockname,tlf) && $regex(%sockreader,/Phone=(.*)\&amp;ListingId/Si)) {
-    hadd -m $sockname tlf $regml(1)
-  }
-  if (!$hget($sockname,navn)) && ($regex(%sockreader,/ListingName=(.*)\&RedirectUrl/Si) || $regex(%sockreader,/target="_self">(.*)<\/a>/Si)) {
-    hadd -m $sockname navn $regml(1)
-  }
-  if (!$hget($sockname,addresse) && $regex(%sockreader,/<span class="street-address">/Si)) {
-    .sockread %sockreader
-    hadd -m $sockname addresse $htmlfree(%sockreader)
-  }
-  if (!$hget($sockname,post) && $regex(%sockreader,/<\/span><span class="postal-code">/Si)) {
-    .sockread %sockreader
-    hadd -m $sockname post $htmlfree(%sockreader)
-  }
-  if (!$hget($sockname,region) && $regex(%sockreader,/<\/span><span class="region">/Si)) {
-    .sockread %sockreader
-    hadd -m $sockname region $htmlfree(%sockreader)
-  }
-  if (!$hget($sockname,kart) && $regex(%sockreader,/<li><a href="(.*)" title="Vis i kart"/Si)) {
-    hadd -m $sockname kart $replace($regml(1),&amp;,&)
-  }
-  if ($regex(%sockreader,/<div class="secondary-content">/Si)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,1881) $c1(Navn:) $c2(%n,$iif($hget($sockname,navn),$bytt($v1),N/A)) $c1($chr(124),Addresse:) $c2(%n,$iif($hget($sockname,addresse),$bytt($v1),N/A)) $c1($chr(124),Postkode:) $c2(%n,$iif($hget($sockname,post),$v1,N/A)) $c1($chr(124),Sted:) $c2(%n,$iif($hget($sockname,region),$bytt($v1),N/A)) $c1($chr(124),Nummer:) $c2(%n,$iif($hget($sockname,tlf),$v1,N/A))
-    if ($hget($sockname,kart)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,1881) $c1(Kart:) $c2(%n,$+(www.1881.no,$hget($sockname,kart)))
-    }
-    .sockclosef $sockname | halt
-  }
-}
-#CLANINFO
-on *:sockopen:claninfo.*:{
-  if ($sockerr == 3) { 
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(Runehead.com seems to be offline at the moment.) 
-    .sockclosef $sockname | .halt
-  }
-  .sockwrite -nt $sockname GET $+(/feeds/lowtech/searchclan.php?search=,$gettok($sock($sockname).mark,2,58),&type=2) HTTP/1.1
-  .sockwrite -nt $sockname HOST: www.runehead.com
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:claninfo.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,error) Connecting with runehead.com failed. | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/Not found/Si)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(The clan name) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,2,58),+,$chr(32))),$c1,") $c1(was not found in the RSHSC.)
-    .sockclosef $sockname | halt
-  }
-  if ($regex(%sockreader,/(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)\|(.*)/Si)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,claninfo) $+($c1,$chr(91),$c2(%n,$regml(5)),$c1,$chr(93)) $c2(%n,$regml(1)) $+($c1,$chr(40),$c2(%n,$regml(2)),$c1,$chr(41)) $c1($chr(124),Total members:) $&
-      $c2(%n,$regml(6)) $c1($chr(124)) $+($c1,$chr(91),$c2(%n,Avg),$c1,$chr(93)) $c1(Cmb:) $+($c1,$chr(40),F2P:) $c2(%n,$regml(16)) $c1($chr(124),P2P:) $+($c2(%n,$regml(7)),$c1,$chr(41)) $c1(Cons:) $c2(%n,$regml(8)) $c1(Magic:) $&
-      $c2(%n,$regml(10)) $c1(Range:) $c2(%n,$regml(11)) $c1(Skill total:) $c2(%n,$bytes($regml(9),db)) $c1($chr(124),F2P or P2P:) $c2(%n,$iif($regml(12) == not set,$v1,$v1 $c1(based))) $+($c1,$chr(40),Homeworld) $&
-      $+($c2(%n,$iif($regml(15),$v1,Not set)),$c1,$chr(41)) $c1($chr(124),Cape:) $c2(%n,$iif($regml(14),$v1,Not set)) $c1($chr(124),RuneHead link:) $c2(%n,$regml(3))
-    .sockclosef $sockname | halt
-  }
-}
-#ALCH
-on *:sockopen:alch.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=item&item=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  .sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -nt $sockname Host: $+(parsers.phantomnet.net,$crlf,$crlf)
-}
-on *:sockread:alch.*:{
-  .var %return $gettok($sock($sockname).mark,1,58), %n $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if (nothing found isin %sockreader) {
-    %return $logo(%n,alch) $c1(Nothing found for your search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58))) $+ $c1(.) $zybez(%n)
-    .sockclosef $sockname | halt 
-  }
-  if (ITEM: isin %sockreader) {      
-    .var %count = 1, %c $ticks
-    while (END !isin %sockreader) {
-      if ($ticks > $calc(%c + 2000)) { break }
-      if (ITEM: isin %sockreader) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($up($replace($gettok(%sockreader,2,32),_,$chr(32)))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockreader,3,32)),$c1($chr(41))) | .inc %count }  
-      if (%count >= 5) { %return $logo(%n,alch) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!alch #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-      .sockread %sockreader
-    } 
-    if (END isin %sockreader) { %return $logo(%n,alch) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!alch #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-  }
-  if (NAME: isin %sockreader) { .hadd -m $sockname Name $up($replace($gettok(%sockreader,2,32),_,$chr(32))) }
-  if (HALCH isin %sockreader) {
-    .var %high $gettok(%sockreader,2,32), %multiplyby $gettok($sock($sockname).mark,2,58)
-    .sockread %sockreader
-    .var %low $gettok(%sockreader,2,32)
-    if (%multiplyby > 1) {
-      %return $logo(%n,alch) $+($c1([),$c2(%n,$hget($sockname,Name)),$c1(])) $c1(High Alch:) $c2(%n,$bytes($calc(%high * %multiplyby),db)) $+($c1($chr(40)),$c2(%n,$shortamount(%high)),$c1($chr(41))) $c1($chr(124) Low Alch:) $c2(%n,$bytes($calc(%low * %multiplyby),db)) $+($c1($chr(40)),$c2(%n,$shortamount(%low)),$c1($chr(41))) $zybez(%n) 
-      .sockclosef $sockname | halt
-    }
-    else {
-      %return $logo(%n,alch) $+($c1([),$c2(%n,$hget($sockname,Name)),$c1(])) $c1(High Alch:) $c2(%n,$bytes(%high,db)) $c1($chr(124) Low Alch:) $c2(%n,$bytes(%low,db)) $zybez(%n) 
-      .sockclosef $sockname | halt
-    }
-  }
-  if (END isincs %sockreader) { .sockclosef $sockname | halt }
-}
-#CLUE
-on *:sockopen:clue.*:{
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($len($gettok($sock($sockname).mark,4,58)) <= 3) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(Search has to contain 4 letters or more.) $zybez(%n)
-    .sockclosef $sockname | halt
-  }
-  .sockwrite -nt $sockname GET /misc.php?id=57&runescape_treasuretrailhelp.htm HTTP/1.1
-  .sockwrite -nt $sockname HOST: www.zybez.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:clue.*:{
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/Speak to \.\.\./)) { 
-    hadd -m $sockname type speak
-  }
-  if ($regex(%sockreader,/Anagrams/)) { 
-    hadd -m $sockname type anagram
-  }
-  if ($regex(%sockreader,/Challenges/)) { 
-    hadd -m $sockname type challenge
-  }
-  if ($regex(%sockreader,/Other Clues/)) { 
-    hadd -m $sockname type riddle
-  }
-  if ($regex(%sockreader,/Emote/)) { 
-    hadd -m $sockname type emote
-  }
-  if (($hget($sockname,type) == speak) && $+(*,$gettok($sock($sockname).mark,4,58),*) iswm $htmlfree(%sockreader)) {
-    hadd -m $sockname person $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname location $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,speakto) $+($c1,",$c2(%n,$hget($sockname,person)),$c1,") $c1($chr(45),Location:) $c2(%n,$hget($sockname,location))
-    .sockclosef $sockname | halt
-  }
-  if (($hget($sockname,type) == anagram) && $+(*,$gettok($sock($sockname).mark,4,58),*) iswm $htmlfree(%sockreader)) {
-    hadd -m $sockname anagram $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname NPC $htmlfree(%sockreader)
-    sockread %sockreader
-    hadd -m $sockname location $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,anagram) $+($c1,",$c2(%n,$hget($sockname,anagram)),$c1,") $c1($chr(45),NPC:) $c2(%n,$hget($sockname,NPC)) $c1($chr(124),Location:) $c2(%n,$hget($sockname,location)) $zybez(%n)
-    .sockclosef $sockname | halt
-  }
-  if (($hget($sockname,type) == challenge) && $+(*,$gettok($sock($sockname).mark,4,58),*) iswm $htmlfree(%sockreader)) {
-    hadd -m $sockname challenge $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname answer $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,challenge) $+($c1,",$c2(%n,$hget($sockname,challenge)),$c1,") $c1($chr(45),Answer:) $c2(%n,$hget($sockname,answer)) $zybez(%n)
-    .sockclosef $sockname | halt
-  }
-  if (($hget($sockname,type) == riddle) && $+(*,$gettok($sock($sockname).mark,4,58),*) iswm $htmlfree(%sockreader)) {
-    hadd -m $sockname riddle $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname answer $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,riddle) $+($c1,",$c2(%n,$hget($sockname,riddle)),$c1,") $c1($chr(45),Answer:) $c2(%n,$hget($sockname,answer)) $zybez(%n)
-    .sockclosef $sockname | halt
-  }
-  if (($hget($sockname,type) == emote) && $+(*,$gettok($sock($sockname).mark,4,58),*) iswm $htmlfree(%sockreader)) && ($regex(%sockreader,/<\/td>/Si)) {
-    hadd -m $sockname emote $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname location $htmlfree(%sockreader)
-    .sockread %sockreader
-    hadd -m $sockname items $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Emotes & Outfit) $+($c1,",$c2(%n,$hget($sockname,emote)),$c1,") $c1($chr(45),Location:) $c2(%n,$hget($sockname,location))
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Emotes & Outfit) $c1(Aquiring items:) $c2(%n,$hget($sockname,items)) $zybez(%n)
-    .sockclosef $sockname | halt
-  }
-  if (*Other Possible Rewards* iswm %sockreader) && ($hget($sockname,type) == emote) { 
-    $gettok($sock($sockname).mark,1,58) $logo(%n,clue) $c1(Sorry, couldn't find anything that matched your search.)
-    .sockclosef $sockname | halt
-  }
-}
-#LOCATOR
-on *:sockopen:locator.*:{
-  .sockwrite -nt $sockname GET /runescape/?page=coordinates_list.htm HTTP/1.1
-  .sockwrite -nt $sockname HOST: www.tip.it
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:locator.*:{
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/ $+ $($replace($gettok($sock($sockname).mark,3,58),West,W,North,N,South,S,East,E),2) $+ /Si)) {
-    .sockread %sockreader
-    if ($regex(%sockreader,/ $+ $($replace($gettok($sock($sockname).mark,4,58),West,W,North,N,South,S,East,E),2) $+ /Si)) {
-      .sockread %sockreader
-      .var %x = 5
-      while (%x <= 10) {
-        hadd -m $sockname location $hget($sockname,location) $htmlfree(%sockreader)
-        if ($regex(%sockreader,/<\/td>/Si)) {
-          $gettok($sock($sockname).mark,1,58) $logo(%n,coordinates) $c1(Coords:) $c2(%n,$gettok($sock($sockname).mark,3,58) $gettok($sock($sockname).mark,4,58)) $c1($chr(124),Location:) $c2(%n,$hget($sockname,location))
-          .sockclosef $sockname | halt
-        }
-        .sockread %sockreader
-        inc %x
-      }
-    }
-  }
-}
-on *:sockclose:locator.*:{
-  .var %n = $gettok($sock($sockname).mark,2,58)
-  if (!$hget($sockname,location)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(The coordinates) $c2(%n,$gettok($sock($sockname).mark,3,58) $gettok($sock($sockname).mark,4,58)) $c1(was not found on the Tip.it clue page.)
-    .sockclosef $sockname | halt
-  }
-}
-#RSNEWS
-on *:SOCKOPEN:RSNews.*:{
-  sockwrite -n $sockname GET /Parsers.php?type=rsnews HTTP/1.1
-  sockwrite -n $sockname Host: $+(parsers.phantomnet.net,$crlf,$crlf)
-}
-on *:SOCKREAD:RSNews.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58), %newsitem $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader | .sockread %sockreader
-  if ($gettok(%sockreader,1,32) == %newsitem) {
-    .tokenize 215 $gettok(%sockreader,2-,32)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,rs news $chr(35) $+ %newsitem) $c1(Title:) $c2(%n,$1) $c1($chr(124) Date:) $c2(%n,$remove($2,$chr(40),$chr(41))) $c1($chr(124) Desc:) $c2(%n,$3) $c1($chr(124) Link:) $c2(%n,$remove($4,$chr(40),$chr(41),<br />))
-    .sockclosef $sockname | halt
-  }
-  if (@@END isin %sockreader) {  .sockclosef $sockname | halt }
-}
-#AUTORSNEWS
-on *:SOCKOPEN:rsnewschk.*:{
-  if ($sockerr) { .sockclosef $sockname }
-  else { .sockwrite $sockname GET $+(/Parsers.php?type=rsnews HTTP/1.1,$crlf,Host: parsers.phantomnet.net,$str($crlf,2)) }
-}
-on *:SOCKREAD:rsnewschk.*:{
-  if ($sockerr) { .msg #DevVectra $logo(-,error) $c1(Error connecting for auto rsnews checker.) | .sockclosef $sockname | halt }
-  else {
-    .var %src | .sockread %src
-    if (*. iswm $gettok(%src,1,32)) {
-      .tokenize 215 $gettok(%src,2-,32)
-      .noop $regex($4,/newsitem\.ws\?id=(\d+)$/Si) | .var %ID $regml(1), %Date $replace($2,$chr(32),$chr(45))
-      if (!$_rsnews(%Date,%ID)) {
-        _rsnews %Date %ID $+($1,|,$3)
-        .emsg e $logo(-,rsnews) $c1(Title:) $c4($htmlentities($1)) $c1($chr(124) Date:) $c4(%Date) $c1($chr(124) Topic:) $c4($3) $c1($chr(124) Link:) $c4($4)
-        .msg #DevVectra .do .emsg e $logo(-,rsnews) $c1(Title:) $c4($htmlentities($1)) $c1($chr(124) Date:) $c4($2) $c1($chr(124) Topic:) $c4($3) $c1($chr(124) Link:) $c4($4)
-      }
-    }
-    if (END isin %src) { .sockclosef $sockname | halt }
-  }
-}
-#COMPARE
-on *:SOCKOPEN:compare*:{
-  sockwrite  -nt $sockname GET $+(/compare.ws?user1=,$replace($hget($sockname,user1),_,+,-,+,$chr(32),+),&user2=,$replace($hget($sockname,user2),$chr(32),+,_,+,-,+)) HTTP/1.0
-  sockwrite  -nt $sockname Host: hiscore.runescape.com $+ $str($crlf,2)
-}
-on *:SOCKREAD:compare*:{
-  var %data
-  sockread %data
-  if (* $+ $hget($sockname,skill) iswm %data) {
-    var %n = $hget($sockname,nick), %t = DontHideRsnOkPlx
-    hadd $sockname user2 $rsnH(%n,%t,$hget($sockname,user2))
-    hadd -m $sockname user $calc($hget($sockname,user) + 1)
-    var %user $hget($sockname,user)
-    sockread %data
-    sockread %data
-    hadd -m $sockname rank $+ %user $regsubex(%data,/(<[^>]+>|\x2C)/g,)
-    sockread %data
-    if ($hget($sockname,minigame) == yes) {
-      hadd -m $sockname score $+ %user $regsubex(%data,/(<[^>]+>|\x2C)/g,)
-      if (%user == 2) {
-        if ($hget($sockname,rank1) == $null) || ($v1 == Not Ranked) {
-          $hget($sockname,msg) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$hget($sockname,user1)),$c1,") $c1(was not found in the RuneScape hiscores for) $c2(%n,$lower($hget($sockname,skill))) $+ $c1 $+ .
-        }
-        elseif ($hget($sockname,rank2) == $null) || ($v1 == Not Ranked) {
-          $hget($sockname,msg) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$rsnH(%n,%t,$hget($sockname,user2))),$c1,") $c1(was not found in the RuneScape hiscores for) $c2(%n,$lower($hget($sockname,skill))) $+ $c1 $+ .
+      elseif ($istok(farthest closest,%type,32)) {
+        var %rsn = $iif($gettok($sock($sockname).mark,5,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        var %this = 1, %count = $Numskill(0)
+        while (%this < %count) {
+          inc %this
+          var %skill = $Numskill(%this)
+          var %level = $gettok($hget(%hash,%skill),2,32)
+          var %exp   = $gettok($hget(%hash,%skill),3,32)
+          if (%level == 126 || %level == $null) { continue }
+          var %to.next  = $lvl($calc(%level + 1)) - %exp
+          var %statline = %statline $+ $+($iif(%this != 1,$(|)),%to.next,@,%skill)        
+        }      
+        var %statline = $sorttok($mid(%statline,2),124,$iif(%opperand == 1,nr,n))
+        if (!%statline) { 
+          %display $col(%address,error).logo The Runescape Account $col(%address,%rsn).fullcol is maxed and currently has a total of $col(%address,$+(2,$chr(44),496)).fullcol total levels. 
+          noop $socketClose($sockname,%hash) | halt
         }
         else {
-          var %score $abs($calc($hget($sockname,score1) - $hget($sockname,score2))),%score $iif(%score == 0,has the same $hget($sockname,skill) score as,has $c2(%n,%score) $+ $c1 more $lower($hget($sockname,skill)) points than)
-          var %rank $abs($calc($hget($sockname,rank1) - $hget($sockname,rank2)))
-          var %winner $iif($hget($sockname,score1) > $hget($sockname,score2),1,2)
-          var %loser $iif(%winner == 1,2,1)
-          $hget($sockname,msg) $logo($hget($sockname,nick),compare) $c2(%n,$rsnH(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %winner))) $c1 $+ ( $+ $c2(%n,$hget($sockname,score $+ %winner)) $+ $c1 $+ ) %score $c2(%n,$rsnH(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %loser))) $c1 $+ ( $+ $c2(%n,$hget($sockname,score $+ %loser)) $+ $c1 $+ ). $c2(%n,$rsnH(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %winner))) $+ $c1 has $c2(%n,$bytes(%rank,bd)) $+ $c1 more ranks than $c2(%n,$rsnh(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %loser))) $+ $c1 $+ .
+          var %skill = $gettok($gettok(%statline,%switch,124),2,64), %overall = $gettok($hget(%hash,Overall),3,32)
+          var %level = $gettok($hget(%hash,%skill),2,32), %rank = $gettok($hget(%hash,%skill),1,32), %exp = $gettok($hget(%hash,%skill),3,32)
+          var %tolvl.lvl = %level + 1, %tolvl.exp = $lvl(%tolvl.lvl) - %exp
+          var %swpoint = $SWpoint(%skill.one,$iif(%level > 99,$v2,$v1)), %pcpoint = $PCpoint(%skill,$iif(%level > 99,$v2,$v1)), %tripexp = $Tripexp($+($network,:,%address),%skill), %effigy = $Effigy($iif(%level > 99,$v2,$v1))
+          tokenize 32 $hget(%hash,%skill)
+          %display $col(%address,$iif(%opperand == 1,far,next)).logo $+([,$col(%address,%rsn).fullcol,]) Skill: $col(%address,%skill) $(|) Level: $col(%address,%level).fullcol $(|) Rank: $col(%address,$bytes(%rank,db)).fullcol $(|) Exp: $col(%address,$bytes(%exp,db)).fullcol $iif(%overall > 0,$+($chr(40),$col(%address,$round($calc(%exp / %overall * 100),2)).fullcol,% of total,$chr(41))) $(|) Exp to level $+($col(%address,%tolvl.lvl).fullcol,:) $col(%address,$bytes(%tolvl.exp,db)).fullcol $&
+            ( $+ $col(%address,$round($calc((%exp - $lvl(%level)) / ($lvl(%tolvl.lvl) - $lvl(%level)) * 100),2)).fullcol $+ % to $col(%address,%tolvl.lvl).fullcol $+ ) $iif(%tripexp > 0,$(|) Trips: $col(%address,$ceil($calc(%tolvl.exp / %tripexp))).fullcol $+($chr(40),$col(%address,$bytes(%tripexp,b)).fullcol,exp,$chr(41))) $(|) Penguin Points: $col(%address,$bytes($5,db)).fullcol $(|) ToG: $col(%address,$bytes($6,db)).fullcol $&
+            $(|) Effigies: $col(%address,$ceil($calc(%tolvl.exp / %effigy))).fullcol ( $+ $col(%address,$numToString(%effigy)).fullcol $+ xp) $iif(%swpoint > 0,$(|) Zeal: $col(%address,$bytes($ceil($calc(%tolvl.exp / %swpoint)),db)).fullcol) $iif(%pcpoint > 0,$(|) PC: $col(%address,$bytes($ceil($calc(%tolvl.exp / %pcpoint)),db)).fullcol)
+          if (%level < 126) { $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address).c2 For $+($iif(%skill == Dungeoneering,$col(%address,$calc(%level + 1)).fullcol %skill,$col(%address,$bytes(%tolvl.exp,db) %skill).fullcol exp),:) $item2lvl(%address, %skill, %level, %exp, %tolvl.exp, $false) }
         }
-        hdel -w $sockname *
-        sockclosef $sockname
+        noop $socketClose($sockname,%hash) | halt
       }
-    }
-    else {
-      hadd -m $sockname level $+ %user $regsubex(%data,/(<[^>]+>|\x2C)/g,)
-      sockread %data
-      hadd -m $sockname exp $+ %user $regsubex(%data,/(<[^>]+>|\x2C)/g,)
-      if (%user == 2) {
-        if ($hget($sockname,rank1) == $null) || ($v1 == Not Ranked) {
-          $hget($sockname,msg) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$hget($sockname,user1)),$c1,") $c1(was not found in the RuneScape hiscores for) $c2(%n,$lower($hget($sockname,skill))) $+ $c1 $+ .
-        }
-        elseif ($hget($sockname,rank2) == $null) || ($v1 == Not Ranked) {
-          $hget($sockname,msg) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$rsnH(%n,%t,$hget($sockname,user2))),$c1,") $c1(was not found in the RuneScape hiscores for) $c2(%n,$lower($hget($sockname,skill))) $+ $c1 $+ .
-        }
-        else {
-          var %lvl $abs($calc($hget($sockname,level1) - $hget($sockname,level2))),%lvl $iif(%lvl == 0,has the same $lower($hget($sockname,skill)) level as,is $c2(%n,%lvl) $+ $c1 $lower($hget($sockname,skill)) levels higher than)
-          var %exp $abs($calc($hget($sockname,exp1) - $hget($sockname,exp2)))
-          if (%exp == 0) {
-            $hget($sockname,msg) $logo($hget($sockname,nick),compare) $c2(%n,$hget($sockname,user1)) $+ $c1 and $c2(%n,$hget($sockname,user2)) $+ $c1 have the same number of exp in the skill $c2(%n,$lower($hget($sockname,skill))) $+ $c1 $+ .
+
+      elseif (%type == barrows) {
+        var %rsn = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if ($hget(%hash,Smithing)) { %display $col(%address,barrows).logo The $col(%address,in-house) repair cost for Barrows $col(%address,%option) with $col(%address,$gettok($hget(%hash,Smithing),2,32)).fullcol smithing: $col(%address,$bytes($calc(%switch * ((200 - $gettok($hget(%hash,Smithing),2,32)) /200)),db)).fullcol }
+        else { %display $col(%address,error).logo The RSN " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,Smithing) skill. }
+        noop $socketClose($sockname,%hash) | halt
+      }
+
+      elseif ($istok(start stop check,%type,32)) {
+        var %rsn = $iif($gettok($sock($sockname).mark,5,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if ($hget(%hash,%switch)) {
+          tokenize 32 $v1
+          if (%type == start) {
+            var %token = $+(%switch,|,$1,|,$2,|,$3,|,$ctime)
+            %display $col(%address,start).logo You have started recording $col(%address,%switch) with $col(%address,$bytes($3,db)) exp at level $col(%address,$2) (Rank: $col(%address,$bytes($1,db)) $+ ) for $+($col(%address,%rsn),.)
+            hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Skillcheck $+($network,:,%address) $iif($hget(Skillcheck,$+($network,:,%address)) != 0,$addtok($v1, %token, 58),%token)
           }
           else {
-            var %rank $abs($calc($hget($sockname,rank1) - $hget($sockname,rank2)))
-            var %winner $iif($hget($sockname,rank1) > $hget($sockname,rank2),2,1)
-            var %loser $iif(%winner == 1,2,1)
-            $hget($sockname,msg) $logo($hget($sockname,nick),compare) $c2(%n,$rsnH(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %winner))) $c1 $+ ( $+ $c2(%n,$hget($sockname,level $+ %winner)) $+ $c1 $+ ) %lvl $c2(%n,$rsnh(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %loser))) $c1 $+ ( $+ $c2(%n,$hget($sockname,level $+ %loser)) $+ $c1 $+ ). $c2(%n,$rsnH(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %winner))) $+ $c1 has $c2(%n,$bytes(%rank,bd)) $+ $c1 more ranks and $c2(%n,$bytes(%exp,bd)) $+ $c1 $iif($hget($sockname,exp $+ %winner) > $hget($sockname,exp $+ %loser),more,less) exp than $c2(%n,$rsnh(%nick,DontHideRsnOkPlx,$hget($sockname,user $+ %loser))) $+ $c1 $+ .
+            var %level = $2, %rank = $1, %exp = $3
+
+            var %string = $hget(Skillcheck,$+($network,:,%address))
+            var %token = $wildtok(%string, $+(*,%switch,|*), 1, 58)
+            if (!%token) { %display $col(%address,error).logo An error has occurred, please try this command again later. }
+            else {
+              tokenize 124 %token
+              var %gainedrank = $calc((%rank - $2) * -1), %gainedlevel = $calc(%level - $3), %gainedexp = $calc(%exp - $4)
+              var %savedtime = $5, %expton3xt = $calc($lvl($calc(%level + 1)) - %exp)
+              var %start.calcexpprh = $calc($ctime - %savedtime), %start.expprh = $round($calc(%gainedexp / (%start.calcexpprh / 60 / 60)),db), %start.calc = $calc(%start.calcexpprh / %gainedexp), %start.timetolvl = $duration($calc( %expton3xt * %start.calc ))
+              %display $col(%address,%type).logo $+([,$col(%address,%rsn).fullcol,]) You have gained $col(%address,%gainedlevel).num $+(level,$iif(%gainedlevel > 1 || %gainedlevel == 0,s),.) This is a $iif(%gainedrank > 0,gain,loss) of $col(%address,%gainedrank).num $+(rank,$iif(%gainedlevel > 1 || %gainedlevel == 0,s)) and a gain of $col(%address,%gainedexp).num exp in $+($col(%address,$duration(%start.calcexpprh)).fullcol,.) $&
+                That is $col(%address,$bytes(%start.expprh,db)).fullcol exp/h. $iif(%switch != Overall && %level < 126,You will reach the next level $+($chr(40),$col(%address,$calc(%level + 1) %switch).fullcol,$chr(41)) in $col(%address,%start.timetolvl).fullcol at this speed.)
+              if (%type == stop) { hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Skillcheck $+($network,:,%address) $deltok($hget(Skillcheck,$+($network,:,%address)), $findtok($hget(Skillcheck,$+($network,:,%address)), %token, 1, 58), 58) }
+              if (%level < 126) { $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address).c2 For $+($iif(%switch == Dungeoneering,$col(%address,$calc(%level + 1)).fullcol %switch,$col(%address,$bytes(%tolvl.exp,db) %switch).fullcol exp),:) $item2lvl(%address, %switch, %level, %exp, %expton3xt, $false) }
+            }
           }
         }
-        hdel -w $sockname *
-        sockclosef $sockname
+        else { %display $col(%address,error).logo The RSN " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch) skill. }
+        noop $socketClose($sockname,%hash) | halt
+      }
+      elseif ($istok(setgoal goal,%type,32)) {
+        var %rsn = $iif($gettok($sock($sockname).mark,5,16) == HideMyRsnPlx,<Hidden>,%rsn)
+        if ($hget(%hash,%switch)) {
+          tokenize 32 $v1
+          if (%type == setgoal) {
+            var %goal = $iif(%opperand != $false,$v1,$calc($2 + 1))
+            if (%goal == $2) || (%goal !isnum 2-126) {
+              %display $col(%address,error).logo You must specify a goal $col(%address,greater than) your current level that is in between $col(%address,2).fullcol and $+($col(%address,126).fullcol,.)
+            }
+            else { 
+              var %token = $+(%switch,|,%goal,|,$1,|,$2,|,$3,|,$ctime)
+              %display $col(%address,setgoal).logo Your goal of $col(%address,%goal %switch).fullcol has been set. To view your progress type $+($col(%address,!goal %switch),.)
+              hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Skillgoal $+($network,:,%address) $iif($hget(Skillgoal,$+($network,:,%address)) != 0,$addtok($v1, %token, 58),%token)
+            }
+          }
+          else {
+            var %level = $2, %rank = $1, %exp = $3
+
+            var %string = $hget(Skillgoal,$+($network,:,%address))
+            var %token = $wildtok(%string, $+(*,%switch,|*), 1, 58)
+            if (!%token) { %display $col(%address,error).logo An error has occurred, please try this command again later. }
+            else {
+              tokenize 124 %token
+              var %gain = $calc(%exp - $5), %goalxp = $lvl($2), %xpleft = $calc(%goalxp - %exp), %goalpercent = $round($calc((%exp - $lvl(%level)) / (%goalxp - $lvl(%level)) * 100),2)
+              %display $col(%address,goal).logo Starting Level: $col(%address,$4).fullcol ( $+ $col(%address,$numtostring($5)).fullcol $+ ) $(|,) Current Level: $col(%address,%level).fullcol $&
+                $(|,) Goal Level: $col(%address,$2).fullcol ( $+ $col(%address,$numtostring(%goalxp)).fullcol $+ ) $(|,) Exp Gained: $col(%address,$numtostring(%gain)).fullcol $(|,) Exp Left: $&
+                $col(%address,$numtostring(%xpleft)).fullcol ( $+ $col(%address,%goalpercent).fullcol $+ % to goal) $(|,) Goal Started: $col(%address,$duration($calc($ctime - $6))).fullcol ago
+            }
+          }
+        }
+        else { %display $col(%address,error).logo The RSN " $+ $col(%address,%rsn).fullcol $+ " is not ranked in the $col(%address,%switch) skill. }
+        noop $socketClose($sockname,%hash) | halt
+      }
+      else { noop $socketClose($sockname,%hash) | halt } 
+    } ; END   
+  } ; else
+}
+
+
+#Tracker
+on *:SOCKREAD:Tracker.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %rsn     = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,$gettok($sock($sockname).mark,3,16))
+    var %skill   = $gettok($sock($sockname).mark,4,16)
+    var %time    = $gettok($sock($sockname).mark,5,16)
+
+    .sockread %Sockread
+
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (0:-1 isin %Sockread) {
+      %display $col(%address,error).logo The username " $+ $col(%address,%rsn) $+ " was not found in the Runescape highscores.
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(tracker),$upper($1),32)) { 
+      if ($1 == gain) { 
+        hadd -mu10 $sockname $+($lower($1),.,$2) $4- 
+        hadd -mu10 $sockname Tracker.Time $3
+      }
+      elseif ($1 == started) { hadd -mu10 $sockname started $2 }
+      elseif ($1 == start && $2) { hadd -mu10 $sockname $2 $3- }        
+      else { continue }
+    }
+    elseif ($1 == 0 && $2 isnum) { hadd -mu10 $sockname Now $2 }
+    elseif ($1 isin %time && $2 isnum) { hadd -mu10 $sockname $1 $2 } 
+    elseif (END isincs $1-) {
+      var %time = $iif(%time > $hget($sockname,Tracker.Time),$v1,$v2)
+      if ($hget($sockname,gain.Overall) == 0) {        
+        %display $col(%address,error).logo The username " $+ $col(%address,%rsn) $+ " did not gain any exp in the last $+($col(%address,$duration($hget($sockname,Tracker.time))).fullcol,.)
+        socketClose $sockname | halt
+      }
+      elseif (%skill == all) {
+        var %this = 2
+        while (%this <= $Numskill(0)) {
+          var %skill = $Numskill(%this)
+          if ($hget($sockname,$+(gain.,%skill)) > 0) {
+            var %lvl.gain = $v1, %exp.now = $hget($sockname,%skill), %lvl.now = $Exp(%exp.now), %lvl.start = $Exp($calc(%exp.now - %lvl.gain))
+            hinc -mu10 $sockname Overall.gains $calc($iif(%skill != Dungeoneering && %lvl.now > 99,99,%lvl.now) - $iif(%skill != Dungeoneering && %lvl.now > 99,99,%lvl.start))
+            var %statline = %statline $col(%address,$Numskill(%this,1)) $+ $+($chr(40),$iif(%lvl.now > %lvl.start,$+($chr(2),%lvl.start,->,%lvl.now,$chr(2)),%lvl.start),$chr(41)) $+(+,$col(%address,$bytes(%lvl.gain,db)).fullcol) ~
+          }
+          inc %this
+        }
+        if (!%statline || %statline == $null) {
+          %display $col(%address,error).logo The username " $+ $col(%address,%rsn) $+ " did not gain any exp in the last $+($col(%address,$duration(%time)).fullcol,.)
+          socketClose $sockname | halt
+        }
+        var %statline = $+([,$col(%address,All),]) Exp gains for $col(%address,%rsn).fullcol in the last $+($col(%address,$duration(%time)).fullcol,:) $col(%address,Overall) $+([+,$col(%address,$hget($sockname,Overall.gains)).fullcol,]) $col(%address,$+(+,$bytes($hget($sockname,gain.Overall),db))).fullcol $(|) %statline
+        noop $sockshorten(124, %display, $col(%address,tracker).logo, $replace($left(%statline, -2), ~, |, ^, $chr(32)))
+        socketClose $sockname | halt
+      }
+      else {
+        var %this = 1, %count = $numtok(%time,44), %now = $hget($sockname,now)
+        while (%this <= %count) {
+          var %emit = $gettok(%time,%this,44), %lvl.now = $exp(%now)
+          if ($hget($sockname,%emit) != 0) { 
+            var %lvl.start = $exp($calc(%now - $hget($sockname,%emit)))
+            var %statline = %statline $chr(124) $+($col(%address,$duration(%emit)).fullcol,:) $+($chr(40),$iif(%lvl.now > %lvl.start,$+($chr(2),$col(%address,%lvl.start).fullcol,->,$col(%address,%lvl.now).fullcol,$chr(2)),%lvl.now),$chr(41)) $+(+,$col(%address,$bytes($hget($sockname,%emit),db))) 
+          }
+          else { var %timeline = %timeline $replace($duration(%emit), wk, week, wks, weeks) }
+          inc %this
+        }
+        if (!%statline) { %display $col(%address,error).logo The username " $+ $col(%address,%rsn) $+ " did not gain any $col(%address,$Skill($calc(%skill + 1))) exp in the last $+($colorList(%address, 32, 44, %timeline).space,.) }
+        else {
+          var %skill = $Numskill($calc(%skill + 1))
+          %display $col(%address,tracker).logo $+([,$col(%address,%skill),]) Exp gains for $col(%address,%rsn).fullcol in the last $mid(%statline,2)
+          if (%skill != Overall) {
+            var %exp = $hget($sockname,Now), %level = $calc($Exp(%exp) + 1), %exp2next = $calc($Lvl(%level) - %exp)
+            $iif(*.msg* iswm %display && $chr(35) !isin %display, .msg $ial(%address).nick, .notice $ial(%address).nick) $col(%address,stats).logo [For $col(%address,%level).fullcol $+(%skill,]:) $item2lvl(%address, %skill, $calc(%level - 1), %exp, %exp2next, $false)
+          }
+        } ; else
+        socketClose $sockname | halt
       }
     }
-  }
-}
-#TRACKTOP
-on *:SOCKOPEN:tracktop.*: {  
-  .sockwrite -n $sockname GET /topgains HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(t.rscript.org,$crlf,$crlf)
+  } ; else
 } 
-on *:SOCKREAD:tracktop.*: {
-  .var %N = $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if $regex(%sockreader,/track-(.*)(.*)">(.*)</a> gained <span style='(.*)'>(.*)</span> exp this week.</li>/Si) {
-    .hinc -m $sockname ID
-    hadd -m $sockname $hget($sockname,ID) $+($regml(3),:,$regml(5))
-  }
-  if ($istok(10,$hget($sockname,ID),32)) {
-    .var %x = 1
-    while (%x <= 10) {
-      hadd -m $sockname out $hget($sockname,out) $+($c1,$chr(35),$c2(%n,%x),$c1,:) $c1($replace($gettok($hget($sockname,%x),1,58),$chr(32),$chr(95))) $+($c1,$chr(40),$c2(%n,$gettok($hget($sockname,%x),2,58)),$c1,$chr(41))
-      inc %x
-    }
-    $gettok($sock($sockname).mark,1,58) $logo(%n,tracker) $+($c1,$chr(91),$c2(%n,top10 1wk),$c1,$chr(93)) $hget($sockname,out)
-    .sockclosef $sockname | halt
-  }
-}
-#TOP10
-on *:SOCKOPEN:top10.*: {
-  .sockwrite -n $sockname GET $+(/lookup.php?type=top10&table=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(desu.rscript.org,$crlf,$crlf)
-} 
-on *:SOCKREAD:top10.*: {
-  .var %N = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/TOP10:/Si)) {
-    .hinc -m $sockname ID
-    hadd -m $sockname $hget($sockname,ID) $gettok(%sockreader,2-,32)
-  }
-  elseif ($regex(%sockreader,/END/Si)) {
-    .var %x = 1
-    while (%x <= 10) {
-      hadd -m $sockname out $hget($sockname,out) $+($c1,$chr(35),$c2(%n,%x),$c1,:) $c1($gettok($hget($sockname,%x),3,32)) $+($c1,$chr(40),$c2(%n,$gettok($hget($sockname,%x),1,32)),$c1,$chr(41))
-      inc %x
-    }
-    $gettok($sock($sockname).mark,1,58) $logo(%n,top10) $+($c1,$chr(91),$c2(%n,$numskill($gettok($sock($sockname).mark,2,58))),$c1,$chr(93)) $hget($sockname,out)
-    .sockclosef $sockname | halt
-  }
-}
-#RANK
-on *:SOCKOPEN:rank.*: { 
-  .sockwrite -n $sockname GET $+(/overall.ws?rank=,$strip($gettok($sock($sockname).mark,3,58)),&table=,$strip($gettok($sock($sockname).mark,2,58)),&submit=Search) HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(hiscore.runescape.com,$crlf,$crlf)
-} 
-on *:SOCKREAD:rank.*: {
-  .var %N = $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/<a style="color:#(.+);" href="hiscorepersonal\.ws\?user1=(.+)">(.+)<\/a><\/td>/i)) { 
-    hadd -m $sockname rsn $regml(3) 
-    sockread %sockreader
-    hadd -m $sockname lvl $htmlfree(%sockreader)
-    sockread %sockreader 
-    hadd -m $sockname exp $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,$numskill($gettok($sock($sockname).mark,2,58))) $c1(Rank:) $c2(%n,$bytes($gettok($sock($sockname).mark,3,58),db)) $c1($chr(124),Name:) $c2(%n,$hget($sockname,rsn)) $c1($chr(124),Exp:) $c2(%n,$hget($sockname,exp)) $c1($chr(124),Level:) $c2(%n,$hget($sockname,lvl)) $iif($remove($hget($sockname,exp),$chr(44)) >= 14391160 && $numskill($gettok($sock($sockname).mark,2,58)) != overall, $+($c1,$chr(91),$c2(%n,$undoexp($remove($hget($sockname,exp),$chr(44)))),$c1,$chr(93)))
-    .sockclosef $sockname | halt
-  }
-  if ($regex(%sockreader,/<\/html>/i) && !$hget($sockname,rsn)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No user was found at rank) $c2(%n,$bytes($gettok($sock($sockname).mark,3,58),db)) $c1(in) $+($c2(%n,$numskill($gettok($sock($sockname).mark,2,58))),$c1,.)
-  }
-}
-on *:SOCKOPEN:ranktour.*: {
-  .sockwrite -n $sockname GET $+(/overall.ws?table=,$strip($gettok($sock($sockname).mark,2,58)),&rank=,$strip($gettok($sock($sockname).mark,3,58)),&category_type=1) HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(hiscore.runescape.com,$crlf,$crlf)
-} 
-on *:SOCKREAD:ranktour.*: {
-  .var %N = $gettok($sock($sockname).mark,4,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/<a style="color:#(.+);" href="hiscorepersonal\.ws\?user1=(.+)">(.+)<\/a><\/td>/i)) { 
-    hadd -m $sockname rsn $regml(3) 
-    sockread %sockreader
-    hadd -m $sockname score $htmlfree(%sockreader)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,$numtour($gettok($sock($sockname).mark,2,58))) $c1(Rank:) $c2(%n,$bytes($gettok($sock($sockname).mark,3,58),db)) $c1($chr(124),Name:) $c2(%n,$hget($sockname,rsn)) $c1($chr(124),Score:) $c2(%n,$hget($sockname,score))
-    .sockclosef $sockname | halt
-  }
-  if ($regex(%sockreader,/<\/html>/i) && !$hget($sockname,rsn)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No user was found at rank) $c2(%n,$bytes($gettok($sock($sockname).mark,3,58),db)) $c1(in) $+($c2(%n,$numtour($gettok($sock($sockname).mark,2,58))),$c1,.)
-    .sockclosef $sockname | halt
-  }
-}
-#YOUTUBE
-on *:SOCKOPEN:youtube.*: {
-  .sockwrite -n $sockname GET $+(/Parsers.php?type=utube&search=,$replace($gettok($sock($sockname).mark,2,58),$chr(32),+,-,+,_,+)) HTTP/1.1
-  .sockwrite -n $sockname Host: $+(parsers.phantomnet.net,$crlf,$crlf)
-} 
-on *:SOCKREAD:youtube.*: {
-  .var %N = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/(Not Found|CRITICAL ERROR)/Si)) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(No results where found for) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,2,58),+,$chr(32))),$c1,") $c1(in the Youtube Search engine.) $+($c1,$chr(40),$c2(%n,Youtube.com),$c1,$chr(41))
-    .sockclosef $sockname | .halt
-  }
-  if ($regex(%sockreader,/NAME: (.*)/Si)) { hadd -m $sockname title $regml(1) }
-  if ($regex(%sockreader,/AUTHOR: (.*)/Si)) { hadd -m $sockname author $regml(1) } 
-  if ($regex(%sockreader,/VOTES: (.*)/si)) { hadd -m $sockname votes $round($regml(1),2) }
-  if ($regex(%sockreader,/ID: (.*)/si)) { hadd -m $sockname link http://www.youtube.com/watch?v= $+ $regml(1) }
-  if ($regex(%sockreader,/VIEWS: (.*)/si)) { hadd -m $sockname views $regml(1) }
-  if ($regex(%sockreader,/RATES: (.*)/si)) { hadd -m $sockname rates $bytes($regml(1),db) }
-  if $regex(%sockreader,/DURATION: (.*)/) { hadd -m $sockname runtime $regml(1) }
-  if $regex(%sockreader,/END/) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,youtube) $c1(Title:) $c2(%n,$hget($sockname,title)) $c1($chr(124) Author:) $c2(%n,$hget($sockname,author)) $c1($chr(124),View count:) $c2(%n,$comma($hget($sockname,views))) $c1($chr(124),Duration:) $c2(%n,$duration($hget($sockname,runtime),1)) $+($c1($chr(40)),$c2(%n,$duration($hget($sockname,runtime),3)),$c1($chr(41))) $c1($chr(124),Rating:) $c2(%n,$hget($sockname,votes)) $c1($chr(40)) $+ $c2(%n,$hget($sockname,rates)) $+ $c1($chr(41) $chr(124) Link:) $c2(%n,$hget($sockname,link))
-    .sockclosef $sockname
-  }
-}
-#ITEM
-on *:sockopen:item.*:{
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=item&item=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  sockwrite -nt $sockname host: $+(parsers.phantomnet.net,$crlf,$crlf)
-}
-on *:sockread:item.*:{
-  .var %return $gettok($sock($sockname).mark,1,58),%n $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  else {
-    var %sockread
-    .sockread %sockread
-    if (nothing found isin %sockread) {
-      %return $logo(%n,item) $c1(Nothing found for the search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58))) $+ $c1(.) 
-      .sockclosef $sockname | halt
-    }
-    if (ITEM: isin %sockread) {      
-      .var %count = 1, %c $ticks
-      while (END !isin %sockread) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if (ITEM: isin %sockread && %count < 10) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($replace($up($gettok(%sockread,2,32)),_,$chr(32))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockread,3,32)),$c1($chr(41))) | .inc %count }  
-        if (%count >= 5) { %return $logo(%n,item) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!item #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-        .sockread %sockread
-      } 
-      if (END isin %sockread) { %return $logo(%n,item) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!item #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-    }
-    if ($regex(%sockread,/(NAME|TRADE|STACK|MEMBERS|CATEGORY|EQUIP|WEIGHT|HALCH|LALCH|USES|EXAMINE|STATS):/Si)) { .hadd -m $sockname $lower($regml(1)) $gettok(%sockread,2-,32) }
-    if (END isincs %sockread) {
-      if ($hget($sockname,name)) {
-        %return $logo(%n,item) $iif($istok(Yes,$hget($sockname,members),32),$+($c1([),$c2(%n,M),$c1(]))) $c2(%n,$gettok($hget($sockname,name),1,32)) $c1($chr(124) Category:) $c2(%n,$hget($sockname,category)) $c1($chr(124)) $+($iif($istok(Yes,$hget($sockname,trade),32),3+,4-),Trade) $+($iif($istok(Yes,$hget($sockname,equip),32),3+,4-),Equips) $+($iif($istok(Yes,$hget($sockname,stack),32),3+,4-),Stacks) $+($iif($istok(Yes,$hget($sockname,quest),32),3+,4-),Quest) $&
-          $c1($chr(124) Weight:) $c2(%n,$hget($sockname,weight)) $c1($chr(124) Alch:) $+($c2(%n,$shortamount($hget($sockname,halch))),$c1(/),$c2(%n,$shortamount($hget($sockname,lalch)))) $c1($chr(124) Examine:) $c2(%n,$hget($sockname,examine)) 
-        %return $logo(%n,item) $c1(Uses:) $c2(%n,$hget($sockname,uses)) $c1($chr(124) Link:) $c2(%n,http://www.tip.it/runescape/index.php?rs2item_id= $+ $gettok($hget($sockname,name),2,35)) 
-        if ($hget($sockname,stats) && $istok(Yes,$hget($sockname,equip),32)) {
-          .tokenize 58 $hget($sockname,stats)
-          %return $logo(%n,i-stats) $c2(%n,$gettok($hget($sockname,name),1,32)) $+ $c1(:) $c1(Attack:) $c1(Stab:) $c2(%n,$1) $c1(Slash:) $c2(%n,$3) $c1(Crush:) $c2(%n,$5) $c1(Magic:) $c2(%n,$7) $c1(Range:) $c2(%n,$9) $c1(|| Defence:) $c1(Stab:) $c2(%n,$2) $c1(Slash:) $c2(%n,$4) $c1(Crush:) $c2(%n,$6) $c1(Magic:) $c2(%n,$8) $c1(Range:) $c2(%n,$10) $c1(Summon:) $c2(%n,$11) $c1(Other: Strength:) $c2(%n,$12) $c1(Prayer:) $c2(%n,$13)
-        }
-      }      
-      .sockclosef $sockname | halt
-    }
-  }
-}
+
 #Geupdate
-on *:SOCKOPEN:Geupdate.*: {
-  if ($sockerr) { 
-    .notice $gettok($sock($sockname).mark,1,58) [ERROR]: A socket read error occurred when trying to connect to the server. Vectra staff have been notified. Please try again in a few minutes.
-    sockclosef $sockname | halt 
-  }
-  sockwrite -nt $sockname GET /Parsers/index.php?type=Geupdate&full= HTTP/1.1
-  sockwrite -nt $sockname Host: 69.147.235.196
-  sockwrite -nt $sockname $+($crlf,$crlf)
-}
 on *:SOCKREAD:Geupdate.*:{
-  if ($sockerr) { 
-    .notice $gettok($sock($sockname).mark,1,58) [ERROR]: A socket read error occurred when trying to connect to the server. Vectra staff have been notified. Please try again in a few minutes.
-    sockclosef $sockname | halt 
-  }
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    sockread %Sockread
+
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(geupdate),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {  
+      if (!$hget($sockname,last) || $hget($sockname,last) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address,geupdate).logo The Grand Exchange last updated $col(%address,$duration($gettok($hget($sockname,last),2,58))).fullcol ago. The last update took $col(%address,$hget($sockname,previous)).fullcol $+ . The average update length is approximately $col(%address,$hget($sockname,average)).fullcol $+ . $&
+        $iif(*Within* !iswm $hget($sockname,notbefore),The next update will not occur before $col(%address,$hget($sockname,notbefore)).fullcol but,The GE) will update within $col(%address,$hget($sockname,within)).fullcol $+ . }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Geupdate-Auto
+on *:SOCKREAD:geUpdateAuto.*: {
+  if ($sockerr) { signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
   else {
     var %Sockread
     var %display = $gettok($sock($sockname).mark,1,58)
@@ -4448,976 +2679,1954 @@ on *:SOCKREAD:Geupdate.*:{
       sockread %Sockread
       if ($sockbr == 0) { return }
       tokenize 32 $replace(%Sockread,:,$chr(32))
+      if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- | socketClose $sockname | halt }
       if ($istok(LAST AVERAGE PREVIOUS UPDATEDTODAY NOTBEFORE WITHIN,$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
-      if (END isincs $1-) {  
-        %display $logo(%nick,geupdate) The Grand Exchange last updated $c2(%nick,$duration($gettok($hget($sockname,last),2,32))) ago. The last update took $c2(%nick,$hget($sockname,previous)) $+ . The average update length is approxamatly $c2(%nick,$hget($sockname,average)).fullcol $+ . $&
-          The next update will not occur before $c2(%nick,$hget($sockname,notbefore)) but will update within $c2(%nick,$hget($sockname,within)) $+ .
-        sockclosef $sockname | halt
+      if (END isincs $1) { 
+        if (!$hget($sockname,previous) || $hget($sockname,previous) == $null) { halt }
+        if (!$hget($sockname,last) || $hget($sockname,last) == $null) { halt } 
+        var %time = $readini($ConfigDir(Config Files\Geupdate.ini),Last,time)
+        if (%time == $null || !%time) {
+          ; first load don't run alert
+          writeini $ConfigDir(Config Files\Geupdate.ini) Last time $gettok($hget($sockname,last),1,32)
+          socketClose $sockname | halt
+        }
+        else {
+          if (%time != $gettok($hget($sockname,last),1,32)) {
+            ; update occurred
+            writeini $ConfigDir(Config Files\Geupdate.ini) Last time $gettok($hget($sockname,last),1,32)
+            var %output $col($null,geupdate).logo A Grand Exchange update has been detected. The previous update took $col($null,$hget($sockname,previous)).fullcol $+ .
+            syncSend GLOBAL:all: $+ $vsssafe(%output)            
+            socketClose $sockname | halt
+          }
+          else { socketclose $sockname | halt }
+        }
       }
     } ;while
   } ; else
-} 
-#GEUPDATER
-on *:sockopen:Geupdater.*: { 
-  sockwrite -nt $sockname GET /Parsers/index.php?type=Geupdate&full= HTTP/1.1
-  sockwrite -nt $sockname Host: 69.147.235.196
-  sockwrite -nt $sockname $+($crlf,$crlf)
 }
-on *:sockread:Geupdater.*: {
-  if ($sockerr) {
-    .msg #DevVectra Error connecting to GEupdate page. Reason: $sock($sockname).wsmsg
-    .sockclosef $sockname | halt 
-  }
-  var %Sockread
-  var %display = $gettok($sock($sockname).mark,1,58)
-  var %nick = $gettok($sock($sockname).mark,2,58)
-  while ($sock($sockname).rq) {
+
+# SwiftIRC user stats
+on *:SOCKREAD:SwiftIRCstats.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+
+    ; Vars from sockmark
+    var %display = $1 
+    var %address = $2
+    var %search  = $3
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    .tokenize 32 %Sockread
+    if ($regex($1-,/^ERROR\: The specified (.*) was not found in our database./i)) {
+      %display $col(%address,error).logo The term $+(",$col(%address,%search).fullcol,") was not found in the database for $+($col(%address,$+($regml(1),s)).fullcol,.)
+      .socketClose $sockname | .halt
+    }
+    if ($regex($1-,/^ERROR\: This channel is marked as secret/i)) {
+      %display $col(%address,error).logo The channel $+(",$col(%address,%search).fullcol,") is marked as $+($col(%address,secret).fullcol,$chr(40),$col(%address,+s).fullcol,$chr(41),.)
+      .socketClose $sockname | .halt
+    }
+    if ($istok($parser(swiftircstats),$left($1,-1),32)) { .hadd -m $sockname $left($1,-1) $2- }
+    if (END isincs $1) {
+      if ($left(%search,1) == $chr(35)) {
+        %display $col(%address,$hget($sockname,channel)).logo Current users: $col(%address,$bytes($hget($sockname,currentusers),db)).fullcol $chr(124) User record: $col(%address,$bytes($hget($sockname,maxusers),db)).fullcol $+($chr(40),$col(%address,$date($hget($sockname,maxusertime))).fullcol,$chr(41)) $chr(124) Topic set by: $col(%address,$hget($sockname,topicauthor)).fullcol $+($chr(40),$col(%address,$date($hget($sockname,topictime))).fullcol,$chr(41))
+        %display $col(%address,$+($hget($sockname,channel),-Topic)).logo $replacex($hget($sockname,topic),[C],$chr(3))
+      }
+      else { %display $col(%address,$hget($sockname,nickname)).logo Realname: $col(%address,$hget($sockname,realname)).fullcol $chr(124) Host: $+($col(%address,$hget($sockname,ident)).fullcol,@,$col(%address,$hget($sockname,hostmask)).fullcol) $chr(124) Online for: $col(%address,$duration($calc($ctime - $hget($sockname,connecttime)),1)).fullcol [Away: $+($col(%address,$iif($hget($sockname,away) == N,No,Yes)).fullcol,$iif($hget($sockname,awaymsg),$+($chr(40),$col(%address,$v1).fullcol,$chr(41)))) $chr(124) Online: $+($col(%address,$iif($hget($sockname,online) == N,No,Yes)).fullcol,]) }
+      socketClose $sockname | halt
+    }
+  } ; else 
+}
+
+
+
+# converts a short url to a long url
+on *:SOCKREAD:LongURL.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display  = $gettok($sock($sockname).mark, 1, 16)
+    var %address  = $gettok($sock($sockname).mark, 2, 16)
+    var %shorturl = $gettok($sock($sockname).mark, 3, 16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread 
+    var %header = $remove($1, :)
+    if (PHP === $1) { monitor php Error detected on %sn ( $+ $+($sock($sockname).addr, :, $sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR === $1) { %display $col(%address, ERROR).logo $2- | socketClose $sockname | halt }
+    elseif (%header == LONGURL) { %display $col(%address,LongURL).logo Long URL for $col(%address,%shortUrl).fullcol is $col(%address, $2-).fullcol | socketClose $sockname | halt }
+  } ; else
+}
+
+# ML compare
+on *:SOCKREAD:MLcompare.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+
+    ; Vars from sockmark
+    var %display = $1 $+([,$calc($ticks - %ms),ms]) 
+    var %address = $2
+    var %number  = $3
+    var %exact   = $4
+
+    .sockread %Sockread
+
+    while ($sockbr > 0) {
+      if ($sockbr == 0) { return }
+      .tokenize 32 %Sockread
+      if ($regex($1-,/^ERROR\: Search (.*) does not exist or is not listed on runehead$/i)) {
+        %display $col(%address,error).logo The clan $+(",$col(%address,$regml(1)).fullcol,") was not found in runehead.com clanbase.
+        .socketClose $sockname | .halt
+      }
+      elseif ($istok($parser(mlcompare),$remove($1,:),32)) { .hadd -m $sockname $remove($1,:) $2- }
+      elseif (END isincs $1) {
+        ; Output line 1
+        .var %name1 $col(%address,$replace($token($hget($sockname,name),1,32),_,$chr(32))).fullcol
+        .var %name2 $col(%address,$replace($token($hget($sockname,name),2,32),_,$chr(32))).fullcol
+        .var %initial1 $+([,$col(%address,$replace($token($hget($sockname,initials),1,32),_,$chr(32))).fullcol,])
+        .var %initial2 $+([,$col(%address,$replace($token($hget($sockname,initials),2,32),_,$chr(32))).fullcol,])
+        .var %link $col(%address,$hget($sockname,link)).fullcol
+        .var %type1 $+($chr(40),Type:) $col(%address,$ucword($replace($token($hget($sockname,type),1,32),_,$chr(32)))).fullcol $chr(124) Base: $col(%address,$replace($token($hget($sockname,base),1,32),_,$chr(32))).fullcol $chr(124) World: $col(%address,$replace($token($hget($sockname,homeworld),1,32),_,$chr(32))).fullcol $chr(124) Cape: $+($col(%address,$replace($token($hget($sockname,cape),1,32),_,$chr(32))).fullcol,$chr(41))
+        .var %type2 $+($chr(40),Type:) $col(%address,$ucword($replace($token($hget($sockname,type),2,32),_,$chr(32)))).fullcol $chr(124) Base: $col(%address,$replace($token($hget($sockname,base),2,32),_,$chr(32))).fullcol $chr(124) World: $col(%address,$replace($token($hget($sockname,homeworld),2,32),_,$chr(32))).fullcol $chr(124) Cape: $+($col(%address,$replace($token($hget($sockname,cape),2,32),_,$chr(32))).fullcol,$chr(41))
+        .var %format Format: $+($col(%address,%name1).fullcol,/,$col(%address,%name2).fullcol) $+($chr(40),$col(%address,%name1).fullcol) $+(diffrence,$chr(41))
+
+        ; Output line 2
+        .var %format1 $+([,$col(%address,%name1).fullcol,/,$col(%address,%name2).fullcol,])
+        .var %members Members: $+($col(%address,$token($hget($sockname,members),1,32)),/,$col(%address,$token($hget($sockname,members),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,members),1,32) - $token($hget($sockname,members),2,32))).num,$chr(41))
+        .var %avgcmb AvgCmb: $+($col(%address,$token($hget($sockname,avgcombat),1,32)),/,$col(%address,$token($hget($sockname,avgcombat),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,avgcombat),1,32) - $token($hget($sockname,avgcombat),2,32))).num,$chr(41))
+        .var %avghp Cons: $+($col(%address,$token($hget($sockname,avghp),1,32)),/,$col(%address,$token($hget($sockname,avghp),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,avghp),1,32) - $token($hget($sockname,avghp),2,32))).num,$chr(41))
+        .var %avgmage Mage: $+($col(%address,$token($hget($sockname,avgmagic),1,32)),/,$col(%address,$token($hget($sockname,avgmagic),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,avgmagic),1,32) - $token($hget($sockname,avgmagic),2,32))).num,$chr(41))
+        .var %avgrange Range: $+($col(%address,$token($hget($sockname,avgranged),1,32)),/,$col(%address,$token($hget($sockname,avgranged),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,avgranged),1,32) - $token($hget($sockname,avgranged),2,32))).num,$chr(41))
+        .var %avgtotal Skill total avg: $+($col(%address,$token($hget($sockname,avgtotal),1,32)),/,$col(%address,$token($hget($sockname,avgtotal),2,32))) $+($chr(40),$col(%address,$calc($token($hget($sockname,avgtotal),1,32) - $token($hget($sockname,avgtotal),2,32))).num,$chr(41))
+
+
+        %display $col(%address,mlcompare).logo %initial1 %name1 %type1 $chr(124) %initial2 %name2 %type2 $chr(124) Link: %link $chr(124) %format
+        %display $col(%address,mlcompare).logo %format1 %members $chr(124) %avgcmb $chr(124) %avghp $chr(124) %avgmage $chr(124) %avgrange $chr(124) %avgtotal
+
+        .socketClose $sockname | return
+      } ; if end
+      else { sockread %Sockread }
+    } ; while
+  } ; else
+}
+
+
+# Halo
+on *:SOCKREAD:Halo.*:{
+  var %sn = $sockname
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %gtag    = $gettok($sock($sockname).mark,4,16)
+    var %game    = $gettok($sock($sockname).mark,3,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    var %header = $remove($1, :)
+    if (PHP:* iswm $1) { monitor php Error detected on %sn ( $+ $+($sock($sockname).addr, :, $sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR*no*service* iswm %Sockread) { %display $col(%address,ERROR).logo No service record was found for " $+ $col(%address,$7).fullcol $+ ". | socketClose $sockname | return }
+    elseif ($istok($Parser(%game), %header, 32)) { hadd -mu10 $sockname %header $2- }
+    elseif (END isincs $1) {
+      var %gtag = $iif($gettok($sock($sockname).mark,5,16) == HideMyRsnPlx,<Hidden>,$hget($sockname,GTAG))
+      if (!$hget($sockname,servicetag) || $hget($sockname,servicetag) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif (%game == reach) {
+        %display $col(%address,HaloReach).logo $+([,$col(%address,%gtag) $chr(40), $col(%address,$hget($sockname, SERVICETAG)), $chr(41), ]) Rank: $col(%address,$hget($sockname, GLOBALRANK)) $&
+          ArmoyCompletion: $col(%address,$hget($sockname, ARMORYCOMPLETION)) Multiplayer: [Kills $col(%address,$hget($sockname, MATCHMAKINGMPKILLS)).fullcol $+ , Medals $&
+          $col(%address,$hget($sockname, MATCHMAKINGMPMEDALS)).fullcol $+ ] Challenges: [Daily $col(%address,$hget($sockname, DAILYCHALLENGES)).fullcol $+ , Weekly $&
+          $col(%address,$hget($sockname, WEEKLYCHALLENGES)).fullcol $+ ] CovenantKilled: $col(%address,$hget($sockname, COVENANTKILLED)).fullcol LastPlayed: $col(%address,$hget($sockname, LASTPLAYED)).fullcol $&
+          PlayerSince: $col(%address,$hget($sockname, PLAYERSINCE)).fullcol Link: $col(%address,$hget($sockname, LINK))
+      }
+      elseif (%game == odst) {
+        var %p, %k, %d, %val = P/G P/D P/K K/G K/D D/G, %i = 1
+        while ($token(%val, %i, 32) != $null) { var %n = $left($v1, 1), %i = %i + 1, % $+ %n $addtok($(% $+ %n, 2), $col(%address,$bytes($hget($sockname, $v1),bd)).fullcol $+ [ $v1 ] , 59) }
+        var %ToD = Kills $col(%address,$bytes($hget($sockname, KILLSWITHTOD),b)).fullcol $+ , $col(%address,$bytes($hget($sockname, PDWITHTOD),bd)).fullcol $+ P/D, $&
+          $col(%address,$bytes($hget($sockname, KDWITHTOD),bd)).fullcol $+ K/D, Deaths $col(%address,$bytes($hget($sockname, DEATHSWITHTOD),b)).fullcol
+        %display $col(%address,HaloODST).logo $+([, $col(%address,%gtag) $chr(40), $col(%address,$hget($sockname, SERVICETAG)), $chr(41), ]) HighScore: $&
+          $col(%address,$hget($sockname, HIGHSCORE)).fullcol Points: $col(%address,$bytes($hget($sockname, POINTS), bd)).fullcol $+([, $replace(%p, ;, $chr(44) $chr(32)), ]) Kills: $&
+          $col(%address,$bytes($hget($sockname, KILLS), bd)).fullcol $+([, $replace(%k, ;, $chr(44) $chr(32)), ]) Deaths: $col(%address,$bytes($hget($sockname, DEATHS), bd)).fullcol $&
+          $+([, %d, ]) Games: $col(%address,$bytes($hget($sockname, GAMES), b)).fullcol 
+        %display $col(%address,HaloODST).logo ToD: $col(%address,$hget($sockname, TOOLOFDESTRUCTION)) ToDPoints: $col(%address,$hget($sockname, POINTSACTIVEWITHTOD)).fullcol $+([, %ToD, ]) Link: $col(%address,$hget($sockname, LINK))
+      }
+      elseif (%game == halo3) {
+        var %ranked, %social, %val = RANKEDK/DRATIO RANKEDKILLS RANKEDDEATHS RANKEDGAMES SOCIALK/DRATIO SOCIALKILLS SOCIALDEATHS SOCIALGAMES, %i = 1
+        while ($token(%val, %i, 32) != $null) var %n = $left($v1, 6), %i = %i + 1, % $+ %n $addtok($(% $+ %n, 2), $col(%address,$bytes($hget($sockname, $v1),bd)).fullcol [ $v1 ], 59)
+        %display $col(%address,Halo3).logo $+([, $col(%address,%gtag) $chr(40), $col(%address,$hget($sockname, SERVICETAG)), $chr(41), ]) Rank: $col(%address,$hget($sockname, GLOBALRANK)) $&
+          Games: $col(%address,$bytes($hget($sockname, TOTALGAMES), b)).fullcol TotalEXP: $col(%address,$bytes($hget($sockname, TOTALEXP), b)).fullcol HighestSkill: $&
+          $col(%address,$bytes($hget($sockname, HIGHESTSKILL), b)).fullcol Ranked: $+([, $replace(%ranked, ;, $chr(44) $chr(32), RANKEDK/DRATIO, K/D, RANKEDKILLS, Kills, RANKEDDEATHS, Deaths, RANKEDGAMES, Games), ]) $&
+          Social: $+([, $replace(%social, ;, $chr(44) $chr(32), SOCIALK/DRATIO, K/D, SOCIALKILLS, Kills, SOCIALDEATHS, Deaths, SOCIALGAMES, Games), ])
+        %display $col(%address,Halo3).logo ToD: $col(%address,$hget($sockname, TOOLOFDESTRUCTION)) Ranked: $col(%address,$hget($sockname, TODRANKED)).fullcol Social: $col(%address,$hget($sockname, TODSOCIAL)).fullcol $&
+          Total: $col(%address,$hget($sockname, TODTOTAL)).fullcol Link: $col(%address,$hget($sockname, LINK)).fullcol
+      }
+      socketClose $sockname | halt
+    } ; end
+  } ; else
+}
+
+#RSspell
+on *:SOCKREAD:RSspell.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %amount  = $gettok($sock($sockname).mark,3,16)
+    var %spell   = $gettok($sock($sockname).mark,4,16)
+
+
     sockread %Sockread
     if ($sockbr == 0) { return }
     tokenize 32 $replace(%Sockread,:,$chr(32))
-    if ($istok(LAST AVERAGE PREVIOUS UPDATEDTODAY NOTBEFORE WITHIN,$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
-    if (END isincs $1-) { 
-      if (!$hget($sockname,previous) || $hget($sockname,previous) == $null) { halt }
-      if (!$hget($sockname,last) || $hget($sockname,last) == $null) { halt } 
-      var %time = $readini(geupdate.ini,Last,time)
-      if (%time == $null || !%time) {
-        ; first load don't run alert
-        writeini geupdate.ini Last time $gettok($hget($sockname,last),1,32)
-        sockclosef $sockname | halt
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*no*results*found* iswm %Sockread) { %display $col(%address,error).logo Your search for " $+ $col(%address,%spell) $+ " returned no results in the RuneScape Spellbook. | socketClose $sockname | halt }
+    elseif ($istok($Parser(rsspell),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {  
+      if (!$hget($sockname,special) || $hget($sockname,special) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { tokenize 44 $hget($sockname,cost) | %display $col(%address,rs. spell).logo Spell: $col(%address,$hget($sockname,spell)) $(|) Level: $col(%address,$hget($sockname,level)) $(|) Exp: $col(%address,$bytes($calc($hget($sockname,exp) * %amount),db)).fullcol $(|) Damage: $col(%address,$hget($sockname,damage)) $&
+        Runes: $replace($colorList(%address, 32, 44, $hget($sockname,runes)).space, _, $chr(32)) [GE: $col(%address,$numToString($1)).fullcol $+ ] $(|) Special: $col(%address,$hget($sockname,special)) }
+      socketClose $sockname | halt
+    }
+  } ; else
+}  
+
+#Rs Forums
+on *:SOCKREAD:RSforum.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+    var %num     = $gettok($sock($sockname).mark,4,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    if (RESULTS: 0 isincs %Sockread) { 
+      %display $col(%address,rsforum).logo Nothing was found for your search of " $+ $col(%address,%query).fullcol $+ " on the Runescape forums. 
+      socketClose $sockname | halt
+    }
+    elseif (*RSFORUM*:* iswm %Sockread) { hinc -mu10 $sockname id 1 | hadd -mu10 $sockname $+(rsforum.,$hget($sockname,id)) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {  
+      if (!$hget($sockname,id) || $hget($sockname,id) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { 
+        var %num = $iif(%num > $hget($sockname,id),$v2,$v1)
+        tokenize 124 $hget($sockname,$+(rsforum.,%num))
+        %display $col(%address,rsforum).logo Title: $col(%address,$1).fullcol $(|) Category: $col(%address,$2).fullcol $(|) Date: $col(%address,$3).fullcol $(|) Link: $col(%address,$4).fullcol
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+} 
+
+#Track Top
+on *:SOCKREAD:TopTrack.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %skill   = $gettok($sock($sockname).mark,3,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*LINK:* iswm %Sockread) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (*TOPTRACK:* iswm %Sockread) { hinc -mu10 $sockname id 1 | hadd -mu10 $sockname $+($lower($1),.,$hget($sockname,id)) $+($chr(35),$col(%address,$hget($sockname,id)).fullcol,:) $replace($2,_,$chr(32)) (+ $+ $col(%address,$3).fullcol $+ exp) }
+    elseif (END isincs $1-) {  
+      if (!$hget($sockname,id) || $hget($sockname,id) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { 
+        var %this = 1
+        while (%this <= $hget($sockname,id)) { var %statline = %statline $(|) $hget($sockname,$+(toptrack.,%this)) | inc %this }
+        var %statline = %statline $(|) Link: $col(%address,$hget($sockname,link))
+        noop $Sockshorten(124, %display, $col(%address,toptrack).logo $+([,$col(%address,$Numskill($calc(%skill + 1))),]), $mid(%statline, 2))        
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+} 
+
+#Runescape Top10
+on *:SOCKREAD:Top10.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %skill   = $gettok($sock($sockname).mark,3,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*LINK:* iswm %Sockread) { hadd -mu10 $sockname link $replace($2-,$chr(32),:) }
+    elseif (*TOP10:* iswm %Sockread) { hinc -mu10 $sockname id 1 | hadd -mu10 $sockname $+($lower($1),.,$hget($sockname,id)) $+($chr(35),$col(%address,$hget($sockname,id)).fullcol,:) $replace($2,_,$chr(32)) $+ : $col(%address,$3).fullcol ( $+ $col(%address,$4).fullcol $+ exp) }
+    elseif (END isincs $1-) {  
+      if (!$hget($sockname,id) || $hget($sockname,id) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { 
+        var %this = 1
+        while (%this <= $hget($sockname,id)) { var %statline = %statline $(|) $hget($sockname,$+(top10.,%this)) | inc %this }
+        var %statline = %statline $(|) Link: $col(%address,$hget($sockname,link))
+        noop $Sockshorten(124, %display, $col(%address,top10).logo $+([,$col(%address,$Numskill($calc(%skill + 1))),]), $mid(%statline, 2))        
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Quick Find Code
+on *:SOCKREAD:Qfc.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(qfc),$1,32)) { hadd -mu10 $sockname $lower($1) $html2ascii($gettok(%Sockread,2-,32)) }
+    elseif (END isincs $1-) {  
+      if (!$hget($sockname,title) || $hget($sockname,title) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while finding the quick find code. }
+      else { %display $col(%address,qfc).logo Title: $col(%address,$hget($sockname,title)).fullcol $(|) Section: $col(%address,$hget($sockname,section)).fullcol $(|) Author: $col(%address,$hget($sockname,author)).fullcol $(|) Posts: $col(%address,$hget($sockname,posts)).fullcol $&
+        $(|) Lastpost: $col(%address,$hget($sockname,lastpost)).fullcol $(|) Link: $col(%address,$hget($sockname,link)) }
+      socketClose $sockname | halt
+    }
+  } ; else
+} 
+
+# Acronym
+on *:SOCKREAD:Acronym.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %acronym = $gettok($sock($sockname).mark,3,16)
+    var %Sockread
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    var %header = $remove($1, :)
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (%header == ERROR) { %display $col(%address, ERROR).logo $col(%address, $2-) | socketClose $sockname | return }
+    elseif ($istok($Parser(Acronym), %header, 32)) { hadd -mu10 $sockname $iif(%header == MEANING, $hget($sockname, 0).item, $v1) $2- }
+    elseif (%header == END) {
+      if (!$hget($sockname,ACRONYM) || $hget($sockname,ACRONYM) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {  
+        var %iter = 1
+        while (%iter < $hget($sockname, 0).item) { var %iter = %iter + 1, %out = $addtok(%out, $col(%address, $hget($sockname, $v1)), 59) }
+        %display $col(%address, Acronym).logo Acronyms for $col(%address, $hget($sockname, ACRONYM)) $+ : $replace(%out, ;, $chr(44) $chr(32))
+      } ; else
+      socketClose $sockname | return        
+    } ; elseif
+  } ; else
+}
+
+# PHP
+on *:SOCKREAD:PHP.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %display  = $gettok($sock($sockname).mark,1,16)
+    var %address  = $gettok($sock($sockname).mark,2,16)
+    var %function = $gettok($sock($sockname).mark,3,16)
+    var %Sockread
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    var %header = $remove($1, :)
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (%header == ERROR) { %display $col(%address, ERROR).logo $col(%address, $2-) | socketClose $sockname | return }
+    elseif ($istok($Parser(PHP), %header, 32)) { hadd -mu10 $sockname %header $2- }
+    elseif (%header == END) {
+      if (!$hget($sockname,description) || $hget($sockname,description) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address, PHP).logo $col(%address, $hget($sockname, FUNCTION)) | %display $col(%address, PHP).logo Description: $col(%address, $hget($sockname, DESCRIPTION)) Link: $col(%address, $hget($sockname, LINK)) } 
+      socketClose $sockname | return        
+    } ; elseif
+  } ; else
+}
+
+#Zybez Link
+on *:SOCKREAD:ZybezL.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(zybezLink),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif (END isincs $1-) {  
+      if (!$hget($sockname,title) || $hget($sockname,title) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address,zybez).logo Title: $col(%address,$hget($sockname,title)).fullcol $(|) Author: $col(%address,$hget($sockname,author)).fullcol $(|) Pages: $col(%address,$hget($sockname,pages)).fullcol $(|) Published: $col(%address,$hget($sockname,published)).fullcol $&
+        $(|) Locked: $col(%address,$iif($hget($sockname,locked) == 1,Yes,No)).fullcol }
+      socketClose $sockname | halt
+    }
+  } ; else
+} 
+
+#CheckRSN
+on *:SOCKREAD:CheckRSN.*: {
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %rsn     = $gettok($sock($sockname).mark,3,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32)) 
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*NAMECHECK* iswm $1 || *SUGGESTION* iswm $1) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs %Sockread) { 
+      if (!$hget($sockname,namecheck) || $hget($sockname,namecheck) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,namecheck) == AVAILIBLE) { %display $col(%address,checkrsn).logo The Runescape Name " $+ $col(%address,%rsn) $+ " is currently $+($b(available),.) }
+      else { 
+        %display $col(%address,checkrsn).logo The Runescape Name " $+ $col(%address,%rsn) $+ " is currently $b(not) available.
+        %display $col(%address,suggestions).logo Suggestions: $+($iif($hget($sockname,suggestion) != $null,$colorList(%address,44,44,$v1),$col(%address,None)),.)
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Alog
+on *:SOCKREAD:Alog.*: {
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %rsn     = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,$gettok($sock($sockname).mark,3,16))
+    var %switch  = $gettok($sock($sockname).mark,5,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    if (ERROR:* iswmcs %Sockread) { %display $col(%address,error).logo The username $col(%address,%rsn) is either hidden or does not exist. | socketClose $sockname | halt }
+    elseif (ALOG:* iswm %Sockread) { 
+      if ($regex(%Sockread,/^ALOG: (gained|Found|(Item\(s\) found)|killed|reached|completed|Treasure trails)/Si)) { var %type = $regml(1), %Sockread = $remove(%Sockread,%type) }
+      if (%switch == r) { hadd -mu10 $sockname Alog $addtok($hget($sockname,Alog),$+([,$col(%address,$2),]) $col(%address,$3-).fullcol,124) }
+      else { hadd -mu10 $sockname Alog $addtok($hget($sockname,Alog),$+($col(%address,$iif(%type,$v1,Other)),:) $regsubex($remove($gettok(%Sockread,2-,32),:),/(\d+(?:\.\d+)?)/g,$col(%address,\1).fullcol),124) }
+    }
+    elseif (END isincs %Sockread) { 
+      if ($hget($sockname,Alog)) { noop $sockshorten(124, %display, $col(%address,Alog).logo $+([,$col(%address,%rsn),]), $hget($sockname,Alog)) }
+      else { %display $col(%address,Alog).logo $+([,$col(%address,%rsn),]) No Adventurer's log event matches specified paramaters. }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Define
+on *:SOCKREAD:Define.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+    var %num     = $gettok($sock($sockname).mark,4,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*TOTAL:* iswm %Sockread) { hadd -mu10 $sockname results $2 }
+    elseif (*DEFINE:* iswm %Sockread) { hinc -mu10 $sockname id 1 | hadd -mu10 $sockname $+(definition.,$hget($sockname,id)) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {  
+      if ($hget($sockname,results) == 0) { %display $col(%address,define).logo Nothing found for your search of " $+ $col(%address,%query).fullcol $+ ". }
+      elseif (!$hget($sockname,definition.1) || $hget($sockname,definition.1) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { 
+        var %num = $iif(%num > $hget($sockname,results),$v2,$v1), %definition = $hget($sockname,$+(definition.,%num)), %example = $hget($sockname,$+(example.,%num))
+        %display $col(%address,define).logo $col(%address,%num).fullcol of $col(%address,$hget($sockname,results)).fullcol $(|) $+([,$col(%address,%query).fullcol,]) $&
+          $html2ascii($replace($iif($len(%definition) > 300,$+($mid(%definition,0,300),...),%definition),%query,$col(%address,%query).fullcol))
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Urban
+on *:SOCKREAD:Urban.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+    var %num     = $gettok($sock($sockname).mark,4,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR: * returned no results* iswm %Sockread) { %display $col(%address,urban).logo Nothing found for your search of " $+ $col(%address,%query).fullcol $+ " on $+($col(%address,Urbandictionary.com),.) | socketClose $sockname | halt }
+    elseif (*RESULTS:* iswm %Sockread) { hadd -mu10 $sockname results $2 }
+    elseif (*EXAMPLE#*:* iswm %Sockread || *DEFINITION#*:* iswm %Sockread) { hadd -mu10 $sockname $lower($replace($1,$chr(35),.)) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {         
+      if (!$hget($sockname,definition.1) || $hget($sockname,definition.1) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { 
+        var %num = $iif(%num > $hget($sockname,results),$v2,$v1), %definition = $hget($sockname,$+(definition.,%num)), %example = $hget($sockname,$+(example.,%num))
+        %display $col(%address,urban).logo $col(%address,%num).fullcol of $col(%address,$hget($sockname,results)).fullcol $(|) $+([,$col(%address,%query).fullcol,]) $&
+          $html2ascii($replace($iif($len(%definition) > 300,$+($mid(%definition,0,300),...),%definition),%query,$col(%address,%query).fullcol))
+        if (%example && %example != $null) { %display $col(%address,urban).logo $+($col(%address,Example).fullcol,:) $html2ascii($replace($iif($len(%example) > 300,$+($mid(%example,0,300),...),%example),%query,$col(%address,%query).fullcol)) }
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Kbase
+on *:SOCKREAD:kbase.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR*No*results* iswm %Sockread) { 
+      %display $col(%address,error).logo No results found for $+(",$col(%address,$ucword($replace($gettok($sock($sockname).mark,3,16),_,$chr(32),-,$chr(32)))).fullcol,") in RuneScape knowledge base.
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(kbase),$left($1,-1),32)) { hadd -mu10 $sockname $lower($left($1,-1)) $2- | %display $lower($left($1,-1)) > $hget($sockname,$lower($left($1,-1))) }
+    elseif (END isincs $1) { 
+      %display $col(%address,kbase).logo Top result for " $+ $col(%address,$ucword($replace($gettok($sock($sockname).mark,3,16),_,$chr(32),-,$chr(32)))).fullcol $+ " $(|) $+([,$replace($hget($sockname,section),>,$col(%address,>).fullcol,-,$col(%address,-).fullcol),]) Title: $col(%address,$ucword($hget($sockname,title))) $(|) Link: $col(%address,$hget($sockname,link))
+      %display $col(%address,kbase).logo Description: $col(%address,$hget($sockname,description))
+      socketClose $sockname | halt 
+    } 
+  } ; else
+}
+
+#Youtube Search
+on *:SOCKREAD:YTSearch.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %limit   = $gettok($sock($sockname).mark,3,16)
+    var %search  = $gettok($sock($sockname).mark,4,16)
+    var %user    = $gettok($sock($sockname).mark,5,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR: Nothing found* iswm %Sockread) { 
+      %display $col(%address,error).logo Your search for " $+ $col(%address,%search) $+ " returned no results on $+($col(%address,Youtube.com),.)
+      socketClose $sockname | halt
+    }
+    elseif (%user == $false) {
+      if ($istok($Parser(youtube),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+      elseif (END isincs $1) {
+        if (!$hget($sockname,title) || $hget($sockname,title) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+        else { %display $col(%address,Youtube).logo $+([Results,$chr(32),$col(%address,$iif(%limit > 10,$v2,$v1)).fullcol,$chr(32),of,$chr(32),$col(%address,10).fullcol,]) Title: $col(%address,$hget($sockname,title)).fullcol $(|) Duration: $col(%address,$hget($sockname,duration)).fullcol $(|) Author: $col(%address,$gettok($hget($sockname,author),1,32)).fullcol $(|) Views: $col(%address,$bytes($hget($sockname,views),db)).fullcol $(|) Categories: $col(%address,$hget($sockname,categories)).fullcol $&
+          $(|) Rating: $col(%address,$gettok($hget($sockname,rating),1,32)).fullcol ( $+ $col(%address,$bytes($gettok($hget($sockname,rating),4,32),db)).fullcol $+ ) $(|) Link: $col(%address,$replace($hget($sockname,link),$chr(32),:)).fullcol }
+        socketClose $sockname | halt
+      }
+    }
+    elseif (%user == $true) {
+      if ($istok($Parser(youtubeUser),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+      elseif (END isincs $1) {
+        if (!$hget($sockname,name) || $hget($sockname,name) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+        else { %display $col(%address,Youtube).logo Name: $col(%address,$hget($sockname,name)).fullcol $(|) First Name: $col(%address,$hget($sockname,firstname)).fullcol $(|) Joined: $col(%address,$hget($sockname,joined)).fullcol $(|) Last Seen: $col(%address,$hget($sockname,lastseen)).fullcol $(|) Location: $col(%address,$hget($sockname,location)).fullcol $(|) $&
+          Category: $col(%address,$hget($sockname,category)).fullcol $(|) Subscribers: $col(%address,$hget($sockname,subscribers)).fullcol $(|) Views: $col(%address,$hget($sockname,views)).fullcol $(|) Favorites: $col(%address,$hget($sockname,favorites)).fullcol $(|) Contacts: $col(%address,$hget($sockname,contacts)).fullcol $(|) Uploads: $col(%address,$hget($sockname,uploads)).fullcol }
+        socketClose $sockname | halt
+      }
+    }
+  } ; else
+}
+
+#Youtube link search
+on *:SOCKREAD:YoutubeLink.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR: Video not found* iswm %Sockread) {
+      %display $col(%address,error).logo The video " $+ $col(%address,%query).fullcol $+ " was not found or returned a malformed id.
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(youtubeLink),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,title) || $hget($sockname,title) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address,Youtube).logo Title: $col(%address,$hget($sockname,title)).fullcol $(|) Author: $col(%address,$hget($sockname,author)).fullcol $(|) Category: $col(%address,$hget($sockname,categories)).fullcol $(|) Duration: $col(%address,$hget($sockname,duration)).fullcol $(|) Views: $&
+        $col(%address,$bytes($hget($sockname,views),b)).fullcol $(|) Rating: $col(%address,$gettok($hget($sockname,rating),1,32)).fullcol ( $+ $col(%address,$bytes($gettok($hget($sockname,rating),4,32), b)).fullcol $+ ) }
+      socketClose $sockname | halt 
+    }
+  } ;else
+}
+
+#Xbox Live
+on *:SOCKREAD:Xboxlive.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display  = $gettok($sock($sockname).mark,1,16)
+    var %address  = $gettok($sock($sockname).mark,2,16)
+    var %limit    = $gettok($sock($sockname).mark,3,16)
+    var %gamertag = $gettok($sock($sockname).mark,4,16)
+    var %game     = $gettok($sock($sockname).mark,5,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32)) | echo -a %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR: Invalid* iswm %Sockread) {
+      %display $col(%address,error).logo The gamertag " $+ $col(%address,%gamertag).fullcol $+ " is invalid or does not exist.
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(xboxlive),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,gamertag) || $hget($sockname,gamertag) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address,xbox).logo  }
+      socketClose $sockname | halt 
+    }
+  } ;else
+}
+
+#Cyborg
+on *:SOCKREAD:Cyborg.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($1 == ERROR) {
+      %display $col(%address,Cyborg).logo Error: $col(%address,$2-)
+      socketClose $sockname | halt
+    }
+    elseif ($1 == CYBORG) { sockmark $sockname $+($sock($sockname).mark,:,$2-) }
+    elseif ($1 == DESCRIPTION) {
+      %display $col(%address,Cyborg).logo $col(%address,$gettok($sock($sockname).mark,5,16)).fullcol $+ : $col(%address,$2-)
+      socketClose $sockname | halt
+    }
+  } ;else
+}
+
+#Imdb
+on *:SOCKREAD:imdb.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+    var %num     = $gettok($sock($sockname).mark,4,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: No matches found isin %Sockread) {
+      %display $col(%address,error).logo Your search for " $+ $col(%address,%query).fullcol $+ " return no results on $+($col(%address,http://imdb.com),.)
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(imdb),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1-) {  
+      if (!$hget($sockname,title) || $hget($sockname,title) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        if ($hget($sockname,list)) {
+          var %this = 1, %count = $numtok($v1,32)
+          while (%this <= %count) {
+            tokenize 124 $gettok($hget($sockname,list),%this,32)
+            var %listline = %listline $+ $chr(44) $col(%address,$html2ascii($replace($1,_,$chr(32)))).fullcol $+([,$col(%address,$2).fullcol,]) (# $+ $col(%address,$3).fullcol $+ )
+            inc %this
+          }
+        }
+        %display $col(%address,imdb).logo (Results: $col(%address,$iif($hget($sockname,results),$v1,1)).fullcol $+ ) Title: $col(%address,$hget($sockname,title)).fullcol $(|) Year: $col(%address,$hget($sockname,year)).fullcol $(|) Rating: $col(%address,$iif($replace($hget($sockname,rating),_,-) == $Null,Unknown,$v1))).fullcol $(|) Length: $&
+          $col(%address,$hget($sockname,length)).fullcol $(|) Genre: $col(%address,$hget($sockname,genre)).fullcol $(|) User Rating: $col(%address,$hget($sockname,urating)).fullcol $(|) Director: $col(%address,$hget($sockname,director)).fullcol $iif(!%listline,$(|) Link: $col(%address,$hget($sockname,link)).fullcol)
+        if (%listline) { %display $col(%address,imdb).logo Link: $col(%address,$hget($sockname,link)).fullcol $(|) Top $col(%address,$numtok(%listline,44)).fullcol Results: $mid(%listline,2) }
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#Facts
+on *:SOCKREAD:Fact.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($1 == ERROR) {
+      %display $col(%address,$gettok($sock($sockname).mark,4,16)).logo Error: $col(%address,$2-)
+      socketClose $sockname | halt
+    }
+    elseif ($v1 == FACT) {
+      var %q = $replace($gettok($sock($sockname).mark,4,16), vin, Vin Diesel, chuck, Chuck Norris, mrt, Mr. T)
+      %display $col(%address,%q).logo $col(%address,$2-) | socketClose $sockname | halt
+    }
+  } ;else
+}
+
+# Weather
+on *:SOCKREAD:Weather.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %forcast = $gettok($sock($sockname).mark,3,16)
+    var %default = $gettok($sock($sockname).mark,4,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR*no*results* iswm %Sockread) { %display $col(%address,error).logo No result found for $+(",$col(%address,$ucword($5-)).fullcol,".) | socketClose $sockname | return }
+    elseif ($istok($Parser(weather),$1,32)) { hadd -mu10 $sockname $lower($1) $htmlfree($gettok(%Sockread,2-,32)) }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,temperature) || $hget($sockname,temperature) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. | socketClose $sockname | halt }
+      if (%default) {
+        if ($hget($sockname,location)) {
+          %display $col(%address,location).logo Your default location for " $+ $col(%address,%address) $+ " has been set to $+($col(%address,$hget($sockname,location)),.) If this is not correct please try refining your search.
+          hadd $+(-u,$iif($hget(Mycolor,%hash).unset > 0,$v1,$HASH_LENGTH)) Weather $+($network,:,%address) $v1
+        }
+        else { %display $col(%address,error).logo We could not set you default location. A direct match to what you specified was not found. }
+      }
+      if (!$hget($sockname,time)) {
+        var %location = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,$hget($sockname,location))
+        %display $col(%address,weather).logo $+([,$col(%address,%location).fullcol,]) Last update: $col(%address,$hget($sockname,updated)).fullcol $chr(124) Temp: $+($col(%address,$hget($sockname,temperature)).fullcol,/,$col(%address,$+($round($calc(100/(212-32) * ($left($hget($sockname,temperature),-1) - 32)),1),C)).fullcol) $chr(124) Humidity: $col(%address,$hget($sockname,humidity)).fullcol $chr(124) Pressure: $col(%address,$hget($sockname,pressure)).fullcol
+        socketClose $sockname | halt
       }
       else {
-        if (%time != $gettok($hget($sockname,last),1,32)) {
-          ; update occurred
-          var %output $logo($null,geupdate) A Grand Exchange update has been detected. The previous update took $c2($null,$hget($sockname,previous)) $+ .
-          emsg ge %output
-          .msg #devvectra .do .emsg ge %output
-          writeini geupdate.ini Last time $gettok($hget($sockname,last),1,32)
-          sockclosef $sockname | halt
+        tokenize 124 $hget($sockname,forecast)
+        var %x = 1, %count = $iif($0 > 3,3,$v1) 
+        while (%x <= %count) {
+          var %string = $($+($,%x),2)
+          var %fc = %fc $(|) $token(%string,1,32) $iif($chr(47) isin %string,$+($col(%address,$token($token(%string,1,47),2,32)).fullcol,/,$col(%address,$+($round($calc(100/(212-32) * ($token($left($token(%string,1,47),-1),2,32) - 32)),1),C)).fullcol,$chr(32),-,$chr(32),$col(%address,$token($token(%string,2,47),1,32)).fullcol,/,$col(%address,$+($round($calc(100/(212-32) * ($left($token($token(%string,2,47),1,32),-1) - 32)),1),C)).fullcol),$token(%string,2,32)) $col(%address,$token(%string,3-,32)).fullcol
+          inc %x
         }
-        else { sockclosef $sockname | halt }
+
+        var %location = $iif($gettok($sock($sockname).mark,6,16) == HideMyRsnPlx,<Hidden>,$ucword($hget($sockname,location)))
+        %display $col(%address,weather).logo $+([,$col(%address,%location).fullcol,$chr(40),$col(%address,$hget($sockname,time)).fullcol,$chr(41),]) Last update: $col(%address,$hget($sockname,updated)).fullcol $chr(124) Station: $col(%address,$iif(%location == <Hidden>,$v2,$hget($sockname,station))).fullcol $chr(124) Coords: $col(%address,$hget($sockname,coords)).fullcol
+        %display $col(%address,weather).logo Temp: $+($col(%address,$hget($sockname,temperature)).fullcol,/,$col(%address,$+($round($calc(100/(212-32) * ($left($hget($sockname,temperature),-1) - 32)),1),C)).fullcol) $chr(124) Humidity: $col(%address,$hget($sockname,humidity)).fullcol $chr(124) Wind: $col(%address,$hget($sockname,wind)).fullcol $chr(124) Pressure: $col(%address,$hget($sockname,pressure)).fullcol $chr(124) Elevation: $col(%address,$hget($sockname,elevation)).fullcol $iif(%forcast == $false,$(|) Forecast: $right(%fc,-1)) 
+        if (%forcast) { %display $col(%address,forecast).logo $right(%fc,-1) }
+        socketClose $sockname | halt 
       }
     }
-  } ;while
+  } ;else
 }
 
-#RSCTOPICS
-on *:sockopen:rsc.*: {
-  if ($sockerr) { 
-    sockclose $sockname
-    halt
-  }
-  sockwrite -nt $sockname GET /parsers/zybez.php HTTP/1.1
-  sockwrite -nt $sockname Host: www.vectra-bot.net
-  sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:rsc.*: {
-  if ($sockerr) { 
-    sockclose $sockname
-    halt
-  }
-  var %sockreader
-  sockread %sockreader
-  if ($regex($remove(%sockreader,$chr(44)),/ID: #(.*) Title: (.*) Started: (.*) Link: (.*)/)) {
-    if ((*ago* iswm $regml(3)) || (*Today* iswm $regml(3))) { 
-      if ((!$readini(rsc.ini,id,$regml(1))) && ($me == Vectra || $me == [Dev]Vectra) && ($regml(1) != $null)) {
-        .writeini -n rsc.ini id $regml(1) k
-        .var %line = $logo(vec,Zybez-community) $c3(New RSC Topic! Title:) $c4($regml(2)) $c3(Link:) $c4($regml(4)) $c3(Posted:) $c4($regml(3))
-        .emsg rsc %line
-        .msg #devvectra .do emsg rsc %line 
-      }
-    }
-  }
-  if (END isin %sockreader) { .sockclosef $sockname }
-}
-on *:sockopen:WRITErsc.*: {
-  if ($sockerr) { 
-    sockclose $sockname
-    halt
-  }
-  sockwrite -nt $sockname GET /parsers/zybez.php HTTP/1.1
-  sockwrite -nt $sockname Host: www.vectra-bot.net
-  sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:sockread:WRITErsc.*: {
-  if ($sockerr) { 
-    sockclose $sockname
-    halt
-  }
-  var %sockreader
-  sockread %sockreader
-  if ($regex($remove(%sockreader,$chr(44)),/ID: #(.*) Title: (.*) Started: (.*) Link: (.*)/)) {
-    if ((*ago* iswm $regml(3)) || (*Today* iswm $regml(3))) { 
-      if ((!$readini(rsc.ini,id,$regml(1))) && ($me == Vectra || $me == [Dev]Vectra) && ($regml(1) != $null)) {
-        writeini -n rsc.ini id $regml(1) k
-      }
-    }
-  }
-}
-#GAMERCARD
-on *:SOCKOPEN:gamercard.*: {
-  .sockwrite -n $sockname GET $+(/,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(profile.mygamercard.net,$crlf,$crlf)
-}
-on *:SOCKREAD:gamercard.*: {
-  .var %N = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if (*This player has not yet played any Xbox 360 games!* iswm %sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Gamercard) $htmlfree(%sockreader)
-    .sockclosef $sockname
-  }
-  if $regex(%sockreader,/The GamerTag (.*) does not exist on Xbox Live!) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Gamercard) $replace($htmlfree(%sockreader),$gettok($sock($sockname).mark,2,58),$c2(%n,$gettok($sock($sockname).mark,2,58)))
-    .sockclosef $sockname
-  }
-  if (<div class="userProfileTitle"> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname gametag $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if $regex(%sockreader,/title="(.*) is (.*)" class="userProfileStatusImage" />/) {
-    hadd -m $sockname status $remove($regml(2),$chr(9))
-    sockread %sockreader
-  }
-  if $regex(%sockreader,/Last (.*)<br /><br />(.*)</div>/) {
-    hadd -m $sockname info $c2(%n,Last $regml(1)) $c1($chr(124)) $c2(%n,$remove($regml(2),$chr(9)))
-  } 
-  if $regex(%sockreader,/(.*)<span class="green">Online (.*)</span>/) {
-    hadd -m $sockname info $c2(%n,$replace($regml(1),<br />,$chr(32))) $+ $c1($chr(124)) $c2(%n,Online $regml(2))
-  } 
-  if (<td><strong>Number of Games:</strong></td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname games $c1(Number of games:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td><strong>Total Score:</strong></td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname score $c1(Total Score:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td><strong>Total Achievements:</strong></td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname Achievements $c1(Total Achievements:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td>Zone:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname Zone $c1(Zone:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td>Completed XBLA:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname XBLA $c1(Completed XBLA:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }  
-  if (<td>Completed Retail:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname Retail $c1(Completed Retail:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td>GS Completion %:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname GSCompletion $c1(GS Completion $chr(37) $+ :) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td>Country Rank:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname CRank $c1(Country Rank:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (<td>World Rank:</td> isin %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname WRank $c1(World Rank:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
-  if (*Completion</a> Rank:</td> iswm %sockreader) {
-    .sockread %sockreader
-    hadd -m $sockname CompletionRank $c1(Completion Rank:) $c2(%n,$remove($htmlfree(%sockreader),$chr(9)))
-  }
+#RS Wikia
+on *:SOCKREAD:RSwiki.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
 
-  if (</div> <!-- End Content --> isin %sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Gamercard) $c2(%n,$up($replace($hget($sockname,gametag),+,$chr(32)))) $c1([) $+ $hget($sockname,status) $+ $c1(]) $chr(124) $hget($sockname,info) $&
-      $chr(124) $hget($sockname,games) $chr(124) $hget($sockname,score) $chr(124) $hget($sockname,Achievements)
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Gamercard) $hget($sockname,Zone) $chr(124) $hget($sockname,XBLA) $chr(124) $hget($sockname,Retail) $chr(124) $&
-      $hget($sockname,GSCompletion) $chr(124) $hget($sockname,CRank) $chr(124) $hget($sockname,WRank) $iif($hget($sockname,CompletionRank),$chr(124) $v1))
-    .sockclosef $sockname
-  }
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR: Non-existant* iswm %Sockread) {
+      %display $col(%address,error).logo No article was found for your search of " $+ $col(%address,%query).fullcol $+ " on the $+($col(%address,RuneScape Wiki),.) ( $+ $col(%address,http://runescape.wikia.com) $+ )
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(rswiki),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,desc) || $hget($sockname,desc) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { tokenize 32 $hget($sockname,desc) | %display $col(%address,rswiki).logo $+([,$col(%address,$hget($sockname,article)),]) $col(%address,$htmlfree($iif($istok(Note:,$1,32),$trim($mid($1-,$calc($len($1) + 1))),$1-))).fullcol ( $+ $col(%address,$hget($sockname,url)).fullcol $+ ) }
+      socketClose $sockname | halt 
+    }
+  } ;else
 }
-#GE
-on *:sockopen:ge.*: {
-  sockwrite -n $sockname GET $+(/Parsers.php?type=ge&item=,$replace($gettok($sock($sockname).mark,2,58),;,:)) HTTP/1.1
-  sockwrite -n $sockname Host: $+(parsers.phantomnet.net,$crlf,$crlf)
+
+#Clue
+on *:SOCKREAD:Clue.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+    var %query   = $gettok($sock($sockname).mark,3,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR:* iswm %Sockread) {
+      %display $col(%address,error).logo $gettok(%Sockread,2-,32) ( $+ $col(%address,Tip.It) $+ )
+      socketClose $sockname | halt
+    }
+    elseif ($istok($Parser(clue),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) {         
+      if ((!$hget($sockname,location) || $hget($sockname,location) == $null) && (!$hget($sockname,answer) || $hget($sockname,answer) == $null)) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,answer) && $hget($sockname,answer) != $null) { %display $col(%address,clue).logo $+([",$col(%address,%query),"]) $hget($sockname,clue) $(|) Answer: $col(%address,$hget($sockname,answer)).fullcol ( $+ $col(%address,Tip.It) $+ ) }
+      else {
+        %display $col(%address,clue).logo $+([",$col(%address,%query),"]) Answer: $col(%address,$hget($sockname,location)).fullcol ( $+ $col(%address,Tip.It) $+ ) 
+        %display $col(%address,clue).logo Link: $col(%address,$hget($sockname,link)) ( $+ $col(%address,Tip.It) $+ )
+      }
+      socketClose $sockname | halt 
+    }
+  } ;else
 }
-on *:sockread:ge.*: {
-  var %n = $gettok($sock($sockname).mark,5,58)
-  if ($sockerr) { .msg #DevVectra The GrandExchange parser is unreachable | .sockclosef $sockname | halt }
-  var %sockreader, %ticks $ticks
-  while ($sock($sockname).rq) { 
-    if ($ticks > $calc(%ticks + 3000)) { break }
-    .sockread %sockreader
-    if ($regex(%sockreader,/PHP: Nothing found for search/)) {
-      $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $c1(Sorry, no results have been found for your search:) $c2(%n,$gettok(%sockreader,6-,32))
-      .sockclosef $sockname | halt
+
+# Spotify
+on *:SOCKREAD:SpotifyLink.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    tokenize 58 $sock($sockname).mark
+
+    ; Vars from sockmark
+    var %display = $1 
+    var %address = $2
+    var %SpotID  = $3
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    .tokenize 32 %Sockread
+    if ($regex($1-,/^No song found\./i)) { socketClose $sockname | halt }
+    elseif ($regex($1-,$(/^(\Q $+ %spotID $+ \E)):(.*):(.*):\S+/i)) {
+      %output $col(%address,spotify).logo Artist: $col(%address,$token($1-,2,58)).fullcol $chr(124) Song: $col(%address,$token($1-,3,58)).fullcol $iif($token($1-,4,58),$chr(124) Album: $col(%address,$v1).fullcol) 
+      socketClose $sockname | halt
     }
-    elseif (*inaccurate* iswm %sockreader) { 
-      $gettok($sock($sockname).mark,1,58) $logo(%n,notice) $c1(The ge database is undergoing a download. Prices may be out of date.)  
+  } ; else
+}
+
+#Item
+on *:SOCKREAD:Item.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
     }
-    elseif ((*coinshare* iswm $sock($sockname).mark) && $regex(%sockreader,/ITEM:/)) {  
-      .tokenize 32 %sockreader 
-      $gettok($sock($sockname).mark,1,58) $logo(%n,COINSHARE) $c2(%n,$replace($3,_,$chr(32))) $c1(shared on $c2(%n,$gettok($sock($sockname).mark,6,58)) players will give you:) $c2(%n,$gecompare($calc($replace($remove($5,$chr(46)),k,00,m,00000,b,00000000) / $gettok($sock($sockname).mark,6,58)))) $c1(each [Minimum price:) $c2(%n,$5) $+ $c1(]) 
-      .sockclosef $sockname | halt
+    elseif ($istok($Parser(item),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == ITEM) {  
+      hinc -mu10 $sockname count.items 1
+      hadd -mu10 $sockname Items $hget($sockname,Items) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.items) >= 8) {
+        %display $col(%address,items).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
     }
-    else { 
-      if ($regex(%sockreader,/END/i)) {
-        if ($hget($sockname,NotFoundException)) { .sockclosef $sockname | halt }
-        .tokenize 32 $replace($hget($sockname,line),;,$+($chr(32),$chr(124),$chr(32))) $iif(; isin $sock($sockname).mark,$c1($chr(124) All together:) $gettok($hget($sockname,prices),1-3,32),$+([Total:,$chr(32),$gettok($hget($sockname,prices),1-3,32),])) $+([,Total Rise/Fall:,$chr(32),$gettok($hget($sockname,prices),4,32),,gp])
-        if ($len($1-) > 450) {
-          $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $gettok($1-,1-3,124) 
-          $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $gettok($1-,4-,124)
-        }
-        else { $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $1- }
-        if ($hget($sockname,graph)) { $gettok($sock($sockname).mark,1,58) $logo(%n,GRAPH) $hget($sockname,graph) }     
-        .sockclosef $sockname | halt
+    elseif (END isincs $1) {
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.items)) {
+        %display $col(%address,items).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
       }
-      elseif ($regex(%sockreader,/RESULTS: (.*)/)) { .hadd -m $sockname results $regml(1) }
-      elseif (TOTAL: isin %sockreader) { 
-        .tokenize 124 $gettok(%sockreader,2,58)
-        .hadd -m $sockname prices $1 $c2(%n,$2) $3 $iif(-* iswm $4,$+(4,-,$bytes($right($4,-1),db),),$+(3,+,$bytes($4,db),))
+      else {
+        var %high = $hget($sockname,high), %low = $hget($sockname,low)
+        if ($hget($sockname,ge)) { var %market = $gettok($hget($sockname,ge),2,32), %nature = $gettok($hget($sockname,nature),2,32), %highLoss = $bytes($calc(%high - %market - %nature),db), %lowLoss = $bytes($calc(%low - %market - %nature),db) }
+        %display $col(%address,items).logo $iif($hget($sockname,members),$+($chr(91),$col(%address,M),$chr(93))) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $chr(124) Source: $col(%address,$hget($sockname,source)) $chr(124) Slot: $col(%address,$hget($sockname,slot)) $chr(124) Rarity: $col(%address,$hget($sockname,rarity)) $&
+          $chr(124) $col(%address,Quest,$iif($hget($sockname,quest) == Yes,$true,$false)) $+ $chr(44) $col(%address,Trade,$iif($hget($sockname,trade) == Yes,$true,$false))) $+ $chr(44) $col(%address,Stack,$iif($hget($sockname,stack) == Yes,$true,$false))) $+ $chr(44) $col(%address,Equip,$iif($hget($sockname,equip) == Yes,$true,$false))) $+ $chr(44)  $&
+          $col(%address,2Hand,$iif($hget($sockname,twohanded) == Yes,$true,$false))) $chr(124) Weight: $col(%address,$hget($sockname,weight)) $+ kg $chr(124) Alch: $+($col(%address,$numToString(%high)),/,$col(%address,$numToString(%low))) $iif(%market,([ $+ Alch Loss]: High $col(%address,%highLoss) $+ gp Low: $col(%address,%lowLoss) $+ gp $+ )) $&
+          $(|) Link: $col(%address,$hget($sockname,link)) ( $+ $col(%address,Zybez.net) $+ )
+        if ($hget($sockname,stats)) { %display $col(%address,i. stats).logo $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $+ : $hget($sockname,stats) ( $+ $col(%address,Zybez.net) $+ ) }
       }
-      elseif (ITEM: isin %sockreader) { .hadd -m $sockname item $right($gettok(%sockreader,2,58),-1)) }
-      elseif (GRAPHS: isin %sockreader) { 
-        if ($regex(%sockreader,/&itemid=(\d+)&graphitems=(.*)/i)) { 
-          if ($chr(44) isin %sockreader) {
-            var %ge.link = http://services.runescape.com/m=itemdb_rs/results.ws?query= $+ $iif($gettok($gettok($sock($sockname).mark,2,58),1,43) isnum,$gettok($gettok($sock($sockname).mark,2,58),2,43),$gettok($sock($sockname).mark,2,58))
-          }
-          else {  var %ge.link = http://services.runescape.com/m=itemdb_rs/viewitem.ws?obj= $+ $regml(1) }
-        } 
-        if ($numtok($gettok($sock($sockname).mark,2,58),59) == 1) { .hadd -m $sockname graph $c1(RS:) $c2(%n,%ge.link) $c1($chr(124) Tip.It:) $c2(%n,$gettok(%sockreader,2-,32)) }
-        else { .hadd -m $sockname graph $c1(Tip.It:) $c2(%n,$gettok(%sockreader,2-,32)) }
+      socketClose $sockname | halt        
+    }
+  } ; else
+}
+
+#Alch(loss)
+on *:SOCKREAD:Alch.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(item),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == ITEM) {  
+      hinc -mu10 $sockname count.items 1
+      hadd -mu10 $sockname Items $hget($sockname,Items) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.items) >= 8) {
+        %display $col(%address,items).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
       }
-      elseif (EXTRA: isin %sockreader) { .hadd -m $sockname extra $right($gettok(%sockreader,2,58),-1))
-        var %c = $hget($sockname,item)
-        if ($hget($sockname,results) == 1) {
-          if ($gettok($hget($sockname,extra),2,32) == $gettok(%c,4,32)) { $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $iif($gettok(%c,1,32) == 1, $+($c1([),$c2(%n,M),$c1(]))) $c2(%n,$replace($gettok(%c,2,32),_,$chr(32))) $+ $c1(: $gp($gettok(%c,4,32))) $c2(%n,$gp($gettok(%c,5,32))) $c1($gp($gettok(%c,6,32)) $chr(40) $+ Change: ) $c2(%n,$iif($gettok(%c,3,32) == 0, No change, $gp($gettok(%c,3,32)))) $+ $c1($chr(41)) }
-          else { $gettok($sock($sockname).mark,1,58) $logo(%n,GE) $iif($gettok(%c,1,32) == 1, $+($c1([),$c2(%n,M),$c1(]))) $c2(%n,$replace($gettok(%c,2,32),_,$chr(32))) $+ $c1(: $gp($gettok(%c,4,32))) $c2(%n,$gp($gettok(%c,5,32))) $c1($gp($gettok(%c,6,32)) $chr(40) $+ Change: ) $c2(%n,$iif($gettok(%c,3,32) == 0, No change, $gp($v1))) $+ $c1($chr(41) [ $+ $gettok($hget($sockname,extra),2,32)) $c2(%n,$gettok($hget($sockname,extra),3,32)) $c1($gettok($hget($sockname,extra),4,32) $+ ]) }
-          if ($hget($sockname,graph)) { $gettok($sock($sockname).mark,1,58) $logo(%n,GRAPH) $hget($sockname,graph) }     
-          .sockclosef $sockname | halt
-        } 
-        var %c = $hget($sockname,item)
-        if ($gettok($hget($sockname,extra),2,32) == $gettok(%c,4,32)) {
-          .hadd -m $sockname line $addtok($hget($sockname,line),$iif($gettok(%c,1,32) == 1, $+($c1([),$c2(%n,M),$c1(]))) $c2(%n,$replace($gettok(%c,2,32),_,$chr(32))) $+ $c1(: $gp($gettok(%c,4,32))) $c2(%n,$gp($gettok(%c,5,32))) $c1($gp($gettok(%c,6,32)) $chr(40) $+ Change: ) $c2(%n,$iif($gettok(%c,3,32) == 0, No change, $gp($gettok(%c,3,32)))) $+ $c1($chr(41)),59)
+    }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.items)) {
+        %display $col(%address,alch).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+      else {
+        var %amount = $gettok($sock($sockname).mark,3,16), %nature = $hget($sockname,nature)
+        var %high = $hget($sockname,high), %low = $hget($sockname,low)
+        if ($hget($sockname,ge)) {
+          var %price = $gettok($v1,1,32)
+          %display $col(%address,alch).logo $+($col(%address,%amount).fullcol,x) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) High Alch: $+($col(%address,$bytes(%high,db)),gp) $iif(%amount > 1,$+($chr(40),$col(%address,$numToString($calc(%amount * %high))),gp,$chr(41))) $&
+            $chr(124) Low Alch: $+($col(%address,$bytes(%low,db)),gp) $iif(%amount > 1,$+($chr(40),$col(%address,$numToString($calc(%amount * %low))),gp,$chr(41))) $chr(124) High Alch Loss: $+($col(%address,$calc((%high - %nature - %price) * %amount)).num,gp) $+($chr(91),w/o Nature:,$chr(32),$col(%address,$calc((%high - %price) * %amount)).num,gp,])
+          socketClose $sockname | halt
         }
         else {
-          .hadd -m $sockname ismore y
-          .hadd -m $sockname line $addtok($hget($sockname,line),$iif($gettok(%c,1,32) == 1, $+($c1([),$c2(%n,M),$c1(]))) $c2(%n,$replace($gettok(%c,2,32),_,$chr(32))) $+ $c1(: $gp($gettok(%c,4,32))) $c2(%n,$gp($gettok(%c,5,32))) $c1($gp($gettok(%c,6,32)) $chr(40) $+ Change: ) $c2(%n,$iif($gettok(%c,3,32) == 0, No change, $gp($v1))) $+ $c1($chr(41) [ $+ $gettok($hget($sockname,extra),2,32)) $c2(%n,$gettok($hget($sockname,extra),3,32)) $c1($gettok($hget($sockname,extra),4,32) $+ ]),59)
+          %display $col(%address,alch).logo $+($col(%address,%amount).fullcol,x) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) High Alch: $+($col(%address,$bytes(%high,db)),gp) $iif(%amount > 1,$+($chr(40),$col(%address,$numToString($calc(%amount * %high))),gp,$chr(41))) $&
+            $chr(124) Low Alch: $+($col(%address,$bytes(%low,db)),gp) $iif(%amount > 1,$+($chr(40),$col(%address,$numToString($calc(%amount * %low))),gp,$chr(41))) ( $+ $col(%address,Zybez.net) $+ )
         }
+        socketClose $sockname | halt
       }
-      elseif ($regex(%sockreader,/TOTALAMT: (.*)/)) { 
-        .tokenize 124 $gettok(%sockreader,2,58)
-        .hadd -m $sockname prices $1 $c2(%n,$2) $3 $iif(-* iswm $4,$+(4,-,$bytes($right($4,-1),db),),$+(3,+,$bytes($4,db),))
-      }
-    }
+    } ; else
   }
 }
-#alch-loss
-on *:sockopen:alchloss.*: {
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=alchloss&item=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname Host: parsers.phantomnet.net
-  .sockwrite -nt $sockname $crlf
-}
-on *:sockread:alchloss.*: {
-  var %n = $gettok($sock($sockname).mark,3,58), %return $gettok($sock($sockname).mark,1,58) 
-  if ($sockerr) { sockclosef $sockname | halt }
-  else { 
-    .var %sockread | .sockread %sockread
-    if (nothing found isin %sockread) {
-      %return $logo(%n,alchloss) $c1(Nothing found for the search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58))) $+ $c1(.) $+($c1($chr(40)),$c2(%n,Tip.it),$c1($chr(41)))
-      .sockclosef $sockname | halt
-    }
-    if (ITEM: isin %sockread) {      
-      .var %count = 1, %c $ticks
-      while (END !isin %sockread) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if (ITEM: isin %sockread && %count < 10) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($replace($up($gettok(%sockread,2,32)),_,$chr(32))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockread,3,32)),$c1($chr(41))) | .inc %count }  
-        if (%count >= 8) { %return $logo(%n,alchloss) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!alchloss #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) $+($c1($chr(40)),$c2(%n,Tip.it),$c1($chr(41))) | .sockclosef $sockname | halt }
-        .sockread %sockread
-      } 
-      if (END isin %sockread) { %return $logo(%n,alchloss) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!alchloss #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-    }
-    if (NATURE: isin %sockread) { .hadd -m $sockname Nature $gettok(%sockread,2-,32) }
-    if (ALCHLOSS: isin %sockread) { .tokenize 32 $gettok(%sockread,2-,32)
-      %return $logo(%n,alchloss) $+($c1([),$c2(%n,$iif($1 == 0,F,M)),$c1(])) $c2(%n,$replace($2,_,$chr(32))) $c1($chr(124) GE:) $+($c2(%n,$bytes($7,db)),$c1($chr(44)),$c2(%n,$bytes($8,db)),$c1($chr(44)),$c2(%n,$bytes($9,db))) $c1($chr(124)) $c1(Nature Rune:) $+($c2(%n,$gettok($hget($sockname,Nature),1,32)),$c1($chr(44)),$c2(%n,$gettok($hget($sockname,Nature),2,32)),$c1($chr(44)),$c2(%n,$gettok($hget($sockname,Nature),3,32))) $c1($chr(124)) $&
-        $c1(Alch:) $+($c1($chr(40) $+ High:),$chr(32),$c2(%n,$bytes($5,db)),$chr(32),$c1($chr(124) Low:),$chr(32),$c2(%n,$bytes($6,db)),$c1($chr(41)))
-      .sockclosef $sockname | halt
-    }
-    if (END isin %sockread) { .sockclosef $sockname | halt }
-  }
-}
-#TRACK
-on *:SOCKOPEN:track.*: {
-  .var %n = $gettok($sock($sockname).mark,5,58)
-  if ($len($gettok($sock($sockname).mark,1,58)) > 12) || ($chr(36) isin $gettok($sock($sockname).mark,1,58)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c1(Username has to contain $+(Spaces,$chr(44)) $+(underscores,$chr(44)) $+(numbers,$chr(44)) letters and 12 characters max.)
-    .sockclosef $sockname | .halt
-  }
-  .sockwrite -n $sockname GET $+(/lookup.php?type=track&user=,$gettok($sock($sockname).mark,1,58),&skill=,$gettok($sock($sockname).mark,3,58),&time=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1
-  .sockwrite -n $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  .sockwrite -n $sockname Host: $+(desu.rscript.org,$crlf,$crlf)
-} 
-on *:SOCKREAD:track.*: {
-  .var %n = $gettok($sock($sockname).mark,5,58), %t = $gettok($sock($sockname).mark,6,58), %rsn = $gettok($sock($sockname).mark,1,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader 
-  if ($regex(%sockreader,/-2/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$rsnH(%n,%t,%rsn)),$c1,") $c1(was not found in the RuneScape hiscores.)
-    .sockclosef $sockname | .halt
-  }
-  elseif ($regex(%sockreader,/-1/)) {
-    $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(did not gain any EXP in the last) $+($c2(%n,$duration($gettok($sock($sockname).mark,4,58),2)),$c1,.)
-    .sockclosef $sockname | .halt
-  }
-  elseif ($regex($gettok($sock($sockname).mark,3,58),/all/)) {
-    .tokenize 58 %sockreader
-    if ($regex($1,/start/i) && $3) { hadd -m $+($sockname,Track.start) $2 $3 }
-    if ($regex($1,/gain/i)) { hadd -m $+($sockname,Track.gain) $2 $4 }
-    if (END isincs $1) {
-      .var %x = 2
-      while (%x <= 26) {
-        if ($hget($+($sockname,track.gain),$skill(%x)) >= 1) { 
-          .var %lvl.gain = $undoexp($hget($+($sockname,track.start),$skill(%x))), %lvl.start = $undoexp($calc($hget($+($sockname,track.start),$skill(%x)) - $hget($+($sockname,track.gain),$skill(%x))))
-          .hinc -m $sockname Overall.gain $calc(%lvl.gain - %lvl.start)
-          .var %statline = %statline $c1($chr(124)) $+($c2(%n,$shortskill(%x)),$iif($skill(%x) != overall,$+($c1,$chr(40),$iif(%lvl.start != %lvl.gain,$+(,%lvl.start,->,%lvl.gain,),%lvl.start),$chr(41)))) $+($c2(%n,+),$c2(%n,$bytes($hget($+($sockname,track.gain),$skill(%x)),db)))
-        }
-        inc %x
-      }
-      if (!%statline) {
-        $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(did not gain any EXP in the last) $+($c2(%n,$duration($gettok($sock($sockname).mark,4,58),2)),$c1,.)
-        .sockclosef $sockname | .halt
-      }
-      .tokenize 32 $c2(%n,Overall) $+($c1([+),$c2(%n,$hget($sockname,Overall.gain)),$c1(])) $+($c2(%n,+),$c2(%n,$bytes($hget($+($sockname,track.gain),Overall),db))) %statline
-      if ($istok(bitlbee,$network,32)) {
-        $gettok($sock($sockname).mark,2,58) $logo(%n,tracker) $+($c1,$chr(91),$c2(%n,All),$c1,$chr(93)) $c1(EXP gains for) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(in the last) $+($duration($gettok($sock($sockname).mark,4,58),2),:) $+ $remove($1,$chr(124)) $2-    
-        .sockclosef $sockname | .halt
-      }
-      .sockshorten 3 $gettok($sock($sockname).mark,2,58) $logo(%n,tracker) $+($c1,$chr(91),$c2(%n,All),$c1,$chr(93)) $c1(EXP gains for) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(in the last) $+($duration($gettok($sock($sockname).mark,4,58),2),:) $remove($1,$chr(124)) $2-
-      .sockclosef $sockname | halt
-    }
-  }
-  elseif ($skill($calc($gettok($sock($sockname).mark,3,58) + 1))) {
-    if ($regex($gettok(%sockreader,1,58),/start$/)) { .hadd -m $+($sockname,Track.start) $gettok($sock($sockname).mark,3,58) $gettok(%sockreader,3,58) }
-    if $regex(%sockreader,/Started/Si) {
-      .sockread %sockreader
-      .var %x = 1
-      while (%x <= $numtok($gettok($sock($sockname).mark,4,58),44)) {
-        if ($gettok(%sockreader,2,58) >= 1) {
-          .var %statline = %statline $c1($chr(124)) $+($duration($remove($gettok(%sockreader,1,58),$chr(42)),2),:) $c2(%n,$bytes($gettok(%sockreader,2,58),db))
-        }
-        .sockread %sockreader | inc %x
-      }
-      if (!%statline) {
-        $gettok($sock($sockname).mark,2,58) $logo(%n,error) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(did not gain any EXP during the recording time.)
-        .sockclosef $sockname | .halt
-      }
-      .tokenize 32 %statline
-      $gettok($sock($sockname).mark,2,58) $logo(%n,tracker) $+($c1,$chr(40),$c2(%n,$skill($calc($gettok($sock($sockname).mark,3,58) + 1))),$c1,$chr(41)) $c1(EXP gains for) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(in last) $+ $remove($1,$chr(124)) $2-
-      .sockclosef $sockname
-    }
-  }
-}
-#CONVERT
-on *:sockopen:convert.*:{
-  sockwrite  -nt $sockname GET $+(/jeffreims/convert.php?from=,$gettok($sock($sockname).mark,2,58),+,$gettok($sock($sockname).mark,3,58),&to=,$gettok($sock($sockname).mark,4,58)) HTTP/1.1 
-  sockwrite  -nt $sockname Host: www.vectra-bot.net 
-  sockwrite  -nt $sockname $+($crlf,$crlf) 
-} 
-on *:sockread:convert.*:{ 
-  .var %n = $gettok($sock($sockname).mark,5,58) 
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website: Google.com | .sockclosef $sockname | .halt }
-  var %sockreader
-  sockread %sockreader
-  if $regex(%sockreader,/CONVERT: (.*) -> (.*)/) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Converter) $c2(%n,$regml(1)) $c1(is) $c2(%n,$regml(2))
-    .sockclosef $sockname
-    .halt
-  }
-  if $regex(%sockreader,/Not found/) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,Converter) $c1(Sorry, couldn't convert that!) 
-    .sockclosef $sockname
-    .halt
-  }
-} 
 
-#LYRIC
-on *:SOCKOPEN:lyric.*:{
-  sockwrite  -nt $sockname GET $+(/?word=,$gettok($sock($sockname).mark,1,124)) HTTP/1.1
-  sockwrite  -nt $sockname Host: search.lyrics.astraweb.com
-  sockwrite  -nt $sockname $crlf
-}
-on *:SOCKREAD:lyric.*:{
-  .var %n = $gettok($sock($sockname).mark,4,124)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
+#item Stats
+on *:SOCKREAD:iStats.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
   else {
-    .var %sockreader
-    .sockread %sockreader
-    if $regex(%sockreader,/<blockquote>No songs in our database matched/) {
-      $gettok($sock($sockname).mark,2,124) $logo(%n,error) $c1(No results were found for) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,1,124),+,$chr(32))),$c1,") $c1(in our lyrics database.)
-      .sockclosef $sockname | .halt
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
     }
-    if $regex(%sockreader,/<b><a href="(.*)">(.*)</a></b></font></td></tr>/) {
-      inc -u15 $+(%,lyrics.,$hget($+(id.,$cid),$me))
-      .set -u15 $+(%,lyrics.link.,$($+(%,lyrics.,$hget($+(id.,$cid),$me)),2)) $regml(1)
-      .set -u15 $+(%,lyrics.song.,$($+(%,lyrics.,$hget($+(id.,$cid),$me)),2)) $regml(2)
-    }
-    if $regex(%sockreader,/><b>Artist:</b></font></td>/) {
-      .sockread %sockreader
-      if $regex(%sockreader,/html">(.*)</a></font>/) {
-        .inc -u15 $+(%,lyric.namecount.,$hget($+(id.,$cid),$me))
-        .set -u15 $+(%,lyric.name.,$($+(%,lyric.namecount.,$hget($+(id.,$cid),$me)),2)) $regml(1)
+    elseif ($istok($Parser(item),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == ITEM) {  
+      hinc -mu10 $sockname count.items 1
+      hadd -mu10 $sockname Items $hget($sockname,Items) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.items) >= 8) {
+        %display $col(%address,items).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
       }
     }
-    if $regex(%sockreader,/<b>Album:</b></font>/) {
-      .sockread %sockreader
-      if $regex(%sockreader,/size="2">(.*)</font></td></tr><tr><td>/) {
-        inc -u15 $+(%,lyric.albumcount.,$hget($+(id.,$cid),$me))
-        .set -u15 $+(%,lyric.album.,$($+(%,lyric.albumcount.,$hget($+(id.,$cid),$me)),2)) $regml(1)
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.items)) {
+        %display $col(%address,items).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Items) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+      else {
+        if ($hget($sockname,stats)) { %display $col(%address,i. stats).logo $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $+ : $hget($sockname,stats) ( $+ $col(%address,Zybez.net) $+ ) }
+        else { %display $col(%address,i. stats).logo The item " $+ $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $+ " does not have any stats. ( $+ $col(%address,Zybez.net) $+ ) }
+      }
+      socketClose $sockname | halt        
+    }
+  } ; else
+}
+
+#Npc
+on *:SOCKREAD:Npc.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(npc),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == NPC) {  
+      hinc -mu10 $sockname count.npc 1
+      hadd -mu10 $sockname npc $hget($sockname,npc) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.npc) >= 8) {
+        %display $col(%address,npc).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,npc) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
       }
     }
-    if $regex(%sockreader,/<A href="/">Browse All Lyrics</A>/) {
-      if ($gettok($sock($sockname).mark,3,124) > $($+(%,lyrics.,$hget($+(id.,$cid),$me)),2)) {
-        $gettok($sock($sockname).mark,2,124) $logo(%n,error) $c1(There was no lyric at) $+($c1,$chr(35),$c2(%n,$gettok($sock($sockname).mark,3,124)),$c1,.)
-        .sockclosef $sockname | .halt
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.npc)) {
+        %display $col(%address,npc).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,npc) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
       }
-      $gettok($sock($sockname).mark,2,124) $logo(%n,lyrics) $+($c2(%n,$gettok($sock($sockname).mark,3,124)),$c1,/,$c2(%n,$($+(%,lyrics.,$hget($+(id.,$cid),$me)),2))) $c1(results for) $+($c1,",$c2(%n,$replace($gettok($sock($sockname).mark,1,124),+,$chr(32))),$c1,") $c1($chr(124)) $c1(Song:) $c2(%n,$($+(%,lyrics.song.,$gettok($sock($sockname).mark,3,124)),2)) $c1($chr(124)) $c1(Artist:) $c2(%n,$($+(%,lyric.name.,$gettok($sock($sockname).mark,3,124)),2)) $c1($chr(124)) $c1(Album:) $&
-        $c2(%n,$($+(%,lyric.album.,$gettok($sock($sockname).mark,3,124)),2))
-      $gettok($sock($sockname).mark,2,124) $logo(%n,lyrics) $c1(Lyrics:) $+($c2(%n,http://lyrics.astraweb.com),$c2(%n,$($+(%,lyrics.link.,$gettok($sock($sockname).mark,3,124)),2)))
-      .sockclosef $sockname | .halt                                                                                                         
+      elseif ($hget($sockname,shop) == $null) {
+        %display $col(%address,npc).logo $iif($hget($sockname,members),$+($chr(91),$col(%address,M),$chr(93))) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $chr(124) HP: $col(%address,$bytes($hget($sockname,hp),db)) ( $+ $col(%address,$bytes($calc($hget($sockname,hp) * 4 / 10),db)) $+ exp) $& 
+          $chr(124) Level: $col(%address,$bytes($hget($sockname,Level),db)) $chr(124) Race: $col(%address,$hget($sockname,race)) $chr(124) Aggressive: $col(%address,$hget($sockname,aggressive)) ( $+ Attacks: $regsubex($hget($sockname,type),/(\w+(?:\.\w+)?)/g,$col(%address,\1)) $+ ) $&
+          $chr(124) Location: $col(%address,$hget($sockname,location)) $chr(124) Examine: $col(%address,$hget($sockname,examine)) ( $+ $col(%address,Zybez.net) $+ )
+        %display $col(%address,npc).logo Tactics: $col(%address,$+($mid($hget($sockname,tactics),0,200),$iif($len($hget($sockname,tactics)) > 200,...))) $chr(124) Link: $col(%address,$hget($sockname,id)) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt        
+      }
+      else { %display $col(%address,npc).logo $iif($hget($sockname,members),$+($chr(91),$col(%address,M),$chr(93))) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $chr(124) Shop: $col(%address,$hget($sockname,shop)) $chr(124) Types: $col(%address,$hget($sockname,type)) $&
+          $chr(124) Race: $col(%address,$hget($sockname,race)) $chr(124) Location: $col(%address,$hget($sockname,location)) $chr(124) Examine: $col(%address,$hget($sockname,examine)) ( $+ $col(%address,Zybez.net) $+ )
+      }
+      socketClose $sockname | halt         
     }
-  }
+  } ; else
 }
-#YOUTUBEL
-on *:SOCKOPEN:youtubeL.*:{
-  .sockwrite -nt $sockname GET $+(/lookup.php?type=youtubeinfo&id=,$gettok($sock($sockname).mark,1,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: desu.rscript.org
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:youtubeL.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/TITLE: (.*)/Si)) { .hadd -m $sockname title $regml(1) }
-  if ($regex(%sockreader,/DURATION: (.*)/Si)) { .hadd -m $sockname dur $regml(1) }
-  if ($regex(%sockreader,/VIEWS: (.*)/Si)) { .hadd -m $sockname view $regml(1) }
-  if ($regex(%sockreader,/RATING: (.*)/Si)) { .hadd -m $sockname trate $gettok($regml(1),3,32) | .hadd -m $sockname rate $gettok($regml(1),4,32) }
-  if (END isin %sockreader) { 
-    if (!$hget($sockname,title) || $hget($sockname,title) == $null) { .sockclosef $sockname | halt }
-    .var %msg = $logo(%n,youtube) $c1(Title:) $c2(%n,$hget($sockname,title)) $c1($chr(124),Duration:) $c2(%n,$duration($hget($sockname,dur),3)) $+($c1,$chr(40),$c2(%n,$duration($hget($sockname,dur))),$c1,$chr(41)) $iif($hget($sockname,view),$c1($chr(124),Views:) $c2(%n,$bytes($hget($sockname,view),db))) $iif($hget($sockname,rate),$c1($chr(124),Rating:) $c2(%n,$hget($sockname,rate)) $+($c1,$chr(40),$c2(%n,$bytes($hget($sockname,trate),db) ratings),$c1,$chr(41))) 
-    $gettok($sock($sockname).mark,2,58) $iif($regex($gettok($gettok($sock($sockname).mark,2,58),2,32),/#/Si) && $regex($chan($gettok($gettok($sock($sockname).mark,2,58),2,32)).mode,/c/),$strip(%msg),%msg)
-    .sockclosef $sockname | halt
-  }
-}
-#WP
-on *:SOCKOPEN:wp.*:{
-  .sockwrite -nt $sockname GET $+(/Parsers.php?type=whatpulse&user=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: parsers.phantomnet.net
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:wp.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
-  .var %sockreader
-  .sockread %sockreader
-  .tokenize 32 %sockreader
-  if ($regex($1,/(UserID|AccountName|Country|DateJoined|LastPulse|Pulses|TotalKeyCount|TotalMouseClicks|TotalMiles|AvKeysPerPulse|AvClicksPerPulse|AvKPS|AvCPS|Rank|TeamName):/Si)) {
-    hadd -m $sockname $lower($regml(1)) $2-
-  }
-  if (teamname isin %sockreader) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,whatpulse) $c1(User:) $c2(%n,$hget($sockname,accountname)) $+($c1($chr(40) $+ $chr(35)),$c2(%n,$hget($sockname,userid)),$c1,$chr(41)) $c1($chr(124),Place:) $c2(%n,$bytes($hget($sockname,rank),db)) $&
-      $c1(Keys:) $c2(%n,$bytes($hget($sockname,totalkeycount),db)) $+($c1,$chr(40),$c2(%n,$hget($sockname,avkps)),$c1,$chr(41)) $c1($chr(124),Clicks:) $c2(%n,$bytes($hget($sockname,totalmouseclicks),db)) $+($c1,$chr(40),$c2(%n,$hget($sockname,avcps)),$c1,$chr(41)) $&
-      $c1($chr(124),Miles:) $c2(%n,$bytes($hget($sockname,totalmiles),db)) $c1($chr(124),Last pulse:) $c2(%n,$hget($sockname,lastpulse)) $c1($chr(124),Total pulses:) $c2(%n,$hget($sockname,pulses)) $c1($chr(124),Country:) $c2(%n,$hget($sockname,country)) $c1($chr(124),Registered:) $c2(%n,$hget($sockname,datejoined)) $&
-      $iif($hget($sockname,teamname),$c1($chr(124),Team:) $c2(%n,$hget($sockname,teamname)))
-    .sockclosef $sockname | .halt
-  }
-}
-on *:SOCKCLOSE:wp.*:{
-  .var %n = $gettok($sock($sockname).mark,3,58)
-  $gettok($sock($sockname).mark,1,58) $logo(%n,error) $c1(The username) $+($c1,",$c2(%n,$gettok($sock($sockname).mark,2,58)),$c1,") $c1(was not found in the whatpulse database.)
-  .sockclosef $sockname | .halt
-}
-#AUTOSTATS
-on *:SOCKOPEN:autostats.*:{
-  .sockwrite -nt $sockname GET $+(/index_lite.ws?player=,$gettok($sock($sockname).mark,2,58)) HTTP/1.1
-  .sockwrite -nt $sockname HOST: hiscore.runescape.com
-  .sockwrite -nt $sockname $+($crlf,$crlf)
-}
-on *:SOCKREAD:autostats.*:{
-  .var %c = $gettok($sock($sockname).mark,3,58), %n = $gettok($sock($sockname).mark,4,58), %t = DontHideRsnOkPlx, %rsn = $gettok($sock($sockname).mark,2,58)
-  .var %sockreader
-  .sockread %sockreader
-  if $regex(%sockreader,/not found/Si) {
-    $gettok($sock($sockname).mark,1,58) $logo(%n,autocmb) $c1(The username) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(was not found in the runescape highscores) | .sockclosef $sockname | .halt
-  }
-  if (*,*,* iswm %sockreader) {
-    .var %x = 1
-    while (%x <= 25) {
-      hadd -m $sockname $skill(%x) %sockreader
-      .sockread %sockreader | inc %x
+
+#Drops
+on *:SOCKREAD:Drops.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
     }
-    if ($Settings(%c).AutoCmb) {
-      if (!$hget($sockname,attack) && !$hget($sockname,strength)) && (!$hget($sockname,defence) && !$hget($sockname,constitution)) && (!$hget($sockname,ranged) && !$hget($sockname,prayer)) && (!$hget($sockname,magic) && !$hget($sockname,summoning)) { $gettok($sock($sockname).mark,1,58) $logo(%n,autocmb) $c1(The username) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(has no ranked combat stats - Unable to generate combat level) | sockclosef $sockname | halt }
-      .var %a = $iif($gettok($hget($sockname,attack),2,44),$v1,-), %s = $iif($gettok($hget($sockname,strength),2,44),$v1,-), %d = $iif($gettok($hget($sockname,defence),2,44),$v1,-), %h = $iif($gettok($hget($sockname,constitution),2,44),$v1,-), %r = $iif($gettok($hget($sockname,ranged),2,44),$v1,-), %p = $iif($gettok($hget($sockname,prayer),2,44),$v1,-), %m = $iif($gettok($hget($sockname,magic),2,44),$v1,-), %su = $iif($gettok($hget($sockname,summoning),2,44),$v1,-)
-      .tokenize 32 $logo(%n,autocmb) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(is level) $c2(%n,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m,%su),1,32)) $iif(!$istok(-,%su,32),$+($c1,$chr(91),$c2(%n,F2P:),$chr(32),$c2(%n,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m),1,32)),$c1,$chr(93))) $+($c1,$chr(40),$c2(%n,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m,%su),2,32)),$c1,$chr(41)) $+($c1,ASDHPRM,$chr(40),SU,$chr(41)) $c2(%n,%a,%s,%d,%h,%p,%r,%m,%su)
-      $gettok($sock($sockname).mark,1,58) $iif($regex($chan(%c).mode,/c/),$strip($1-),$1-)
-    } 
-    if ($Settings(%c).AutoStats) {
-      if ($istok(-1,$gettok($hget($sockname,overall),1,44),32)) { $gettok($sock($sockname).mark,1,58) $logo(%n,autostats) $c1(The username) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(has no ranked overall.) | sockclosef $sockname | halt }
-      if ($istok(<HIDDEN>,$rsnH(%n,%t,%rsn),32)) { .tokenize 32 $logo(%n,autoclan) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(has defname privacy enabled.) }
+    elseif ($istok($Parser(npc),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == NPC) {  
+      hinc -mu10 $sockname count.npc 1
+      hadd -mu10 $sockname npc $hget($sockname,npc) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.npc) >= 8) {
+        %display $col(%address,npc).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,npc) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+    }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.npc)) {
+        %display $col(%address,npc).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,npc) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+      elseif ($hget($sockname,type) == Npc) {
+        %display $col(%address,drops).logo The monster " $+ $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $+ " is an $col(%address,NPC) so it does not have a drop. ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt        
+      }
       else { 
-        .var %rank = $gettok($hget($sockname,overall),1,44), %level = $gettok($hget($sockname,overall),2,44), %exp = $gettok($hget($sockname,overall),3,44)
-        .var %a = $iif($gettok($hget($sockname,attack),2,44),$v1,-), %s = $iif($gettok($hget($sockname,strength),2,44),$v1,-), %d = $iif($gettok($hget($sockname,defence),2,44),$v1,-), %h = $iif($gettok($hget($sockname,constitution),2,44),$v1,-), %r = $iif($gettok($hget($sockname,ranged),2,44),$v1,-), %p = $iif($gettok($hget($sockname,prayer),2,44),$v1,-), %m = $iif($gettok($hget($sockname,magic),2,44),$v1,-), %su = $iif($gettok($hget($sockname,summoning),2,44),$v1,-)      
-        .tokenize 32 $logo(%n,Autostats) $c2(%n,$rsnH(%n,%t,%rsn)) $+($c1([),$c2(%n,Overall),$c1(])) $c1(Level:) $c2(%n,$bytes(%level,db)) $+($c1($chr(40)),$c1(Avg Lvl:),$chr(32),$c2(%n,$round($calc(%level / 24),2)),$c1($chr(41))) $c1($chr(124) Exp:) $c2(%n,$bytes(%exp,db)) $c1($chr(124) Rank:) $c2(%n,$bytes(%rank,db)) $c1($chr(124) Cmb:) $c2(%n,$gettok($cmbformula(%a,%s,%d,%h,%p,%r,%m,%su),1,32))
+        %display $col(%address,npc).logo Top Drops of " $+ $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $+ ": $hget($sockname,topdrops) ( $+ $col(%address,Zybez.net) $+ )
+        ; %display $col(%address,npc).logo Other Drops: $hget($sockname,drops) ( $+ $col(%address,Zybez.net) $+ )
       }
-      $gettok($sock($sockname).mark,1,58) $iif($regex($chan(%c).mode,/c/),$strip($1-),$1-)
+      socketClose $sockname | halt 
     }
-    .sockclosef $sockname | halt
-  }
+  } ; else
 }
-#AUTOCLAN
-on *:sockopen:autoclan.*: {
-  if ($sockerr == 3) { 
-    $gettok($sock($sockname).mark,1,58) $logo(%n,autoclan) $c1(Sorry, www.runehead.com seems to be offline at the moment.) 
-    .sockclosef $sockname | .halt
-  }
-  .sockwrite -nt $sockname GET $+(/clans/search.php?search=,$strip($gettok($sock($sockname).mark,2,58)),&mltype=0&searchtype=exact) HTTP/1.1
-  .sockwrite -nt $sockname Host: www.runehead.com
-  .sockwrite -nt $sockname $crlf
-}
-on *:sockread:autoclan.*: {
-  .var %c = $gettok($sock($sockname).mark,3,58), %n = $gettok($sock($sockname).mark,4,58), %t = DontHideRsnOkPlx, %rsn = $replace($gettok($sock($sockname).mark,2,58),+,$chr(95))
-  .var %sockreader
-  .sockread %sockreader
-  if ($regex(%sockreader,/</b> returned <b>(.*)</b> result/)) { hadd -m $sockname total $regml(1) }
-  if ($regex(%sockreader,/No results/Si)) { $gettok($sock($sockname).mark,1,58) $logo(%n,autoclan) $c1(The username) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(was not found in any clans) | .sockclosef $sockname | .halt }
-  if $regex(%sockreader,/<td class='tableborder'><a href='(.*)' title='View (.*) Memberlist'>(.*)<\/a><\/td>/) {
-    .hinc -m $sockname ID
-    hadd -m $sockname $+(link.,$hget($sockname,ID)) $regml(1)
-    hadd -m $sockname $+(name.,$hget($sockname,ID)) $regml(2)
-  }  
-  if ($regex(%sockreader,/<!-- END Content column -->/Si)) {
-    .var %x = 1, %c $ticks 
-    while (%x <= $hget($sockname,total)) {
-      if ($ticks > $calc(%c + 2000)) { break }
-      hadd -m $sockname final $hget($sockname,final) $+($hget($sockname,$+(name.,%x)),$iif(%x != $hget($sockname,total),$chr(44)))
-      inc %x
+
+#Quest
+on *:SOCKREAD:Quest.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: Nothing found * iswm %Sockread) {
+      %display $col(%address,error).logo Nothing found for your search of " $+ $col(%address,$7-) $+ ". ( $+ $col(%address,Zybez.net) $+ )
+      socketClose $sockname | halt 
     }
-    if ($istok(<HIDDEN>,$rsnH(%n,%t,%rsn),32)) { .tokenize 32 $logo(%n,autoclan) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(has defname privacy enabled.) }
-    else { .tokenize 32 $logo(%n,autoclan) $c2(%n,$rsnH(%n,%t,%rsn)) $c1(is in) $c2(%n,$hget($sockname,total)) $c1($iif($hget($sockname,total) == 1,clan:,clans:)) $c2(%n,$hget($sockname,final)) $iif($hget($sockname,total) == 1,$+($c1,$chr(40),$c2(%n,$+(http://www.runehead.com/clans/,$hget($sockname,link.1))),$c1,$chr(41))) }
-    $gettok($sock($sockname).mark,1,58) $iif($regex($chan(%c).mode,/c/),$strip($1-),$1-)
-    .hdel $sockname ID | .sockclosef $sockname | .halt                                                                                                                                                                           
+    elseif ($istok($Parser(quest),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32) }
+    elseif ($1 == QUEST) {  
+      hinc -mu10 $sockname count.quest 1
+      hadd -mu10 $sockname quest $hget($sockname,quest) $chr(124) $replace($2,_,$chr(32)) ( $+ $chr(35) $+ $col(%address,$mid($3,2)).fullcol $+ )
+      if ($hget($sockname,count.quest) >= 8) {
+        %display $col(%address,Quest).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,quest) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+    }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      elseif ($hget($sockname,count.Quest)) {
+        %display $col(%address,Quest).logo Results $col(%address,$hget($sockname,results)) $hget($sockname,Quest) ( $+ $col(%address,Zybez.net) $+ )
+        socketClose $sockname | halt
+      }
+      else { 
+        %display $col(%address,quest).logo $iif($hget($sockname,members),$+($chr(91),$col(%address,M),$chr(93))) $col(%address,$ucword($replace($hget($sockname,name),_,$chr(32)))) $chr(124) Quest Points: $col(%address,$hget($sockname,qps)) $chr(124) Requirements: $col(%address,$hget($sockname,reqs)) $&
+          $chr(124) Difficulty: $col(%address,$hget($sockname,difficulty)) $chr(124) Length: $col(%address,$hget($sockname,length)) $chr(124) Link: $col(%address,$hget($sockname,link)) ( $+ $col(%address,Zybez.net) $+ )
+      }
+      socketClose $sockname | halt 
+    }
+  } ; else
+}
+
+#RSplayers
+on *:SOCKREAD:RSplayers.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(rsplayers),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif (END isincs $1-) { 
+      %display $col(%address,rsplayers).logo There are currently $col(%address,$hget($sockname,players)).fullcol ( $+ $col(%address,$ceil($hget($sockname,average))).fullcol per server $+ ) players on Runescape. With $col(%address,$hget($sockname,servers)).fullcol running at $col(%address,$hget($sockname,capacity)).fullcol capacity.
+      socketClose $sockname | halt 
+    }
+  } ; else
+}
+
+#RSrank
+on *:SOCKREAD:RSrank.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(rsrank),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,skill) || $hget($sockname,skill) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else { %display $col(%address,rsrank).logo $chr(91) $+ $col(%address,$replace($hget($sockname,rsn),_,$chr(32))) $+ $chr(93) Table: $col(%address,$hget($sockname,table)) $chr(124) Skill: $col(%address,$hget($sockname,skill)) $chr(124) Rank: $col(%address,$bytes($hget($sockname,rank),db)) $&
+        $chr(124) Level: $col(%address,$hget($sockname,level)) $iif($hget($sockname,exp),$chr(124) Exp: $col(%address,$v1)) $chr(124) Link: $col(%address,$replace($hget($sockname,link),$chr(32),:)) }
+      socketClose $sockname | halt    
+    }     
+  } ; else
+}
+
+#W60Pengs
+on *:SOCKREAD:W60Pengs.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+    var %location = $iif($3,$v1,$false)
+
+    if (%bytes == 0) { return }
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(w60pengs),$remove($1,:),32)) {
+      var %header = $remove($1,:)
+      tokenize 124 $2-
+      if (%location && $+(*,%location,*) iswm $1) { .hadd -mu10 $sockname W60Pengs Location: $col(%address,$1) $(|) Type: $col(%address,$2) $(|) Point(s): $col(%address,$3) $(|) Information: $col(%address,$4) }
+      elseif (%header = date) { hadd -mu10 $sockname W60Pengs Dates: $col(%address,$1) }
+      elseif (!%location) { hadd -mu10 $sockname W60Pengs $addtok($hget($sockname,W60Pengs),$col(%address,$1) $+($chr(40),$col(%address,$2),$chr(41)) $+($chr(91),$col(%address,$3).fullcol,pt,$chr(93)),124) }
+    }
+    elseif (END isincs $1) {
+      if (!$hget($sockname,W60Pengs) || $hget($sockname,W60Pengs) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. | socketClose $sockname | halt }
+      else {
+        var %W60Pengs = $hget($sockname,W60Pengs)
+        if (%location) {
+          if (%W60Pengs) { %display $col(%address,w60pengs).logo %W60Pengs }
+          else { %display $col(%address,error).logo Your location search for $qt($col(%address,%location)) did not return any results. }
+        }
+        else {
+          %display $col(%address,w60pengs).logo $replace($gettok(%W60Pengs,1-7,124),$(|),$+($chr(32),$(|),$chr(32)))
+          %display $col(%address,w60pengs).logo $replace($gettok(%W60Pengs,8-,124),$(|),$+($chr(32),$(|),$chr(32)))
+        }
+      }
+      socketclose $sockname | halt
+    }
   }
 }
-#ISTAT
-on *:sockopen:istat.*:{
-  sockwrite -nt $sockname GET $+(/Parsers.php?type=item&item=,$gettok($sock($sockname).mark,3,58)) HTTP/1.1
-  sockwrite -nt $sockname User-Agent: Vectra (MMORPG stats bot; vectra-bot.net;)
-  sockwrite -nt $sockname host: $+(parsers.phantomnet.net,$crlf,$crlf)
+
+#RSnews
+on *:SOCKREAD:RSnews.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($1 == NEWS) { hinc -mu10 $sockname count 1 | hadd -mu10 $sockname $+(news,.,$hget($sockname,count)) $2- }
+    elseif (END isincs $1-) { 
+      if (!$hget($sockname,count) || $hget($sockname,count) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        var %num = $gettok($sock($sockname).mark,3,16)
+        tokenize 124 $hget($sockname,$+(news.,%num))
+        %display $col(%address,rsnews).logo $col(%address,%num).fullcol of $col(%address,$hget($sockname,count)).fullcol $chr(124) Title: $col(%address,$html2ascii($1)) $chr(124) Category: $col(%address,$2) $chr(124) Date: $col(%address,$asctime($3, ddd mmm-dd-yyyy hh:nn:sstt)) $&
+          ( $+ $col(%address,$duration($calc($ctime - $3),2)).fullcol $+ ) $chr(124) Link: $col(%address,$4)
+      }
+      socketClose $sockname | halt 
+    }
+  } ; else
 }
-on *:sockread:istat.*:{
-  .var %return $gettok($sock($sockname).mark,1,58),%n $gettok($sock($sockname).mark,2,58)
-  if ($sockerr) { $gettok($sock($sockname).mark,1,58) $logo(%n,Socket error) Trouble connecting to the website | .sockclosef $sockname | .halt }
+
+#ClanRank
+on *:SOCKREAD:ClanRank.*:{
+  if ($sockerr) { 
+    monitor error Socket read error occurred on $sockname on $+($network,$chr(32),$chr(40),$b($server),$chr(41)) error: $b($sock($sockname).wsmsg) $+ .
+    .notice $gettok($sock($sockname).mark,1,16) [ERROR]: A socket read error occurred when trying to connect to the server. Vectra staff have been notified. Please try again in a few minutes.
+    socketClose $sockname | halt 
+  }
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR Search * iswm $1-) {
+      %display $col(%address,error).logo The Clan " $+ $col(%address,$3) $+ " was not found in the RuneHead Clan Database. ( $+ $col(%address,http://runehead.com) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(ClanRank),$1,32)) { hadd -mu10 $sockname $lower($1) $col(%address,$iif($replace($2-,_,$chr(32)) isnum,$bytes($v1,db),$v1)).fullcol }
+    elseif (END isincs $1) {
+      %display $col(%address,clanrank).logo User: $hget($sockname,rsn) $(|) Clan Rank: $hget($sockname,rank) $(|) Members: $hget($sockname,members) $(|) Combat: $hget($sockname,combat) $(|) Overall: $hget($sockname,overall) $(|) HP: $hget($sockname,hp) $(|) Highest: $hget($sockname,highlevel)
+      socketclose $sockname
+    }
+  }
+}
+
+#Clan
+on *:SOCKREAD:Clan.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR Search * iswm $1-) {
+      var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,$ucword($replace($gettok($sock($sockname).mark,3,16),_,$chr(32))))
+      %display $col(%address,error).logo The username " $+ $col(%address,%rsn) $+ " was not found in the RuneHead Clan Database. ( $+ $col(%address,http://runehead.com) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(clan),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif ($1 == CLAN) { hinc -mu10 $sockname count 1 | hadd -mu10 $sockname $+(clan.,$hget($sockname,count)) $2- }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. | socketClose $sockname | halt }
+      elseif ($hget($sockname,results) == 1) {
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,$ucword($replace($gettok($sock($sockname).mark,3,16),_,$chr(32))))
+        tokenize 124 $hget($sockname,clan.1)
+        %display $col(%address,clan).logo $col(%address,%rsn).fullcol is in $col(%address,$hget($sockname,results)).fullcol clan: $col(%address,$ucword($1)) ( $+ $col(%address,$replace($2,$chr(32),:)) $+ )
+        socketClose $sockname | halt
+      }
+      else {
+        var %this = 1, %count = $hget($sockname,count)
+        while (%this <= %count && %this <= 10) { var %clanlist = $+(%clanlist,$chr(124),$gettok($hget($sockname,$+(clan.,%this)),1,124)) | inc %this }
+        var %rsn = $iif($gettok($sock($sockname).mark,4,16) == HideMyRsnPlx,<Hidden>,$ucword($replace($gettok($sock($sockname).mark,3,16),_,$chr(32))))
+        %display $col(%address,clan).logo $col(%address,%rsn).fullcol is in $col(%address,$hget($sockname,results)).fullcol clans $+ $iif($hget($sockname,results) > 10,$+($chr(32),$chr(40),Showing top,$chr(32),$col(%address,10).fullcol,$chr(32),results,$chr(41)),$null) $+ : $colorList(%address, 124, 44, $mid(%clanlist,2)).space
+        socketClose $sockname | halt
+      } 
+    }
+  } ; else
+}
+
+#ClanInfo
+on *:SOCKREAD:ClanInfo.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR Search * iswm $1-) {
+      %display $col(%address,error).logo The Clan " $+ $col(%address,$3) $+ " was not found in the RuneHead Clan Database. ( $+ $col(%address,http://runehead.com) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($1 == CLAN) { hinc -mu10 $sockname count 1 | hadd -mu10 $sockname $+(clan.,$hget($sockname,count)) $gettok(%Sockread,2-,32) }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,count) || $hget($sockname,count) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        var %results = $hget($sockname,count)
+        if ($Settings($gettok($sock($sockname).mark,5,16),default_ml) != $false && $gettok($sock($sockname).mark,4,16) == $token($v1,1,124)) {  
+          var %this = 1, %link = $token($token($Settings($gettok($sock($sockname).mark,5,16),default_ml),2,124),2,61)
+          while (%this <= %results) {
+            var %token = $token($token($hget($sockname,$+(clan.,%this)),3,124),2,61)
+            if (%token === %link) { var %num = %this }
+            inc %this
+          }
+        }
+        else { var %num = $gettok($sock($sockname).mark,3,16) } 
+        if (!%num) { %display $col(%address,error).logo There was an error in searching for the defualt clan " $+ $col(%address,$token($Settings($gettok($sock($sockname).mark,5,16),default_ml),1,124)).fullcol $+ " Please try resetting the default clan. | socketClose $sockname | halt }        
+        tokenize 124 $hget($sockname,$+(clan.,$iif(%num <= %results,$v1,$v2)))
+        %display $col(%address,claninfo).logo $iif($hget($sockname,results) > 1,Showing $col(%address,%num).fullcol of $col(%address,%results)) $+([,$col(%address,$5),]) $col(%address,$1) ( $+ $col(%address,$replace($2,$chr(32),:)) $+ ) $chr(124) Members: $col(%address,$6).fullcol $chr(124) $+([,$col(%address,Averages),]) Combat: (P2P: $col(%address,$7).fullcol $chr(124) $&
+          F2P: $col(%address,$16).fullcol $+ ) Overall: $col(%address,$9).fullcol $chr(124) Cons: $col(%address,$8).fullcol $chr(124) Magic: $col(%address,$10).fullcol $chr(124) Ranged: $col(%address,$11).fullcol $chr(124) P2P or F2P: $col(%address,$12).fullcol (Homeworld: $col(%address,$15).fullcol $+ ) $chr(124) Cape: $col(%address,$14).fullcol
+        if ($hget($sockname,count) > 1) {
+          var %this = 1
+          while (%this <= %results) { 
+            if (%this > 5) { break }
+            if (%this != %num) { var %clanline = %clanline $+ $chr(44) $col(%address,$gettok($hget($sockname,$+(clan.,%this)),1,124)).fullcol }
+            inc %this          
+          }
+        }
+        %display $col(%address,claninfo).logo Link: $col(%address,$replace($3,$chr(32),:)) $iif(%clanline,$(|) Also listed $col(%address,$calc($hget($sockname,count) - 1)).fullcol clans: $mid(%clanline,2))
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#DefaultML
+on *:SOCKREAD:DefaultML.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR Search * iswm $1-) {
+      %display $col(%address,error).logo The Clan " $+ $col(%address,$3) $+ " was not found in the RuneHead Clan Database. ( $+ $col(%address,http://runehead.com) $+ )
+      socketClose $sockname | halt 
+    }
+    elseif ($1 == RESULTS) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif ($1 == CLAN) { hinc -mu10 $sockname count 1 | hadd -mu10 $sockname $+(clan.,$hget($sockname,count)) $2- }
+    elseif (END isincs $1-) { 
+      if (!$hget($sockname,results) || $hget($sockname,results) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        var %chan = $gettok($sock($sockname).mark,3,16), %num = $gettok($sock($sockname).mark,4,16), %results = $hget($sockname,results)
+        tokenize 124 $hget($sockname,$+(clan.,$iif(%num <= %results,$v1,$v2)))
+        hadd default_ml $+($network,:,%chan) $+($1,|,$3)
+        %display $col(%address,defaultml).logo $iif($hget($sockname,results) > 1,$chr(40) $+ Showing $col(%address,%num).fullcol of $col(%address,%results) $+ $chr(41)) The Default Memberlist for $col(%address,%chan) is now set to $col(%address,$1) ( $+ $col(%address,$replace($3,$chr(32),:)) $+ ).
+      }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+#RSWorld
+on *:SOCKREAD:RsWorld.*: {
+  if ($sockerr) { signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    var %hash = $gettok($sockname,2-,46)
+    var %type = $gettok($sockname,2,46)
+    tokenize 16 $sock($sockname).mark
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+    var %world = $3
+    var %filter = $4
+    var %event = $5
+    var %members = $6
+
+    if (%bytes == 0) { return }
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: * iswmcs %Sockread) {
+      %display $col(%address,error).logo $2-
+      socketclose $sockname | halt
+    }
+    elseif ($istok($Parser(RSWORLD), $remove($1,:), 32)) {
+      if ($+(%filter, %event)) {
+        var %out = $iif($2 == 1, $+([, $col(%address, M), ])) $col(%address, $3).fullcol $+ : $col(%address, $4).fullcol, %i = %i + 1
+        hadd -mu10 $sockname $remove($1,:) $iif($hget($sockname, $remove($1,:)) != $null, $v1 |) %out
+        if (%i >= 15) goto end
+      }
+      else { hadd -mu10 $sockname $remove($1,:) $2- }
+    }
+    elseif (END == $1) {
+      :end
+      if ($+(%filter, %event)) {
+        %display $col(%address, RSWORLD).logo $hget($sockname, WORLD)
+      }
+      else {
+        %display $col(%address, RSWORLD).logo $iif($hget($sockname, MEMBERS) == Yes, $+([, $col(%address, M), ])) $iif($hget($sockname, LOOTSHARE) == Yes, $+([, $col(%address, L), ])) $&
+          World: $col(%address, $hget($sockname, WORLD)).fullcol $(|) Players: $col(%address, $bytes($hget($sockname, PLAYERS),db)).fullcol ( $+ $col(%address,$round($calc($hget($sockname, PLAYERS) / 2000 * 100),2)).fullcol $+ % capacity) $(|) Type: $col(%address, $hget($sockname, TYPE)).fullcol $(|) $&
+          Link: $col(%address, $hget($sockname, LINK)).fullcol
+      }
+      socketClose $sockname
+    }
+  }
+}
+
+#Whatpulse
+on *:SOCKREAD:Whatpulse.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR User id * not found * iswm $1-) {
+      %display $col(%address,error).logo The user id " $+ $col(%address,$3) $+ " was not found.
+      socketClose $sockname | halt 
+    }
+    elseif (ERROR Username * iswm $1-) {
+      %display $col(%address,error).logo The username " $+ $col(%address,$3) $+ " was not found.
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(whatpulse),$1,32)) { hadd -mu10 $sockname $lower($1) $gettok(%Sockread,2-,32)  }
+    elseif (END isincs $1) { 
+      if (!$hget($sockname,accountname) || $hget($sockname,accountname) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        %display $col(%address,Whatpulse).logo $col(%address,$hget($sockname,accountname)) (# $+ $col(%address,$hget($sockname,userid)) $+ ) $chr(124) Country: $col(%address,$hget($sockname,country)) $chr(124) Joined: $col(%address,$hget($sockname,datejoined)) $chr(124) Rank: $col(%address,$bytes($hget($sockname,rank),db)) $&
+          $chr(124) Pulses: $col(%address,$bytes($hget($sockname,pulses),db)) (Per Pulse: $col(%address,$bytes($hget($sockname,avkeysperpulse),db)) Keys $col(%address,$bytes($hget($sockname,avclicksperpulse),db)) Clicks) $chr(124) Keys: $col(%address,$bytes($hget($sockname,totalkeycount),db)) ( $+ $col(%address,$bytes($hget($sockname,avcps),db)) $+ ) $&
+          $chr(124) Clicks: $col(%address,$bytes($hget($sockname,totalmouseclicks),db)) ( $+ $col(%address,$bytes($hget($sockname,avkps),db)) $+ ) $chr(124) Miles: $col(%address,$bytes($hget($sockname,totalmiles),db)) 
+        if ($hget($sockname,teamname)) {
+          %display $col(%address,Whatpulse).logo $col(%address,$hget($sockname,teamname)) $chr(124) Members: $col(%address,$hget($sockname,teammembers)) $chr(124) Keys: $col(%address,$bytes($hget($sockname,teamkeys),db)) $chr(124) Clicks: $col(%address,$bytes($hget($sockname,teamclicks),db)) $chr(124) Description: $col(%address,$hget($sockname,teamdescription)) $&
+            $chr(124) Team Rank: $col(%address,$hget($sockname,teamrank))        
+        }
+      }
+      socketClose $sockname | halt 
+    }
+  } ; else
+}
+
+#WhatpulseComp
+on *:SOCKREAD:WPcompare.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %display = $gettok($sock($sockname).mark,1,16)
+    var %address = $gettok($sock($sockname).mark,2,16)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*User*not* iswm $1-) {
+      %display $col(%address,error).logo The username " $+ $col(%address,$3) $+ " was not found.
+      socketClose $sockname | halt 
+    }
+    elseif ($istok($Parser(whatpulsecomp),$1,32)) { hadd -mu10 $sockname $lower($1) $2- }
+    elseif (END isincs $1-) {
+      if (!$hget($sockname,clicks) || $hget($sockname,clicks) == $null) { %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        var %keys = $hget($sockname,keys), %clicks = $hget($sockname,clicks) 
+        var %user.one = $gettok(%keys,1,32), %user.two = $gettok(%keys,4,32)
+        var %keys.one = $gettok(%keys,2,32), %keys.two = $gettok(%keys,5,32)
+        var %clicks.one = $gettok(%clicks,2,32), %clicks.two = $gettok(%clicks,5,32) 
+        var %high.keys = $iif(%keys.one > %keys.two,$v1,$v2), %low.keys = $iif(%keys.one > %keys.two,$v2,$v1)
+        var %high.clicks = $iif(%clicks.one > %clicks.two,$v1,$v2), %low.clicks = $iif(%clicks.one > %clicks.two,$v2,$v1)
+        %display $col(%address,WP. Compare).logo $col(%address,$iif(%keys.one > %keys.two,%user.one,%user.two)) ( $+ $col(%address,$bytes(%high.keys,db)).fullcol $+ ) has $col(%address,$bytes($calc(%high.keys - %low.keys),db)).fullcol more keys than $col(%address,$iif(%keys.one > %keys.two,%user.two,%user.one)).fullcol ( $+ $col(%address,$bytes(%low.keys,db)).fullcol $+ ). $&
+          $col(%address,$iif(%clicks.one > %clicks.two,%user.one,%user.two)) ( $+ $col(%address,$bytes(%high.clicks,db)).fullcol $+ ) has $col(%address,$bytes($calc(%high.clicks - %low.clicks),db)).fullcol more clicks than $col(%address,$iif(%clicks.one > %clicks.two,%user.two,%user.one)).fullcol ( $+ $col(%address,$bytes(%low.clicks,db)).fullcol $+ ).
+      }
+      socketClose $sockname | halt 
+    }
+  } ; else
+}
+
+#Spellchecker
+on *:SOCKREAD:Spellcheck.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    .tokenize 16 $sock($sockname).mark
+    ; Vars from sockmark
+    var %display = $1
+    var %address = $2
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($parser(spellcheck),$1,32)) { hadd -mu10 $sockname $lower($1) $token(%Sockread,2-,32) }
+    elseif (END isincs $1) {
+      if (!$hget($sockname,word) || $hget($sockname,word) == $null) { %display $col(%address,error).logo %display $col(%address,error).logo We're sorry but an error occurred while validating the output. Please try this command again shortly. }
+      else {
+        %display $col(%address,spellcheck).logo The $iif($numtok($hget($sockname,word),32) > 1,phrase,word) $+(",$col(%address,$ucword($hget($sockname,word))).fullcol,") is spelled $+($col(%address,$iif($hget($sockname,check) == Correct,correctly,incorrectly)).fullcol,.)
+        if ($hget($sockname,suggestions)) { %display $col(%address,suggestions).logo $+($colorList(%address, 44, 44, $hget($sockname,suggestions)),.) } 
+      }      
+      socketClose $sockname
+    }     
+  } ; else
+}
+
+# Slogan
+on *:SOCKREAD:Slogan.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    .tokenize 16 $sock($sockname).mark
+    ; Vars from sockmark
+    var %display = $1
+    var %address = $2
+    var %term    = $3-
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($1 == SLOGAN) { %display $col(%address,slogan).logo Phrase $+(",$col(%address,%term),") returned slogan: $col(%address,$2-).fullcol | socketClose $sockname | halt }
+    elseif (END isincs $1) { %display $col(%address,error).logo No slogan found for phrase $+(",$col(%address,%term),".) | socketClose $sockname | halt }
+  } ; else
+}
+
+# Timezone
+on *:SOCKREAD:Timezone.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+    var %display = $1 
+    var %address = $2
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (*ERROR*no*results* iswm %Sockread) { %display $col(%address,error).logo No result found for $+(",$col(%address,$ucword($5-)),".) | .socketClose $sockname }
+    elseif ($istok($parser(timezone),$1,32)) { hadd -mu10 $sockname $lower($1) $token(%Sockread,2-,32) }
+    elseif (END isincs $1) {
+      if (!$hget($sockname,location) || $hget($sockname,location) == $null) { %display $col(%address,error).logo No exact match found for the specified location. }
+      else { .tokenize 32 $iif($hget($sockname,time),$v1,$hget($sockname,updated)) | %display $col(%address,timezone).logo Location: $col(%address,$hget($sockname,location)).fullcol $(|) Time: $col(%address,$1).fullcol $2 $3 $iif($4,$+($chr(40),$col(%address,$mid($4-,2,$calc($len($4-) -2))).fullcol,$chr(41))) $+ . }
+      socketClose $sockname | halt
+    }
+  } ; else
+}
+
+# Coinshare
+on *:SOCKREAD:CoinShare.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+    var %display = $1 
+    var %address = $2
+    var %players = $3
+    var %term    = $4
+
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 $replace(%Sockread,:,$chr(32))
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (OUTDATED isincs $1 && $2 > 0) { .notice $ial(%address).nick $col(%address,updating).logo Some prices are currently out of date. The GE is currently undergoing an update. }
+    elseif (*returned*no*results* iswm %Sockread) { %display $col(%address,error).logo Nothing found for your $+(search,$iif(%single == $true,es)) of: $+($col(%address,$7-),.) }
+    elseif ($1 == ITEM) { tokenize 32 $2- | %display $col(%address,coinshare).logo $col(%address,$replace($2,_,$chr(32))).fullcol shared on $col(%address,%players).fullcol players will give you: $+($col(%address,$bytes($floor($calc($4 / %players)),db)).fullcol,gp) each. $&
+      [Market price: $+($col(%address,$bytes($4,db)).fullcol,gp]) | socketClose $sockname | halt }
+  } 
+}
+
+#GE
+on *:SOCKREAD:GE.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark    
+    ; Vars from the sockmark
+    var %address  = $2
+    var %display  = $1
+    var %single   = $3
+    if ($chr(35) isin %display) { var %chan = $token(%display,2,32) }
+
+    .sockread %Sockread
+
+    while ($sockbr > 0) {
+      tokenize 32 $replace(%Sockread,:,$chr(32))
+      if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+      elseif (OUTDATED isincs $1 && $2 > 0) { .notice $ial(%address).nick $col(%address,updating).logo Some prices are currently out of date. The GE is currently undergoing an update. }
+      elseif (*returned*no*results* iswm %Sockread) { %display $col(%address,error).logo Nothing found for your $+(search,$iif(%single == $true,es)) of: $+($replace($colorList(%address, 32, 44, $7-).space,_,$chr(32)),.) }
+      elseif ($istok($Parser(ge),$1,32)) {
+        if (ITEM isincs $1) { hinc -mu10 $sockname count 1 | hadd -mu10 $sockname $+($lower($v1),.,$hget($sockname,count)) $token(%Sockread,3-,32) }
+        elseif (EXTRA isincs $1) { hadd -mu10 $sockname $+($lower($v1),.,$hget($sockname,count)) $token(%Sockread,2-,32) }
+        else { hadd -mu10 $sockname $lower($1) $token(%Sockread,2-,32) }
+      }
+      elseif (END isincs $1) {
+        if ($hget($sockname,count) > 0) {
+          var %count = $v1
+          if (%count == 1) {
+            var %amount = $token($hget($sockname,extra.1),2,32)
+            tokenize 32 $hget($sockname,item.1) $hget($sockname,extra.1) $hget($sockname,tracker)
+            var %this = 8
+            while (%this <= $0) { 
+              if ($token($($+($,%this),2),1,58) == 0) { inc %this | continue }
+              var %trackline = %trackline $+($chr(40),$calc(%this - 7) Week:,$chr(32),$col(%address,$numToString($token($($+($,%this),2),1,58))).num,/,$col(%address,$token($($+($,%this),2),2,58)).num,%,$chr(41)) 
+              inc %this 
+            }
+            %display $col(%address,ge).logo $iif($token($hget($sockname,item.1),1,32) == 1,$+([,$col(%address,M),])) $iif($6 > 1,$+($col(%address,$6).fullcol,x)) $+($col(%address,$ucword($replace($1,_,$chr(32)))),:) $+($col(%address,$bytes($calc($6 * $3),db)).fullcol,gp) (Today: $+($col(%address,$numToString($2)).num,/,$col(%address,$4).num,%,$chr(41)) $iif(%trackline,$v1)
+            if ((%chan == $null) || (%chan && $Settings(%chan,ge_graphs) == $true)) { %display $col(%address,GE).logo $iif($hget($sockname,rsgraphs),RS: $col(%address,$v1)) $iif(%count == 1 || %single == $false,$(|)) Tip.It: $col(%address,$hget($sockname,graphs)) }
+          }
+          else {
+            var %this = 1
+            while (%this <= %count) {
+              tokenize 32 $hget($sockname,$+(item.,%this)) $hget($sockname,$+(extra.,%this))
+              var %geline = %geline $(|) $iif($token($hget($sockname,item.1),1,32) == 1,$+([,$col(%address,M),])) $iif($6 > 1,$+($col(%address,$6).fullcol,x)) $+($col(%address,$ucword($replace($1,_,$chr(32)))),:) $+($col(%address,$bytes($calc($3 * $6),db)).fullcolm,gp) (Today: $+($col(%address,$numToString($2)).num,/,$col(%address,$4).num,%,$chr(41))
+              inc %this
+            }
+            if ((%chan == $null) || (%chan && $Settings(%chan,ge_graphs) == $true)) { var %geline = %geline $iif(%single == $false,$(|) Total Amount: $+($col(%address,$numToString($iif($hget($sockname,totalamt) != $Null,$v1,$hget($sockname,total)) )).fullcol,gp)) $iif($hget($sockname,rsgraphs),$(|) RS: $col(%address,$v1)) $iif(%count == 1 || %single == $false,$(|)) Tip.It: $col(%address,$hget($sockname,graphs)) }
+            noop $sockShorten(124, %display, $col(%address,ge).logo, $mid(%geline,2))
+          }
+        }
+        socketClose $sockname | halt 
+      }
+      else { .sockread %Sockread }
+    } ; while    
+  } ; else
+}
+
+#Tracker Rank
+
+on *:SOCKREAD:TrackerRank.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+    var %rsn = $iif($5 == HideMyRsnPlx,<Hidden>,$ucword($3))
+    var %skill = $calc($4 + 1)
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif ($istok($Parser(trackerrank),$remove($1,:),32)) { hadd -mu10 $sockname Trank $addtok($hget($sockname,Trank),$ucword($lower($1)) $col(%address,$2).fullcol $iif($3,$+($chr(40),$col(%address,$3).fullcol exp,$chr(41))),124) }
+    elseif (END isincs $1) {
+      var %trank = $hget($sockname,trank)
+      if ($regex(%trank,/N\/A/Sig) == 3) { %display $col(%address,error).logo The username $qt($col(%address,%rsn)) is not ranked on the RuneScape Hiscores or has not gained any ranks. | socketclose $sockname | halt }
+      %display $col(%address,tracker rank).logo $col(%address,$numskill(%skill)) rank for $col(%address,%rsn) in the last: $replace(%trank,$(|,),$+($chr(32),$(|,),$chr(32)))
+      socketclose $sockname | halt
+    } ; elseif
+  } ; else
+}
+
+#Bing
+on *:SOCKREAD:Bing.*:{
+  if ($sockerr) { 
+    monitor error Socket read error occurred on $sockname on $+($network,$chr(32),$chr(40),$b($server),$chr(41)) error: $b($sock($sockname).wsmsg) $+ .
+    .notice $gettok($sock($sockname).mark,1,16) [ERROR]: A socket read error occurred when trying to connect to the server. Vectra staff have been notified. Please try again in a few minutes.
+    socketClose $sockname | halt 
+  }
+  else {
+    var %Sockread
+    var %hash = $gettok($sockname,2-,46)
+    var %type = $gettok($sockname,2,46)
+    tokenize 16 $sock($sockname).mark
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+    var %lim = $5
+
+    if (%bytes == 0) { return }
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: * iswmcs %Sockread) {
+      %display $col(%address,error).logo $2-
+      sockclose $sockname | halt
+    }
+    elseif ($istok($Parser(bing),$remove($1,:),32)) { hadd -mu10 %hash $lower($remove($1,:)) $2- }
+    elseif (END isincs $1) { 
+      tokenize 1 $hget(%hash,%lim)
+      var %logo = BING# $+ $iif(%type != InstantAnswer, %lim)
+      if (%type == InstantAnswer) { var %rMsg = $col(%address, $1).fullcol = $col(%address, $2).fullcol }
+      elseif (%type == Image) { var %rMsg = $col(%address, $1).fullcol $+([, $_col(%address, $2), ]) $(|) Link: $col(%address, $3).fullcol }
+      elseif ($istok(RelatedSearch Video, %type, 32)) { var %rMsg = $col(%address, $1).fullcol $(|) Link: $col(%address, $2).fullcol }
+      elseif ($istok(News Web, %type, 32)) { var %rMsg = $col(%address, $1).fullcol $(|) Link: $col(%address, $3).fullcol }
+      %display $col(%address, %logo).logo %rMsg
+      socketclose $sockname | halt
+    }
+  }  ;else
+}
+
+#Google
+on *:SOCKREAD:Google.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }   
+  else {
+    var %Sockread
+    var %hash = $gettok($sockname,2-,46)
+    var %type = $gettok($sockname,2,46)
+    tokenize 16 $sock($sockname).mark
+    ; Vars from the sockmark
+    var %display  = $1
+    var %address  = $2
+
+    if (%bytes == 0) { return }
+
+    .sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (ERROR: * iswmcs %Sockread) {
+      %display $col(%address,error).logo $2-
+      sockclose $sockname | halt
+    }
+    elseif ($istok($Parser(google),$mid($1,0,-1),32)) { hadd -mu10 %hash $lower($remove($1,:)) $2- }
+    elseif (END isincs $1) { 
+      if (%type == google) {
+        var %result = $iif($gettok($sock($sockname).mark,5,16),$v1,1)
+        tokenize 7 $html2ascii($hget(%hash,%result))
+        %display $col(%address,Google).logo Search: $col(%address,$ucword($hget(%hash,search))) $(|,) Title: $col(%address,$2) $(|,) $&
+          Results: $col(%address,$bytes($hget(%hash,results),db)).fullcol $(|,) Description: $col(%address,$iif($len($3) > 150,$+($mid($3,0,150),...),$3)) $(|,Link:) $col(%address,$1)
+        %display $col(%address,Google).logo More: $col(%address,$hget(%hash,link))
+        socketclose $sockname | halt
+      }
+      elseif (%type == gimage) {
+        var %result = $iif($gettok($sock($sockname).mark,4,16),$v1,1)
+        tokenize 7 $html2ascii($hget(%hash,%result))
+        %display $col(%address,gimage).logo Result: $col(%address,%result).fullcol of $col(%address,4).fullcol $(|,) Search: $col(%address,$ucword($hget(%hash,search))) $(|,) Title: $col(%address,$2) $(|,) $&
+          Results: $col(%address,$bytes($hget(%hash,results),db)).fullcol $(|,) Size: $col(%address,$3) $(|,Link:) $col(%address,$1) $(|,) More: $col(%address,$hget(%hash,link))
+        socketclose $sockname | halt
+      }
+      elseif (%type == translate) {
+        %display $col(%address,translate).logo From: $col(%address,$upper($hget(%hash,from))) $(|,) To: $col(%address,$upper($hget(%hash,to))) $(|,) Translation: $col(%address,$ucword($hget(%hash,translate)))
+        socketclose $sockname | halt
+      }
+      elseif (%type == gcalc) {
+        var %eq = $gettok($sock($sockname).mark,3,16)
+        %display $col(%address,gcalc).logo $col(%address,%eq).fullcol = $col(%address, $htmlfree($html2ascii($replace($h2t($hget(%hash,answer)), <sup>, ^)))).fullcol
+        socketclose $sockname | halt
+      }
+      elseif (%type == convert) {
+        %display $col(%address,convert).logo Sequence: $col(%address,$hget(%hash,sequence)).fullcol $(|,) Result: $col(%address,$hget(%hash,result)).fullcol $(|,) Rate: $col(%address,$hget(%hash,rate)).fullcol
+        socketclose $sockname | halt
+      }
+      elseif (%type == route) {
+        %display $col(%address,route).logo Start: $col(%address,$hget(%hash,start)) $(|,) End: $col(%address,$hget(%hash,end)) $(|,) Duration: $col(%address,$hget(%hash,duration)).fullcol $(|,) Distance: $col(%address,$hget(%hash,distance)).fullcol $(|,) Directions: $col(%address,$hget(%hash,link))
+        socketclose $sockname | halt
+      }
+      elseif (%type == gfight) {
+        var %string $+($replace($hget(%hash,results),$chr(32),),,$gettok($sock($sockname).mark,3-,16))
+        tokenize 16 %string
+        var %a $iif($1 > $2,1,2), %b $calc(%a + 2), %c $iif($1 > $2,2,1), %d $calc(%c + 2), %difference $calc($gettok(%string,%a,16) - $gettok(%string,%c,16))
+        %display $col(%address,gfight).logo $col(%address,$ucword($gettok(%string,%b,16))) wins the fight with $col(%address,$bytes(%difference,db)).fullcol more results than $col(%address,$ucword($gettok(%string,%d,16))) $+ .
+        socketclose $sockname | halt
+      }
+    }    
+  } ; else
+}
+
+#Confirm
+on *:SOCKREAD:Confirm.*: {
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt } 
+  else {
+    var %Sockread
+    tokenize 16 $sock($sockname).mark
+    var %display = $1 
+    var %address = $2
+    var %type = $3
+
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (STATUS:* iswm $1) { 
+      hadd -u500 Confirm %address $ctime
+      %display $col(%address,confirm).logo Your $col(%address,$iif(%type == bug,%type Report,%type)) has been successfully submitted.
+      socketClose $sockname | halt
+    } ; elseif
+  } ; else
+}
+
+#LOGIN
+on *:SOCKREAD:Login.*:{
+  if ($sockerr) { .signal sockerr $+($sockname,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else {
+    var %Sockread, %user = $mask($gettok($sock($sockname).mark,3,16),3)
+    sockread %Sockread
+    if ($sockbr == 0) { return }
+    tokenize 32 %Sockread
+    if (PHP:* iswm %Sockread) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr,:,$sock($sockname).port) $+ ). Error: $2- }
+    elseif (STATUS:* iswm $1) {
+      if ($2 == noLogin) {
+        monitor login-error $b($gettok($gettok($sock($sockname).mark,3,16),1,33)) $+($chr(40),$b($gettok($gettok($sock($sockname).mark,3,16),2,33)),$chr(41)) attempted to login for user $b($gettok($sock($sockname).mark,4,16)) on $b($gettok($sock($sockname).mark,2,16)) $+ .
+        $gettok($sock($sockname).mark,1,16) $col(%user,error).logo Unable to log you in for the user account you specified.
+        socketClose $sockname | halt
+      }
+      if ($2 isnum && $3 isnum) { 
+        monitor login $b($gettok($gettok($sock($sockname).mark,3,16),1,33)) $+($chr(40),$b($gettok($gettok($sock($sockname).mark,3,16),2,33)),$chr(41)) successfully logged in for user $b($gettok($sock($sockname).mark,4,16)) on $b($gettok($sock($sockname).mark,2,16)) $+ .
+        noop $isLoggedIn($+($gettok($sock($sockname).mark,2,16),:,%user),$gettok($sock($sockname).mark,4,16),$3).add
+        $gettok($sock($sockname).mark,1,16) $col(%user,Login).logo Successful login for $col(%user,$gettok($sock($sockname).mark,4,16)) on $col(%user,$gettok($sock($sockname).mark,2,16)) $+ .
+        socketClose $sockname | halt
+      }
+    }
+    elseif (ERROR isin $1) {
+      if ($2 == no) { 
+        monitor login-error API failed to connect to the database. SOMEONE FIX THIS NOW!
+        $gettok($sock($sockname).mark,1,16) $col(%user,error).logo Unable to log you in for the user account you specified. Please join $b(#Vectra) on $b(SwiftIRC) and report this error.
+        socketClose $sockname | halt
+      }
+      if ($2 == Username) { 
+        monitor login-error $b($gettok($gettok($sock($sockname).mark,3,16),1,33)) $+($chr(40),$b($gettok($gettok($sock($sockname).mark,3,16),2,33)),$chr(41)) attempted to login for user $b($gettok($sock($sockname).mark,4,16)) on $b($gettok($sock($sockname).mark,2,16)) $+ . User does not exist.
+        $gettok($sock($sockname).mark,1,16) $col(%user,error).logo Unable to log you in for the user account you specified. User does not exist.
+        socketClose $sockname | halt
+      }
+    }
+  } ; else
+} ; Login - read
+
+# RS auto news
+on *:SOCKREAD:rsNewsAuto.*:{
+  if ($sockerr) {
+    monitor error Socket read error occurred on $sockname on $+($network,$chr(32),$chr(40),$b($server),$chr(41)) error: $b($sock($sockname).wsmsg) $+ .
+    socketClose $sockname | halt 
+  }
   else {
     var %sockread
-    .sockread %sockread
-    if (nothing found isin %sockread) {
-      %return $logo(%n,item) $c1(Nothing found for the search of) $c2(%n,$qt($gettok($sock($sockname).mark,3,58))) $+ $c1(.) 
-      .sockclosef $sockname | halt
-    }
-    if (ITEM: isin %sockread) {      
-      .var %count = 1, %c $ticks
-      while (END !isin %sockread) {
-        if ($ticks > $calc(%c + 2000)) { break }
-        if (ITEM: isin %sockread && %count < 10) { .hadd -m $sockname Out $+($hget($sockname,Out),$chr(32),$c1($chr(124)),$chr(32),$c1($replace($up($gettok(%sockread,2,32)),_,$chr(32))),$chr(32),$c1($chr(40)),$c2(%n,$gettok(%sockread,3,32)),$c1($chr(41))) | .inc %count }  
-        if (%count >= 5) { %return $logo(%n,istats) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!istats #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-        .sockread %sockread
-      } 
-      if (END isin %sockread) { %return $logo(%n,istats) $+($c1($chr(40) $+ Ex:),$chr(32),$c2(%n,!istats #ID),$c1($chr(41))) $mid($hget($sockname,Out),2-) | .sockclosef $sockname | halt }
-    }
-    if ($regex(%sockread,/(NAME|STATS):/Si)) { .hadd -m $sockname $lower($regml(1)) $gettok(%sockread,2-,32) }
-    if (END isincs %sockread) {
-      if ($hget($sockname,stats)) {
-        .tokenize 58 $hget($sockname,stats)
-        if ($istok(0:0:0:0:0:0:0:0:0:0:0:0:0,$hget($sockname,stats),32)) {
-          %return $logo(%n,i-stats) $c2(%n,$gettok($hget($sockname,name),1,32)) $+ $c1(:) $c1(No item stats found) 
+    while ($sock($sockname).rq) {
+      sockread %sockread
+      if ($sockbr == 0) { return }
+      tokenize 32 $html2ascii(%sockread)
+      var %header = $remove($1, :), %prefix = $chr(16), %exists = no, %content = $2-
+      if (%header == PHP) { monitor php Error detected on $sockname ( $+ $+($sock($sockname).addr, :, $sock($sockname).port) $+ ). Error: $2- | sockclose $sockname | halt }
+      elseif (%header == ERROR) { monitor rsnews $2- | socketClose $sockname | halt }
+      elseif ($istok(1 2 3 4 5, %header, 32)) {
+        var %filePath = $ConfigDir(Config Files\rsNewsAuto.txt)
+        if (!$fopen(rsNewsAuto)) { .fopen $iif(!$exists(%filePath),-n) rsNewsAuto %filePath }
+        else { .fseek rsNewsAuto 0 }
+        while (!$fopen(rsNewsAuto).eof) {
+          if ($fread(rsNewsAuto) == %content) { 
+            var %exists = yes
+            goto out
+          }
+          if ($fopen(rsNewsAuto).eof || $fopen(rsNewsAuto).err) { break }
+          else { continue }
         }
-        else {
-          %return $logo(%n,i-stats) $c2(%n,$gettok($hget($sockname,name),1,32)) $+ $c1(:) $c1(Attack:) $c1(Stab:) $c2(%n,$1) $c1(Slash:) $c2(%n,$3) $c1(Crush:) $c2(%n,$5) $c1(Magic:) $c2(%n,$7) $c1(Range:) $c2(%n,$9) $c1(|| Defence:) $c1(Stab:) $c2(%n,$2) $c1(Slash:) $c2(%n,$4) $c1(Crush:) $c2(%n,$6) $c1(Magic:) $c2(%n,$8) $c1(Range:) $c2(%n,$10) $c1(Summon:) $c2(%n,$11) $c1(Other: Strength:) $c2(%n,$12) $c1(Prayer:) $c2(%n,$13)
-        }      
+        :out
+        .fseek rsNewsAuto 0
+        if (%exists == yes) var %prefix = $null
+        if (!$window(@rsNewsAuto)) window -h @rsNewsAuto
+        aline @rsNewsAuto %prefix %content
       }
-      .sockclosef $sockname | halt
-    }
-  }
-}
-#MODE
-on *:MODE:#:{
-  if ($me == Vectra[msn]) { halt }
-  if (*c* iswmcs $gettok($1-,1,32)) && (*-* !iswm $gettok($1-,1,32)) { 
-    if ($Mainbot($chan) != $me) { halt }
-    .msg $chan ** (ALERT): Mode +c enabled. Vectra will now notice on public commands and strip Combat/Clan on join.
-  }
-  if (*N* iswmcs $gettok($1-,1,32)) && (*-* !iswm $gettok($1-,1,32)) { 
-    if ($Mainbot($chan) != $me) { halt }
-    .msg $chan ** (ALERT): Mode +N enabled. Vectra may leave your channel if needed to change nickname.
-  }
-  if (*u* iswmcs $gettok($1-,1,32)) && (*-* !iswm $gettok($1-,1,32)) {
-    .part $chan Parting. Auditorium mode enabled. $+($chr(40),+u,$chr(41))
-    $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(part)),$c3,$chr(41),$c3,: parting) $+($c4($chan),$c3,$chr(44)) $c3(Auditorium mode(+u) has been enabled enabled.))
-  }
-}
-#RAW
-raw *:*:{
-  if ($me == Vectra[msn]) { halt }
-  if ($istok(405,$numeric,32)) { .msg #DevVectra $logo(vec,Max-chans) $c3(I am currently on max channels.) }
-  if ($istok(447,$numeric,32)) { .msg #DevVectra $logo(vec,mode) $c3(Cannot change nickname!) $c4($9) $c3(on) $c4($8) $+ $c3(.) }
-  if ($istok(437,$numeric,32)) { .msg #DevVectra $logo(vec,mode) $c3(Cannot change nickname!) $c4($7) $c3(on) $c4($2) $+ $c3(.) }
-  if ($istok(421,$numeric,32)) { .msg #DevVectra $logo(vec,error) $c3(Error found:) $c4($2-) $c3(Last) $c4(5) $c3(commands:) $c4($regsubex($last.cmd,/(^|~)/g,$+($chr(32),\n,$chr(41),$chr(32)))) }
-  if ($istok(005,$numeric,32)) {
-    noop $regex($1-,/MAXTARGETS=(\S+)/) {
-      $iif($me ison #Devvectra, .timer 1 15 .msg #DevVectra do writeini -n Settings.ini Connect MAXTARGETS $regml(1))
-      .writeini -n Settings.ini Connect MAXTARGETS $regml(1)
-    }
-  }
-  if ($istok(329,$numeric,32)) { .haltdef }
-  if ($istok(475,$numeric,32)) { .notice $hget($+(invite.,$cid),$2) [Invite]: Invite ignored. A key is set. (+k) | $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,:) $c3(Could not join) $c4($2) $+ $c3($chr(44) a key is set.)) }
-  if ($istok(473,$numeric,32)) { .notice $hget($+(invite.,$cid),$2) [Invite]: Invite ignored. Invite (+i) is on. | $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,:) $c3(Could not join) $c4($2) $+ $c3($chr(44) invite only is set.)) }
-  if ($istok(471,$numeric,32)) { .notice $hget($+(invite.,$cid),$2) [Invite]: Invite ignored. Channel is full. (+l) | $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,:) $c3(Could not join) $c4($2) $+ $c3($chr(44) the channel is full.)) }
-  if ($istok(474,$numeric,32)) { .notice $hget($+(invite.,$cid),$2) [Invite]: Invite ignored. $me is banned. $+(,$chr(40),+b $address($me,2),$chr(41))) | $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,:) $c3(Could not join) $c4($2) $+ $c3($chr(44) banned from channel.)) }
-  if ($istok(324,$numeric,32)) { .haltdef
-    if (*L* iswmcs $3) {
-      if ($hget($+(invite.,$cid),$2)) { .notice $v1 [Invite]: Invite ignored. mode +L (Channel redirection) }
-      .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,:) $c3(Invite to) $c4($2) $c3($+ $chr(44) ignored) $c4(+L) | halt
-    }
-    elseif (*u* iswmcs $3) {
-      if ($hget($+(invite.,$cid),$2)) { .notice $v1 [Invite]: Invite ignored. mode +u (Auditorium Mode) }
-      .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(invite)),$c3,$chr(41),$c3,: Invite to) $+($c4($2),$c3,$chr(32),ignored,$chr(44)) $c3(had Auditorium mode enabled. +u.) | halt
-    }
-    elseif ($hget($+(Connect.,$cid),$me) || $hget($+(Connect.,$cid),$me) == on) { halt }
-    else {
-      if ($hget($2,Cleared) && $hget($2,Cleared) == $true && $me ison $2) { 
-        .hadd -mu10 $2 Modes $3-  
-        .chanmsg $2 
-        .hdel $2 Cleared
-      }
-      elseif ($me !ison $2) && ($hget($2,inviteblocker) == $null) { .join $2  | .hadd -mu10 $2 inviteblocker halt  } 
-    }
-  }
-  if ($istok(353,$numeric,32)) { 
-    if (!$excepted_chans($3) && $bot_on($4-) != $false) {
-      .var %x = $v1
-      .raw PART $3 :You already have a Vectra on your channel. %x
-      $dev($logo(v,part) $c3(Parted) $c4($3) $+ $c3($chr(44)) $c3(already had) $c4(%x) $+ $c3(.))
-      !halt
-    }  
-    else {
-      .getChanData $3
-      if (!$istok(on,$hget($+(Connect.,$cid),$me),32)) { 
-        .hadd -mu10 $3 Cleared $true 
-      }    
-    }
-  }
-}
-#ACTIONS
-on *:ACTION:slaps * around a bit with a large trout:#:{
-  if ($timeout(slap,$chan,1)) { halt }
-  if ($Settings($chan).Public) { halt }
-  if ($2 == $me) { .describe $chan slaps $+($c2($nick,$nick),$chr(3)) back with $c2($nick,$readini(items.ini,Item,$r(1,1372)))
-  }
-}
-on *:ACTION:huggles *:#:{
-  if ($timeout(hug,$chan,1)) { halt }
-  if ($Settings($chan).Public) { halt }
-  if ($2 == $me) { .describe $chan hugs $+($c2($nick,$nick),$chr(3)) and gives away $c2($nick,$readini(items.ini,Item,$r(1,1372)))
-  }
-}
-#NICK
-on *:NICK: {
-  if ($nick == $me) {
-    .hfree -sw $nick $+ .*
-    .var %tag $iif($nick == Vectra,00,$remove($nick,[,],Vectra)), %newtag $iif($newnick == Vectra,00,$remove($newnick,[,],Vectra))
-    if ($exists($qt($+($mircdirChanFiles\,$network,.,%tag,.ini)))) {      
-      .rename $qt($+($mircdirChanFiles\,$network,.,%tag,.ini)) $qt($+($mircdirChanFiles\,$network,.,%newtag,.ini))
-    }
-  }
-}
-#DISCONNECT
-on *:DISCONNECT:{
-  if ($me == Vectra[msn]) { halt }
-  if ($network == bitlbee) { .halt }
-  else {
-    .var %c $ticks, %% 1
-    while ($chan(%%)) { 
-      if ($excepted_chans($chan(%%)) == $true && $me != Vectra && $me != [Dev]Vectra) { inc %% | continue }
-      elseif ($ticks > $calc(%c + 4000)) { break }
-      else { .echo -s Posting settings for $chan(%%) | .postSettings $chan(%%) | inc %% }
-    }    
-    if ($exists($qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)))) { 
-      .timer. $+ $me $+ .1 1 5 .remove $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) 
-      .timer. $+ $me $+ .2 1 5 .hfree -sw *
-    }
-    if ($scon(0) == 0) { .timers off }
-  }
-}
-#KICK
-on *:KICK:#:{
-  if ($knick == $me && $network != bitlbee) {
-    if ((*.swiftirc.net iswm $nick) && ($1- == Fake Direction)) { 
-      hadd -mu120 $+(Connect.,$cid) $me on
-      join $chan
-      halt
-    }
-    elseif (!$istok(shroudbnc.info,$nick,32)) {
-      if (!$excepted_chans($chan)) { .postSettings $chan }     
-      $iif($me ison #Devvectra, .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(Kick)),$c3,$chr(41),$c3,:) $c3(Kicked from) $c4($chan) $c3(by) $c4($nick) $iif($1- && $1 != $nick,$c3(Reason:) $c4($1-)))
-    }
-  }
-}
-on *:Notice:*:?:{ 
-  if (This nickname is registered and protected isin $1-) {
-    if ($nick == Nickserv) { 
-      if ($istok(SwiftIRC,$network,32)) && (*.SwiftIRC.net iswm $server) { 
-        if ($istok(Vectra[msn] [Dev]Vectra VectraServ,$me,32)) { .ns id ZmQYqXT34OBWKv }
-        else { .ns id XoAd6WNwN7xMQu } 
-      }
-      if ($istok(VectraIRC,$network,32)) { .ns id sHes2sr8avR }
-      halt
-    }
-  }
-  if ($nick isreg #devvectra) {
-    !var %line = $strip($1-)
-    !if ($regex(%line,/count: (.*)/)) {
-      .var %n = $regml(1)
-      !inc %chancount.loops 1
-      !inc %chancount.total %n
-      if ($nick == $gettok($hget(invite,next),2,58)) {
-        .hadd -m invite next $+(%n,:,$nick)
-      }
-      if (%n < $gettok($hget(invite,next),1,58)) || (!$hget(invite,next)) {
-        .hadd -m invite next $+(%n,:,$nick)
-      } 
-      !if (%chancount.loops >= $nick(#Vectra,0,h)) {
-        $dev($logo(v,channels) $c3(Vectra is on) $c4($+(%chancount.total,/,$calc($nick(#Vectra,0,h) * 30))) $+ $c3(~ channels. Used) $c4($round($calc(%chancount.total / $calc($nick(#Vectra,0,h) * 30) * 100),0)) $+ $c3(% of total channel space.))
-        !unset %chancount.*
-      }
-    } 
-  }
-}
-on ^*:OPEN:?:{ .timer 1 1 .scon -a .close -m }
+      elseif (%header == END) {
+        if ($fopen(rsNewsAuto)) { .fclose rsNewsAuto }
+        var %a = 1
+        while (%a < 6) {
+          var %line = $line(@rsNewsAuto, $v1), %chr = $mid(%line, 1, 1)
+          if (%chr == $chr(16)) {
+            tokenize 124 $mid(%line, 2)
+            tokenize 32 $col(%address, RSNEWS).logo $+([, $col(%address, $2).fullcol, ]) $col(%address, $1).fullcol $(|) Section: $col(%address, $3).fullcol $(|) Link: $col(%address, $4).fullcol
+            syncSend GLOBAL: $+ VectraIRC $+ : $+ $vsssafe($1-)
+            global VectraIRC $1-
+          }
+          write $ConfigDir(Config Files\rsNewsAuto_tmp.txt) $mid(%line, $iif(%chr == $chr(16), 2, 1))
+          inc %a
+        }
+        close -@ @rsNewsAuto
+        .remove $ConfigDir(Config Files\rsNewsAuto.txt)
+        .rename $ConfigDir(Config Files\rsNewsAuto_tmp.txt) $ConfigDir(Config Files\rsNewsAuto.txt)
+        if ($exists($ConfigDir(Config Files\rsNewsAutoFail.txt))) { run $ConfigDir(Config Files\rsNewsAutoFail.txt) }
 
-#JOIN
-on *:JOIN:#:{
-  hadd -m $+(id.,$cid) $me $ticks
-  if ($istok(bitlbee,$network,32)) {
-    if (!$istok(&bitlbee,$chan,32)) {
-      if (!$istok(on,$hget($+(Connect.,$cid),$me),32)) {
-        if ($istok($me,$nick,32) && !$istok(&bitlbee,$chan,32)) {
-          .msg $chan Vectra, MMORPG bot by Xotick, Jeffreims and Terror_nisse :: For help go to http://vectra-bot.net :: To see the latest news and updates go to http://forum.vectra-bot.net
-        }
-        elseif ($istok(*!*ror-nisse@hotmail.com *!*jeffr3ims@msn.com *!*xotick@interpol.be Arconiaprime@hotmail.com,$address($nick,3),32)) {
-          .msg $chan ** $+($chr(40),$upper(Developer),$chr(41),:) Vectra owner $+($nick,$remove($address($nick,2),$+($chr(42),!,$chr(42)))) has joined.
-        }
+        socketclose $sockname | halt
       }
     }
   }
-  else {
-    if ($chan == #devvectra) && ($nick == $me) { .msg #devvectra $logo(vec,vectra) $c3(Server:) $c4($server) $c3(Hosted by) $c4($iif($readini(info.ini,info,name) == $null,Unknown,$v1)) $c3(Server:) $c4($iif($readini(info.ini,info,system) == $null,Unknown,$v1)) }
-    if (!$istok($me,$nick,32)) {
-      if ($Settings($chan).AutoCmb) || ($Settings($chan).AutoStats) {
-        if (Vectra ison $chan && $me != Vectra || *Vectra* iswm $nick) { halt }
-        if ($readini(defname.ini,RSNs,$address($nick,3))) { .var %rsn = $ifmatch }
-        .sockopen $+(autostats.,$hget($+(id.,$cid),$me)) hiscore.runescape.com 80
-        .sockmark $+(autostats.,$hget($+(id.,$cid),$me)) $+(.msg $chan,:,$iif(%rsn,$v1,$nick),:,$chan,:,$nick,:,DontHideRsnOkPlx)
+}
+
+#Global Sockclose
+on *:SOCKCLOSE:*: {
+  if ($sockname == SyncServer) { halt }
+  if ($sockerr) { .signal sockerr $+($1,$chr(16),$sock($sockname).wsmsg,$chr(16),$token($sock($sockname).mark,1,16)) | socketClose $sockname | halt }  
+  else { socketClose $sockname | halt }
+}
+
+# Signals
+on *:SIGNAL:sockerr: {
+  haltdef
+  tokenize 16 $1-
+  var %sockname = $1
+  var %error = $2
+  var %output = $3
+  monitor sockerr Socket read error occurred on %sockname - Error: $b(%error) $+ .
+  %output [ERROR]: A socket read error occurred when trying to connect to the server. Vectra staff have been notified. Please try again in a few minutes.
+  return
+}
+on *:SIGNAL:scriptError: { 
+  haltdef
+  tokenize 16 $1-
+  var %realStaff = $1
+  var %output = $2
+  var %address = $3
+  var %style = $4
+  var %trigger = $5
+  var %error = $6-
+  if (%realStaff) { %output $col(%address,script-error).logo Script error: $+($col(%address,%error),.) }
+  monitor error Error caught on " $+ %trigger $+ " ( $+ %style $+ ) on $network $+ . Script error: $+($b(%error),.)
+  return
+}
+
+on *:SIGNAL:Charm.*: {
+  tokenize 16 $1-
+  var %display = $1
+  var %address = $2
+  var %charms = $4
+  var %exp = $5, %lvl = $iif($exp(%exp) > 99,$v2,$v1)
+  var %a = 1, %return, %return2, %totalxp = 0, %totalshards = 0, %shards = 0, %xp = 0
+  while (4 >= %a) {
+    if ($gettok(%charms,%a,32) > 0) {
+      var %type $gettok(Gold Green Crimson Blue,%a,32), %col $gettok(07 03 05 02,%a,32), %amt $gettok(%charms,%a,32), %info $charms(%type,%lvl)
+      tokenize 124 %info
+      if (%info) { 
+        var %shards = $calc(%amt * $2), %xp = $calc(%amt * $4), %totalshards = $calc(%totalshards + %shards), %totalxp = $calc(%totalxp + %xp)
+        var %return = %return $col(%address,$+(%type,:),%col).override $bytes(%amt,db) $(|,)
+        var %return2 = $addtok(%return2,$+($col(%address,$1),:) $bytes(%amt,db) ( $+ $col(%address,$bytes(%xp,db)).fullcol $+ exp) $&
+          (Shards: $col(%address,$bytes(%shards,db)).fullcol $+ ) (Cost: $col(%address,$bytes($calc(%shards * 25),db)).fullcol $+ ),124)
       }
-      if ($Settings($chan).AutoClan) {
-        if (Vectra ison $chan && $me != Vectra || *Vectra* iswm $nick) { halt }
-        if ($timeout(autoclan,$chan,5)) { halt }
-        if ($readini(defname.ini,RSNs,$address($nick,3))) { .var %rsn = $replace($ifmatch,$chr(95),+) }
-        .sockopen $+(autoclan.,$hget($+(id.,$cid),$me)) www.runehead.com 80
-        .sockmark $+(autoclan.,$hget($+(id.,$cid),$me)) $+(.msg $chan,:,$iif(%rsn,$v1,$nick),:,$chan,:,$nick,:,DontHideRsnOkPlx)
-      }
     }
-    if ($nick ison #devvectra && *vectra* !iswm $nick && !$istok(#devvectra,$chan,32)) {
-      if (Vectra ison $chan && $me != Vectra) { halt }
-      elseif ($Mainbot($chan) == $me) { .timer 1 1 .staff $chan $nick }
-    }
-    if ($me ishop $chan || $me isop $chan) && ($Settings($chan).AutoVoice && $nick ison $chan) { .mode $chan +v $nick }
+    inc %a
   }
+  var %eexp = $calc(%exp + %totalxp)
+  %display $col(%address,charms).logo $+([Best efficiency for level: $col(%address,%lvl).fullcol,]) %return Total Exp: $col(%address,$bytes(%totalxp,db)).fullcol $(|,) Total Shards: $col(%address,$bytes(%totalshards,db)).fullcol $(|,) $&
+    Shard Cost: %shardcost $col(%address,$bytes($calc(%totalshards * 25),db)).fullcol $(|,) Expected Level: $col(%address,$exp(%eexp)).fullcol ( $+ $col(%address,$bytes(%eexp,db)).fullcol $+ )
+  %display $col(%address,charms).logo $replace(%return2,$(|,),$+($chr(32),$(|,),$chr(32)))
+  return | halt
 }
-#INVITE
-on ^*:INVITE:#:{ 
-  if ($me == $gettok($hget(invite,next),2,58)) { .hadd -m invite next $+($chan(0),:,$me) }
-  if ($chan(0) < $gettok($hget(invite,next),1,58)) || (!$hget(invite,next)) { .hadd -m invite next $+($chan(0),:,$me) } 
-  unset %chancount.*
-  if (!$istok(bitlbee,$network,32)) {
-    !.ignore -iu30 $nick
-    if ($timeout(InviteSystem,$chan,30)) { 
-      !halt
-    }
-    if ($is_staff($nik) && $comchan($me,0) < 30) {
-      $dev($logo(v,$nick) $c3(Channel:) $c4($chan) $c3($chr(124) Nick:) $c4($nick) $c3($chr(124) Bot joining:) $c4(Vectra))
-      .mode $chan 
-      !inc %chancount.loops
-      !inc %chancount.total $chan(0)
-    } 
-    elseif ($me != Vectra) {
-      .notice $me Channel count: $chan(0)
-      .notice $nick $logo(v,invite) $c3(Please invite our main bot Vectra.) $c4(/invite Vectra $chan)
-      !halt
-    }
-    else {
-      if ($blacklist($chan) == $true) { 
-        .notice $nick $logo(v,blacklist) $c3(Your channel has been blacklisted with the reason:) $c4($blacklist($chan).reason) $c3($chr(124) If you would like to appeal this ban join #Vectra. This ban will expire in:) $c4($blacklist($chan).expire)
-        $dev($logo(v,blacklist) $c3(Invite to) $c4($chan) $c3(by $nick has been denied $+ $chr(44)) $c4($chan) $c3(has been blacklisted with the reason:) $c4(v,$blacklist($chan).reason) $c3(by) $c4($blacklist($chan).by) $c3(on) $c4($blacklist($chan).when) $c3(This ban will expire in:) $c4($blacklist($chan).expire))
-        !halt
-      }
-      !inc %chancount.loops 1
-      !inc %chancount.total $calc($chan(0) + 1)
-      .var %nextbot = $gettok($hget(invite,next),2,58)
-      $dev($logo(v,$nick) $c3(Channel:) $c4($chan) $c3($chr(124) Nick:) $c4($nick) $c3($chr(124) Bot joining:) $c4(%nextbot))
-      if (%nextbot == $me) { 
-        .mode $chan
-        .hadd -mu10 $+(invite.,$cid) $chan $nick 
-      }
-      !halt
-    }
-  }
-}
-on *:PART:#: {
-  if ($nick == $me) {
-    if (!$excepted_chans($chan)) { 
-      .postSettings $chan 
-    } 
-  }
-}
-on *:pong: { 
-  $dev(PINGing $server took $calc($ticks - $2) $+ ms)
-}
-#CTCP
-ctcp *:CCOUNT:?: { 
-  if ($nick ison #devvectra) {
-    .haltdef | inc %total.chans $2 | inc %total.times
-    if ($hget($+(nextbot.,$cid),chans) > $2) { hadd -m $+(nextbot.,$cid) chans $2 | hadd -m $+(nextbot.,$cid) next $nick }
-    if ($hget($+(nextbot.,$cid),chans) > $chan(0)) {
-      .hadd -m $+(nextbot.,$cid) chans $chan(0) | hadd -m $+(nextbot.,$cid) next $me
-    }
-    if (%total.times >= $calc($nick(#devvectra,0,r) - 1)) {
-      if ($calc((%total.chans + $chan(0)) + 1) > $readini(max.ini,channelcount,total) || !$readini(max.ini,channelcount,total)) { .writeini -n max.ini channelcount total $calc((%total.chans + $chan(0)) + 1) }
-      .msg #DevVectra $c3(**) $+($c3,$chr(40),$c4($upper(Channels)),$c3,$chr(41),$c3,:) $c3(Vectra is on) $+($c4($calc(%total.chans + $chan(0))),$c3,/,$c4($calc($nick(#devvectra,0,r) * 30))) $c3(channels. Used) $c4($round($calc((%total.chans + $chan(0)) / $calc($nick(#devvectra,0,r) * 30) * 100),db) $+ %) $c3(of total channel space.) $c3(Max channel count:) $+($c4($readini(max.ini,channelcount,total)),$c3,.)
-      .unset %total.*
-    }
-  }
-}
-ctcp *:COMCOUNT:?: { 
-  if ($nick ison #devvectra) {
-    .inc %comc.count $2
-    .timercount 1 5 .msg #devvectra $c3(**) $+($c3,$chr(40),$c4,$upper(Command count),$c3,$chr(41),$c3,:) We have totaled an ammount of $+(%,comc.count) commands in the past $duration($calc($ctime - $readini(comcount.ini,com,since))) $chr(124) unset %comc.*
-  }
-}
-ctcp ^*:PING: { .haltdef
-  if (!$regex($nick,/^Vectra(\[([0-9]+)\])?$/i)) { .ctcpreply $nick PING Vectra ~> by Xotick, Jeffreims, Terror_nisse, Redzzy, Patje, Arconiaprime, Sooth, IEP ~> More info at: http://www.vectra-bot.net } 
-}
-ctcp *:ENTER:?: { 
-  if ($me == Vectra[msn]) { halt } 
-  if ($nick ison #devvectra) { 
-    if ($comchan($me,0) >= 30) { 
-      .notice $3 Sorry, our bots are currently full and cannot join anymore channels, please try again in a few minutes.
-      .msg #devvectra $logo(vec,invite) $c1(Invite to) $c2(vec,$2) $c1(has been ignored cause I am on 30 channels already, a notice msg has been send to) $c2(vec,$3)
-      .halt
-    }
-    else { .mode $2 | .hadd -mu10 $+(invite.,$cid) $2 $3 }
-  } 
-}
-#CONNECT
-on *:CONNECT:{ 
-  .hadd -mu120 $+(Connect.,$cid) $me on
-  if (!$timer(chanclear)) { .timerchanclear -o 0 3600 .scon -a .clearchans $network }
-  if ($istok(bitlbee,$network,32)) { .timerid. $+ $me 1 2 .scid $cid .msg &bitlbee identify gros3mo }
-  elseif ($istok(VectraIRC,$network,32)) { .ns id sHes2sr8avR | .join #vectra,#devvectra | .mode $me +pB }
-  elseif ($istok(Vectra[msn] [Dev]Vectra,$me,32)) { .ns id gros3mo | .join #devvectra | .mode $me +pB } 
-  else { 
-    .ns id XoAd6WNwN7xMQu | .mode $me +pB 
-    if (official isin $host) { .mode $me -x }
-    if (!$istok([Dev]Vectra,$me,32)) {  .timerJ. $+ $me 1 7 .scid $cid .join #vectra,#devvectra }
-  }
-  if ($istok(Vectra,$me,32)) && (!$istok(bitlbee,$network,32)) && ($istok(SwiftIRC,$network,32) || $istok(VectraIRC,$network,32)) { timer 0 15 geupdater }
-}
-#POST SETTINGS
-on *:sockopen:PostSettings.*:{
-  if ($sockerr) { .sockclose $sockname }
-  else {
-    .var %c $sock($sockname).mark
-    .var %site $iif($Settings(%c,Site),$urlencode($v1),0), %chanevent $iif($Settings(%c,Event),$urlencode($v1),0)
-    .var %autocmds $+($iif($Settings(%c).AutoCmb,1,0),:,$iif($Settings(%c).AutoClan,1,0),:,$iif($Settings(%c).AutoStats,1,0),:,$iif($Settings(%c).AutoVoice,1,0))
-    .var %public $iif($Settings(%c).Public,1,0), %vlock $iif($Settings(%c).VoiceLock,1,0), %ge $iif($Settings(%c).GE_Global,1,0), %rsc $iif($Settings(%c).RSC_Global,1,0), %defml $iif($Settings(%c,DefaultML),$urlencode($gettok($v1,1,124)),None)     
-    .var %postdata $+(Submit=Submit&Mode=1&VeRifIEdB0t=verified&network=,$network,&chan=,%c,&Event=,%chanevent,&Site=,%site,&Autocmds=,%autocmds,&Public=,%public,&vlock=,%vlock,&Ge=,%ge,&Rsc=,%rsc,&Ml=,%defml,&Commands=,$Settings(%c,Commands))
-    .sockwrite -n $sockname POST /api.php HTTP/1.1
-    .sockwrite -n $sockname Host: vectra-bot.net
-    .sockwrite -n $sockname Content-Type: application/x-www-form-urlencoded
-    .sockwrite -n $sockname Content-Length: $len(%postdata)
-    .sockwrite -n $sockname $crlf $+ %postdata
-  }
-}
-on *:sockread:PostSettings.*:{
-  if ($sockerr) { .sockclose $sockname }
-  else {
-    .var %chan $sock($sockname).mark, %sockread
-    .sockread %sockread
-    if (RESULT:*1* iswm %sockread) { 
-      .sockclose $sockname 
-      .remini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan | .hfree %chan
-    halt }
-    if (ERROR:* iswm %sockread) { 
-      .msg #DevVectra $+($c1(**),$chr(32),$c1($chr(40)),$c4($upper(Settings)),$c1($chr(41)),:) $c1(Settings for) $c4(%chan) $c1(not saved, mysqli error:) $c4(%sockread)
-    .sockclose $sockname | halt }
-  }
-}
-on *:sockclose:PostSettings.*:{ .sockclose $sockname }
-#GET CHANNEL SETTINGS
-on *:sockopen:getChanData.*:{
-  if ($sockerr) { .sockclose $sockname }
-  else {
-    .sockwrite -n $sockname GET $+(/api.php?Submit=Submit&Mode=2&VeRifIEdB0t=verified&Network=,$network,&Channel=,$sock($sockname).mark) HTTP/1.1
-    .sockwrite -n $sockname Host: $+(vectra-bot.net,$crlf,$crlf)
-  }
-}
-on *:sockread:getChanData.*:{
-  if ($sockerr) { .sockclose $sockname }
-  else {
-    .var %sockread
-    .sockread %sockread
-    if ($chr(215) isin %sockread) {
-      .tokenize 215 %sockread
-      .var %chan $+($chr(35),$gettok($1,2,35))
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Event $iif($2,$2,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Site $iif($3,$3,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoStats $iif($gettok($4,1,58),$gettok($4,2,58),0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoCmb $iif($gettok($4,2,58),$gettok($4,2,58),0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoClan $iif($gettok($4,3,58),$gettok($4,3,58),0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoVoice $iif($gettok($4,4,58),$gettok($4,4,58),0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Public $iif($5,$5,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan VoiceLock $iif($6,$6,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan GE_Global $iif($7,$7,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan RSC_Global $iif($8,$8,0)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan DefaultML $iif($9 == None || $9 == $null,0,$v1)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Commands $iif($10,$10-,0)      
-    }    
-    if (*RESULT:*Not*Found* iswm %sockread) {
-      .var %chan $gettok(%sockread,4,32)
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Event 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Site 0
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoStats 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoCmb 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoClan 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan AutoVoice 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Public 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan VoiceLock 0
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan GE_Global 0 
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan RSC_Global 1
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan DefaultML 0
-      .writeini -n $qt($+($mircdirChanFiles\,$network,.,$tag().me,.ini)) %chan Commands 0
-    }
-    if (*RESULT:*1* iswm %sockread) { .sockclose $sockname | halt }
-  }
-}
-on *:sockclose:getChanData.*:{ .sockclose $sockname }
+
+alias -l WhileFix { dll $dlldir(WhileFix.dll) $$1- }
+; THIS ALIAS MUST STAY AT THE BOTTOM OF THE SCRIPT!
+alias -l eof return 1

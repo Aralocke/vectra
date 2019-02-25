@@ -1,0 +1,325 @@
+Clay Fireplace|30|3|1
+Firepit|40|5|1
+Pump and Drain|100|7|1
+Firepit with Hook|60|11|1
+Repair Bench|120|15|1
+Pluming Stand|120|16|1
+Crafting Table 1|240|16|1
+Firepit with Pot|80|17|1
+Wooden Workbench|143|17|1
+Small oven|80|24|1
+Crafting table 2|1|25|1
+Pump and tub|200|27|1
+Large oven|100|29|1
+Oak workbench|300|32|1
+Stone fireplace|40|33|1
+Crafting table 3|2|34|1
+Steel range|120|34|1
+Whetstone|260|35|1
+Shield easel|240|41|1
+Fancy range|160|42|1
+Crafting table 4|120|42|1
+Steel-framed workbench|440|46|1
+Sink|300|47|1
+Armour stand|500|55|1
+Marble fireplace|500|63|1
+Banner easel|510|66|1
+Workbench with lathe|77|140|1
+Crude wooden chair|66|1|1
+Wooden chair|96|8|1
+Wooden dining table|87|12|1
+Wooden dining bench|115|10|1
+Wooden kitchen table|87|12|1
+Rocking chair|96|14|1
+Oak chair|120|19|1
+Wooden bed|117|20|1
+Oak dining table|180|32|1
+Oak dining bench|240|22|1
+Oak armchair|180|26|1
+Oak bed|210|30|1
+Carved oak dining table|360|31|1
+Craved oak dining bench|240|31|1
+Oak kitchen table|180|32|1
+Large oak bed|330|34|1
+Teak armchair|180|35|1
+Teak dining table|360|38|1
+Teak dining bench|360|38|1
+Teak bed|300|40|1
+Carved teak dining bench|360|44|1
+Carved teak dining table|600|45|1
+Large teak bed|480|45|1
+Mahogany dining table|840|52|1
+Mahogany dining bench|560|52|1
+Teak kitchen table|270|52|1
+Mahogany four-poster bed|450|53|1
+Oak throne|800|60|1
+Gilded mahogany four-posted bed|1330|60|1
+Gilded mahogany dining bench|1760|61|1
+Teak throne|1450|67|1
+Opulent table|3100|72|1
+Mahogany throne|2200|74|1
+Gilded mahogany throne|1700|81|1
+Skeleton throne|7003|88|1
+Crystal throne|15000|95|1
+Demonic throne|25000|99|1
+Wooden bookcase|115|4|1
+Wooden shelves 1|87|6|1
+Beer barrel|87|7|1
+Wooden larder|228|9|1
+Cider barrel|91|10|1
+Wooden shelves 2|147|12|1
+Tool store 1|120|15|1
+Asgarnian Ale barrel|184|18|1
+Shoe box|58|20|1
+Wooden shaving stand|30|21|1
+Wooden shelves 3|147|23|1
+Tool store 2|120|25|1
+Greenman's Ale barrel|184|26|1
+Oak chest of drawers|340|79|1
+Oak shaving stand|61|29|1
+Oak bookcase|180|29|1
+Oak larder|480|33|1
+Oak shelves 1|240|34|1
+Tool store 3|120|35|1
+Dragon Bitter barrel|224|36|1
+Oak dresser|121|37|1
+Oak wardrobe|180|39|1
+Mahogany bookcase|420|40|1
+Oak wardrobe|180|39|1
+Teak larder|750|43|1
+Tool store 4|120|44|1
+Oak fancy dress box|120|44|1
+Oak shelves 2|240|45|1
+Teak dresser|181|46|1
+Oak armour case|180|46|1
+Chef's Delight barrel|224|48|1
+Oak treasure chest|120|48|1
+Oak toy box|120|50|1
+Teak chest of drawers|530|83|1
+Carved oak wardrobe|360|51|1
+Oak cape rack|240|54|1
+Tool store 5|120|55|1
+Fancy teak dresser|182|56|1
+Teak shelves 1|330|56|1
+Teak wardrobe|270|63|1
+Teak fancy dress box|180|62|1
+Teak cape rack|360|63|1
+Teak wardrobe|270|63|1
+Mahogany dresser|281|64|1
+Teak armour case|270|64|1
+Teak treasure chest|180|66|1
+Teak shelves 2|930|67|1
+Teak toy box|180|68|1
+Carved teak wardrobe|540|69|1
+Mahogany cape rack|560|72|1
+Gilded mahogany dresser|582|74|1
+Mahogany wardrobe|420|75|1
+Mahogany fancy dress box|280|80|1
+Gilded mahogany cape rack|860|81|1
+Mahogany armour case|420|82|1
+Mahogany treasure chest|280|84|1
+Mahogany toy box|280|86|1
+Gilded mahogany wardrobe|720|87|1
+Marble cape rack|500|90|1
+Marble wardrobe|500|96|1
+Magic stone cape rack|1000|99|1
+Brown rug|30|2|1
+Torn curtains|132|2|1
+Rug|60|13|1
+Curtains|225|18|1
+Oak clock|142|25|1
+Oak lectern|60|40|1
+Opulent curtains|315|40|1
+Globe|180|41|1
+Alchemical chart|30|43|1
+Wooden telescope|121|44|1
+Oak eagle lectern|120|47|1
+Oak demon lectern|120|47|1
+Ornamental globe|270|50|1
+Teak clock|202|55|1
+Teak eagle lectern|180|57|1
+Teak demon lectern|180|57|1
+Lunar globe|570|59|1
+Astronomical chart|45|63|1
+Teak telescope|181|64|1
+Opulent rug|360|65|1
+Mahogany eagle lectern|580|67|1
+Mahogany demon lectern|580|67|1
+Celestial globe|570|68|1
+Dungeon candles|46|57|1
+Decorative dungeon bloodstain|4|72|1
+Armillary sphere|960|77|1
+Infernal chart|60|83|1
+Decorative dungeon pipe|120|83|1
+Dungeon torches|244|84|1
+Mahogany 'scope|580|84|1
+Gilded mahogany clock|602|85|1
+Small orrery|1320|86|1
+Hanging dungeon skeleton|246|94|1
+Dungeon skull torches|246|94|1
+Large orrery|1420|95|1
+Oak wall decoration|120|16|1
+Mounted bass|151|36|1
+Teak wall decoration|180|36|1
+Hoop-and-stick game|120|30|1
+Boxing ring|420|32|1
+Boxing glove rack|120|34|1
+Oak prize chest|240|34|1
+Jester game|360|39|1
+Clay attack stone|100|39|1
+Fencing ring|570|41|1
+Weapons rack|180|44|1
+Teak prize chest|660|44|1
+Treasure hunt fairy house|800|49|1
+Combat ring|630|51|1
+Dartboard|290|54|1
+Mahogany prize chest|860|54|1
+Limestone attack stone|165|59|1
+Hangman game|1200|59|1
+Ranging pedestals|720|71|1
+Marble attack stone|2000|79|1
+Archery target|600|81|1
+Balance beam|1000|81|1
+Exit portal|100|1|1
+Decorative rock|100|5|1
+Tree|31|5|1
+Pond|100|10|1
+Nice tree|44|10|1
+Imp statue|150|15|1
+Oak tree|70|15|1
+Willow tree|100|30|1
+Maple tree|122|45|1
+Boundary stones|100|55|1
+Thorny hedge|70|56|1
+Wooden fence|280|59|1
+Nice hedge|100|60|1
+Yew tree|141|60|1
+Stone wall|200|63|1
+Small box hedge|122|64|1
+Gazebo|1200|65|1
+Sunflower|70|66|1
+Rosemary|70|66|1
+Iron railings|220|67|1
+Topiary hedge|141|68|1
+Dungeon entrance|500|70|1
+Marigolds|100|71|1
+Daffodils|100|71|1
+Picket fence|640|71|1
+Small fountain|500|71|1
+Fancy hedge|158|72|1
+Magic tree|223|75|1
+Large fountain|1000|75|1
+Garden fence|940|75|1
+Roses|122|76|1
+Bluebells|122|76|1
+Marble wall|4000|79|1
+Tall box hedge|316|80|1
+Posh fountain|1500|81|1
+Throne room floor decoration|700|61|1
+Oak cage|640|65|1
+Oubliette spikes|623|65|1
+Steel cage|1100|68|1
+Oak and steel cage|800|70|1
+Skeleton guard|223|70|1
+Tentacle pool|326|71|1
+Spike trap|623|65|1
+Large trapdoor|770|74|1
+Oak dungeon door|600|74|1
+Guard dog|273|74|1
+Wooden dungeon treasure crate|143|75|1
+Steel cage|1100|68|1
+Man trap|273|76|1
+Oubliette flame pit|357|77|1
+Hobgoblin guard|316|78|1
+Oak dungeon treasure chest|120|48|1
+Spiked cage|500|80|1
+Tangle vine|316|80|1
+Demon|707|75|1
+Kalphite soldier|866|80|1
+Lesser magic cage|2700|82|1
+Baby red dragon|387|82|1
+Teak dungeon treasure chest|180|66|1
+Rocnar|387|83|1
+Steel-plated oak door|800|84|1
+Marble trap|387|84|1
+Tok-Xil|2236|85|1
+Bone cage|603|85|1
+Huge spider|447|86|1
+Mahogany dungeon treasure chest|280|84|1
+Teleport trap|447|88|1
+Greater magic cage|4700|89|1
+Troll guard|1000|90|1
+Dagannoth|2738|90|1
+Magic dungeon treasure chest|1000|91|1
+Marble dungeon door|2000|94|1
+Hellhound|2236|94|1
+Steel dragon|3162|95|1
+Oak altar|240|45|1
+Steel torches|80|45|1
+Symbol of Saradomin|120|48|1
+Symbol of Guthix|120|48|1
+Symbol of Zamorak|120|48|1
+Wooden torches|58|49|1
+Chapel windchimes|323|49|1
+Small chapel statue|40|49|1
+Shuttered chapel window|244|49|1
+Teak altar|360|50|1
+Steel candlesticks|124|53|1
+Cloth-covered teak altar|390|56|1
+Gold candlesticks|46|57|1
+Chapel bells|480|58|1
+Icon of Saradomin|960|59|1
+Icon of Guthix|960|59|1
+Icon of Zamorak|960|59|1
+Cloth-covered mahogany altar|590|60|1
+Oak incense burners|280|61|1
+Limestone altar|910|64|1
+Mahogany incense burners|600|65|1
+Medium chapel statue|500|69|1
+Chapel organ|680|69|1
+Decorative chapel window|4|69|1
+Marble incense burner|1040|69|1
+Marble altar|1030|70|1
+Icon of Bob the Cat|1160|71|1
+Gilded altar|2230|75|1
+Large chapel statue|1500|89|1
+Stained-glass chapel window|5|89|1
+Cat blanket|15|5|1
+Cat basket|58|19|1
+Rope bell pull|64|26|1
+Oak staircase|680|27|1
+Cushioned cat basket|58|33|1
+Teak bell pull|120|37|1
+Crystal ball|280|42|1
+Teak staircase|980|48|1
+Teak portal frame|270|50|1
+Teleport focus|40|50|1
+Elemental sphere|580|54|1
+Gilded teak bell pull|420|60|1
+Greater teleport focus|500|65|1
+Mahogany portal frame|420|65|1
+Crystal of power|890|66|1
+Limestone spiral staircase|1040|67|1
+Oak oubliette ladder|300|66|1
+Oak lever|300|68|1
+Oak trapdoor|300|68|1
+Teak oubliette ladder|450|78|1
+Teak lever|450|78|1
+Teak trapdoor|450|78|1
+Marble portal frame|1500|80|1
+Scrying pool|2000|80|1
+Marble staircase|3200|82|1
+Mahogany oubliette ladder|700|88|1
+Mahogany lever|700|88|1
+Mahogany trapdoor|700|88|1
+Marble spiral staircase|4400|97|1
+Oak pet house|260|37|1
+Oak pet feeder|260|37|1
+Mini obelisk|782|41|1
+Teak pet house|380|52|1
+Teak pet feeder|380|52|1
+Mahogany pet house|880|67|1
+Mahogany pet feeder|880|67|1
+Consecrated pet house|1580|92|1
+Desecrated pet house|1580|92|1
+Natural pet house|1580|92|1

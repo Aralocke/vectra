@@ -1,0 +1,112 @@
+Meat|30|1|0
+Chicken|30|1|0
+Ugthanki meat|40|1|1
+Rabbit|30|1|0
+Roasted Bird Meat|62|11|1
+Roasted Rabbit|72|16|1
+Spider on a Stick|80|16|1
+Crab Meat|100|21|1
+Roasted beast meat|82|21|1
+Chompy|140|30|1
+Jubbly|160|41|1
+Oomlie wrap|110|50|1
+Crayfish|30|1|0
+Shrimp|30|1|0
+Karambwanji|10|1|1
+Sardine|40|1|0
+Anchovies|30|1|0
+Poison Karambwan|80|1|1
+Herring|50|5|0
+Mackerel|60|10|1
+Trout|70|15|0
+Cod|75|18|1
+Pike|80|20|0
+Salmon|90|25|0
+Slimy eel|95|28|1
+Tuna|100|30|0
+Karambwan|190|30|1
+Rainbow fish|110|35|1
+Cave eel|115|38|1
+Lobster|120|40|0
+Bass|130|43|1
+Swordfish|140|45|0
+Lava eel|30|53|1
+Monkfish|150|62|1
+Shark|210|80|1
+Sea turtle|212|82|1
+Cavefish|214|88|1
+Manta ray|216|91|1
+Rocktail|225|93|1
+Thin snail meat|70|35|1
+Lean snail meat|80|45|1
+Fat snail meat|95|65|1
+Bread|40|1|0
+Pitta Bread|40|58|1
+Redberry Pie|78|10|0
+Meat Pie|110|20|0
+Mud Pie|128|29|1
+Apple pie|130|30|0
+Garden Pie|138|34|1
+Fish Pie|164|47|1
+Admiral Pie|210|70|1
+Wild Pie|240|85|1
+Summer Pie|260|95|1
+Stew|117|25|0
+Curry|280|60|1
+Plain pizza|143|35|0
+Meat pizza|169|45|0
+Anchovy pizza|182|55|0
+Pineapple pizza|195|65|1
+Fishcake|100|31|1
+Cake|180|40|0
+Chocolate cake|210|50|0
+Spicy sauce|25|9|1
+Chilli con carne|55|11|1
+Scrambled egg|50|13|1
+Egg and tomato|50|23|1
+Fried onions|60|42|1
+Fried mushrooms|60|46|1
+Mushroom and onion|120|57|1
+Tuna and corn|204|67|1
+Baked potato|15|7|1
+Potato with butter|95.5|39|1
+Chilli potato|165.5|41|1
+Potato with cheese|199.5|47|1
+Egg potato|195.5|51|1
+Mushroom and onion potato|270.5|64|1
+Tuna potato|309.5|68|1
+Pot of cream|18|21|1
+Pat of butter|40.5|38|1
+Cheese wheel|64|48|1
+Jug of wine|200|35|0
+Nettle tea|52|20|1
+Cider|182|14|1
+Dwarven sout|215|19|1
+Asgarnian ale|248|24|1
+Greenman's ale|281|29|1
+Wizard's mind bomb|314|34|1
+Dragon bitter|347|39|1
+Moonlight mead|380|44|1
+Axeman's folly|413|49|1
+Chef's delight|446|54|1
+Slayer's respite|479|59|1
+Fruit blast|50|6|1
+Pineapple punch|70|8|1
+Toad crunchies|100|10|1
+Spicy crunchies|100|12|1
+Worm crunchies|100|14|1
+Chocchip crunchies|100|16|1
+Wizzard blizzard|110|18|1
+Short green guy|120|20|1
+Fruit batta|150|25|1
+Toad batta|152|26|1
+Worm batta|154|27|1
+Vegetable batta|156|28|1
+Cheese and tomato batta|29|158|1
+Worm hole|170|30|1
+Drunk dragon|160|32|1
+Choc saturday|170|33|1
+Veg ball|175|35|1
+Blurberry special|180|37|1
+Tangled toads' legs|185|40|1
+Chocolate bomb|190|42|1

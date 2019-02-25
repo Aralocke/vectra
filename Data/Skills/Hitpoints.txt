@@ -1,0 +1,31 @@
+Chicken|12
+Man|28
+Barbarian|56
+Dwarf|64
+Thug|72
+Chaos Druid|80
+Zombie|92
+Hill Giant|140
+Black Knight|168
+Magic Axe|180
+Rock Crab|200
+Bandit|200
+White Knight|212
+Ice Warrior|236
+Earth Warrior|216
+Ogre|240
+Moss Giant|240
+Shadow Warrior|268
+Ice Giant|284
+Lesser Demon|316
+Green Dragon|340
+Greater Demon|348
+Blue Dragon|420
+Fire Giant|444
+Bronze Dragon|500
+Abyssal Demon|600
+Black Demon|628
+Iron Dragon|692
+Steel Dragon|880
+King Black Dragon|1028
+Kalphite Queen|1068

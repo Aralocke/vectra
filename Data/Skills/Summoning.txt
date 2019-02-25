@@ -1,0 +1,69 @@
+Spirit wolf|4.8|1|1
+Dreadfowl|9.3|4|1
+Spirit Spider|12.6|10|1
+Thorny snail |12.6|13|1
+Granite crab|21.6|16|1
+Mosquito|46.5|17|1
+Desert wyrm|31.2|18|1
+Spirit Scorpion|83.2|19|1
+Spirit Tz-Kih|96.6|22|1
+Albino Rat|202.4|23|1
+Spirit Kalphite|220|25|1
+Compost mound|49.8|28|1
+Giant Chinchompa|255.2|29|1
+Vampire bat|136|31|1
+Honey Badger|140.8|32|1
+Beaver|57.6|33|1
+Void variants|59.6 34|1
+Bronze minotaur|316.8|36|1
+Bullant|52.8|40|1
+Macaw|72.4|41|1
+Evil Turnip|184.8|42|1
+Spirit Cockatrice (and variants)|75.2|43|1
+Iron Minotaur|404.8|46|1
+Pyrelord|202.4|46|1
+Magpie|83.2|47|1
+Bloated leech|215.2|49|1
+Spirit Terrorbird|68.4|52|1
+Abyssal parasite|94.8|54|1
+Spirit jelly|484|55|1
+Steel minotaur|492.8|56|1
+Ibis|98.8|56|1
+Spirit Graahk|501.6|57|1
+Spirit Kyatt|501.6|57|1
+Spirit Larupia|501.6|57|1
+Karamthulhu Overlord|510.4|58|1
+Smoke Devil|268|61|1
+Abyssal lurker|109.6|62|1
+Spirit cobra|276.8|63|1
+Stranger plant|281.6|64|1
+Mithril Minotaur|580.8|66|1
+Barker Toad |87|66|1
+War tortoise|58.6|67|1
+Bunyip|119.2|68|1
+Fruit Bat|121.2|69|1
+Ravenous Locust|132|70|1
+Arctic bear|93.2|71|1
+Phoenix|302|72|1
+Obsidian Golem|642.4|73|1
+Granite lobseter|325.6|74|1
+Praying mantis|329.6|75|1
+Adamant Minotaur|668.8|76|1
+Forge Regent|134|76|1
+Talon Beast|1015.2|77|1
+Giant Ent|136.8|78|1
+Fire titan|695.2|79|1
+Ice titan|695.2|79|1
+Moss giant|695.2|79|1
+Hydra|140.8|80|1
+Spirit dagannoth|364.8|83|1
+Lava titan|730.4|83|1
+Swamp Titan|373.6|85|1
+Rune minotaur|756.8|86|1
+Unicorn stallion|154.4|88|1
+Geyser titan|783.2|89|1
+Wolpertinger|404.8|92|1
+Abyssal Titan|163.2|93|1
+Iron titan|417.6|95|1
+Pack yak|422.4|96|1
+Steel Titan|435.2|99|1

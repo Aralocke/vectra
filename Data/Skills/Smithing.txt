@@ -1,0 +1,171 @@
+Bronze bar|6.2|1|1
+Blurite bar|8|8|1
+Elemental bar|7.5|20|1
+Iron bar|12.5|15|1
+Silver bar|13.7|20|1
+Steel bar|17.5|30|1
+Gold bar|22.5|22.5*2.5|40|1
+Mithril Bar|30|50|1
+Adamantite bar|37.5|70|1
+Runite bar|50|85|1
+Bronze dagger|12.5|1|0
+Bronze hatchet|12.5|1|0
+Bronze mace|12.5|2|0
+Bronze bolts (unf)|12.5|3|1
+Bronze med helm|12.5|3|0
+Bronze sword|12.5|4|0
+Bronze nails (15)|12.5|4|0
+Bronze dart tips (10)|12.5|4|1
+Bronze wire|12.5|4|1
+Bronze scimitar|25|5|0
+Bronze arrowtips (15)|12.5|5|1
+Bronze pickaxe|16|5|1
+Bronze limbs|12.5|6|1
+Bronze longsword|25|6|0
+Bronze full helm|25|7|0
+Bronze knife (5)|12.5|7|1
+Bronze sq shield|25|8|0
+Bronze warhammer|37.5|9|0
+Bronze battleaxe|37.5|10|0
+Bronze chainbody|37.5|11|0
+Bronze kiteshield|37.5|12|0
+Bronze claws|25|13|1
+Bronze 2h sword|37.5|14|0
+Bronze plateskirt|37.5|16|0
+Bronze platelegs|37.5|16|0
+Bronze platebody|62.5|18|0
+Blurite bolts (unf)|17.5|8|1
+Bluerite limbs|17.5|13|1
+Iron dagger|25|15|0
+Iron hatchet|25|16|0
+Iron mace|25|17|0
+Iron spit|25|17|1
+Iron bolts (unf)|25|18|1
+Iron med helm|25|18|0
+Iron sword|25|19|0
+Iron nails (15)|25|19|0
+Iron dart tips (10)|25|19|1
+Iron scimitar|50|20|0
+Iron arrowtips (15)|25|20|1
+Iron pickaxe|50|20|1
+Iron longsword|50|21|0
+Iron full helm|50|22|0
+Iron knife (5)|25|22|1
+Iron limbs|25|23|1
+Iron sq shield|50|23|0
+Iron warhammer|75|24|0
+Iron battleaxe|75|25|0
+Iron chainbody|75|26|0
+Oil lantern frame|25|26|1
+Iron kiteshield|75|27|0
+Iron claws|50|28|1
+Iron 2h sword|75|29|0
+Iron plateskirt|75|31|0
+Iron platelegs|75|31|0
+Iron platebody|125|33|0
+Iron sheet|20|45|1
+Steel dagger|37.5|30|0
+Steel hatchet|37.5|31|0
+Steel mace|37.5|32|0
+Steel bolts (unf)|37.5|33|1
+Steel med helm|37.5|33|0
+Steel sword|37.5|34|0
+Steel nails (15)|37.5|34|0
+Steel dart tips (10)|37.5|34|1
+Cannonball (4)|25.5|35|1
+Steel scimitar|75|35|0
+Steel arrowtips (15)|37.5|35|1
+Steel pickaxe|75|35|1
+Steel limbs|37.5|36|1
+Steel longsword|75|36|0
+Steel studs|25|36|1
+Steel full helm|75|37|0
+Steel knife (5)|37.5|37|1
+Steel sq shield|75|38|0
+Steel warhammer|112.5|39|0
+Steel battleaxe|112.5|40|0
+Steel chainbody|112.5|41|0
+Steel kiteshield|112.5|42|0
+Steel claws|75|43|1
+Steel 2h sword|112.5|44|0
+Steel plateskirt|112.5|46|0
+Steel platelegs|112.5|46|0
+Steel platebody|187.5|48|0
+Bullseye lantern|37.5|49|1
+Mithril dagger|50|50|0
+Mithril hatchet|50|51|0
+Mithril mace|50|52|0
+Mithril bolts (unf)|50|53|1
+Mithril med helm|50|53|0
+Mithril sword|50|54|0
+Mithril nails (15)|50|54|1
+Mithril dart tip (10)|50|54|1
+Mithril scimitar|100|55|0
+Mithril arrowtips (15)|50|55|1
+Mithril pickaxe|100|55|1
+Mithril limbs|50|56|1
+Mithril longsword|100|56|0
+Mithril full helm|100|57|0
+Mithril knife (5)|50|57|1
+Mithril sq shield|100|58|0
+Mithril warhammer|150|59|0
+Mithril battleaxe|150|60|0
+Mithril chainbody|150|61|0
+Mithril kiteshield|150|62|0
+Mithril claws|100|63|1
+Mithril 2h sword|150|64|0
+Mithril plateskirt|150|66|0
+Mithril platelegs|150|66|0
+Mithril platebody|250|68|0
+Adamant dagger|62.5|70|0
+Adamant hatchet|62.5|71|0
+Adamant mace|62.5|72|0
+Adamant bolts (unf)|62.5|73|1
+Adamant med helm|62.5|73|0
+Adamant sword|62.5|74|0
+Adamantite nails (15)|62.5|74|1
+Adamant dart tips (10)|62.5|74|1
+Adamant scimitar|125|75|0
+Adamant arrowtips (15)|62.5|75|1
+Adamant pickaxe|125|75|1
+Adamantite limbs|62.5|76|1
+Adamant longsword|125|76|0
+Adamant full helm|125|77|0
+Adamant knife (5)|62.5|77|1
+Adamant sq shield|125|78|0
+Adamant warhammer|187.5|79|0
+Adamant battleaxe|187.5|80|0
+Adamant chainbody|187.5|81|0
+Adamant kiteshield|187.5|82|0
+Adamant claws|125|83|1
+Adamant 2h sword|187.5|84|0
+Adamant plateskirt|187.5|86|0
+Adamant platelegs|187.5|86|0
+Adamant platebody|312.5|88|0
+Rune dagger|75|85|0
+Rune hatchet|75|86|0
+Rune mace|75|87|0
+Runite bolts (unf)|75|88|1
+Rune med helm|75|88|0
+Rune sword|75|89|0
+Rune nails (15)|75|89|1
+Rune dart tips (10)|75|89|1
+Rune scimitar|150|90|0
+Rune arrowtips (15)|75|90|1
+Rune pickaxe|150|90|1
+Runite limbs|75|91|1
+Rune longsword|150|91|0
+Rune full helm|150|92|0
+Rune knife (5)|75|92|1
+Rune sq shield|150|93|0
+Rune warhammer|225|94|0
+Rune battleaxe|225|95|0
+Rune chainbody|225|96|0
+Rune kiteshield|225|97|0
+Rune claws|150|98|1
+Rune 2h sword|225|99|0
+Rune plateskirt|225|99|0
+Rune platelegs|225|99|0
+Rune platebody|375|99|0
+Dragon square shield|75|60|1
+Dragon platebody|2000|92|1

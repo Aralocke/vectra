@@ -1,0 +1,37 @@
+-2 combat Combat Cmb combat cmbt cmb
+-1 stats Stats Stats stats
+0 overall Overall Overall overall
+1 attack Attack Att attack att atk
+2 defence Defence Def defence defense def
+3 strength Strength Str strength strenght str
+4 constitution Constitution Cns constitution cns hp hitpoints hits lp lifepoints
+5 ranged Ranged Range ranged range ranging
+6 prayer Prayer Pray prayer pray praying
+7 magic Magic Mage magic mage maging
+8 cooking Cooking Cook cooking cook
+9 woodcutting Woodcutting WC woodcutting woodcut wc wcing
+10 fletching Fletching Fletch fletching fletch
+11 fishing Fishing Fish fishing fish
+12 firemaking Firemaking FM firemaking fm fire fming firemake
+13 crafting Crafting Craft crafting craft
+14 smithing Smithing Smith smithing smith smelting smelt
+15 mining Mining Mine mining mine
+16 herblore Herblore Herb herblore herb herblaw
+17 agility Agility Agil agility agil
+18 thieving Thieving Thieve thieving thieve thief theiving theive theif
+19 slayer Slayer Slay slayer slay slaying
+20 farming Farming Farm farming farm
+21 runecraft Runecrafting RC runecrafting runecraft rc rcing
+22 hunter Hunter Hunt hunter hunt hunting
+23 construction Construction Con construction con construct poh
+24 summoning Summoning Summon summoning summon sumoning sumon summ sum
+25 dungeoneering Dungeoneering Dungeon dungeoneering dungeoneer dungeon dung dun dg
+0.1 dueling Duelling Duel duelling duel dueling duel-tournament dueltournament
+1.1 bounty Bounty-Hunter Bounty bounty-hunters bountyhunters bounty-hunter bountyhunter bounty-hunting bountyhunting bounty bh
+2.1 bounty-rogue Bounty-Hunter-Rogue Bounty-Rogue bounty-hunter-rogues bounty-hunter-rogue bountyhunterrogues bountyhunterrogue bounty-hunter-rouges bounty-hunter-rouge bountyhunterrouges bountyhunterrouge bounty-rogues bounty-rogue bountyrogues bountyrogue bounty-rouges bounty-rouge bountyrouges bountyrouge rouges rouge bhr
+3.1 fog Fist-of-Guthix FoG fist-of-guthix fistofguthix fog fist-of-guth fistofguth f-o-g f.o.g. f.o.g
+4.1 ma Mobilising-Armies MA mobilising-armies mobilizing-armies mobilisingarmies mobilizingarmies mobilising mobilizing ma armies
+5.1 ba-attacker BA-Attacker BA-Att ba-attackers ba-attacker ba-attack ba-att ba-atk
+6.1 ba-defender BA-Defender BA-Def ba-defenders ba-defender ba-defend ba-defence ba-defense ba-def
+7.1 ba-collector BA-Collector BA-Coll ba-collectors ba-collector ba-collect ba-coll ba-col
+8.1 ba-healer BA-Healer BA-Heal ba-healers ba-healer ba-heal

@@ -1,0 +1,67 @@
+"Half baked batta"|$false|$false|$false|$false|R|$false|M|The raw ingredients can added by selecting prepare and choosing a Batta type.
+"Roast beast meat"|$false|$false|$false|21|F|80|M|Made from skewered beast by using it on a fire.
+"Roast bird meat"|$false|$false|$false|11|F|60|M|Players can only cook it by using raw bird meat on an iron spit and then on a fire.
+"Blue crab"|$false|$false|$false|80|R/F|220|M|Blue Crabs never stop burning, even with 99 cooking.
+"Bouldabass"|$false|$false|$false|60|R/F|170|F|When a player reaches a constitution level of 80, monsters will start dropping bouldabass.
+"Bread"|$false|$false|$false|1|R/F|50|F|$false
+"Cake"|$false|$false|$false|40|R|40|F|$false
+"Cave eel"|$false|42|42|38|F/R|90|M|A cave eel will restore 70-110 of a player's life points; averaged to 90.
+"Cave moray"|$false|$false|$false|1 R/90 F|F/R|250|M|Even with 99 Cooking a player can still burn Cave morays; using the highest available wood would help to reduce the amount of burnt fish.
+"Cavefish"|94|$false|$false|88|F/R|200|M|Fishing Cavefish yields 300 experience, while cooking yields 214 experience.
+"Cooked chicken"|$false|$false|$false|1|F/R|30|F|$false
+"Cooked crab meat"|$false|$false|$false|21|F/R|20(5)|M|The small amounts of lifepoints it gives can also be used to 'fine tune' the lifepoints of someone using Dharok's set.
+"Half baked crunchy"|$false|$false|$false|$false|R|$false|M|The raw ingredients can added by selecting prepare and choosing a Batta type.
+"Curry"|$false|$false|$false|60|R|190|M|$false
+"Dusk eel"|$false|$false|$false|20|F/R|70|F|The level at which it stops burning depends on the tier of the fire it is cooked on.
+"Cooked slimy eel"|$false|58|58|28|F/R|80|M|Heals between 60 and 100 life points when eaten.
+"Scrambled egg"|$false|$false|$false|13|R|50|M|Made by using an uncooked egg on a range.
+"Cooked fishcake"|$false|$false|$false|31|F/R|110|M|It is made with breadcrumbs, ground cod, ground kelp, and ground crab meat.
+"Giant flatfish"|$false|$false|$false|30|F/R|100|F|The level at which it stops burning depends on the tier of the fire it is cooked on.
+"Half baked bowl"|$false|$false|$false|$false|R|$false|It can then be used to make a Chocolate Bomb, Tangled Toad's Legs,Worm hole, or Veg ball. Adding initial ingredients to it will create a Half made bowl.
+"Heim crab"|$false|$false|$false|1|F/R|20|F|Can be burned at any level. This all depends on the type of wood used to cook it.
+"Cooked jubbly"|$false|$false|$false|41|$false|150|M|A raw jubbly needs to be cooked (with 41 cooking) on the spitroast located near Rantz or the one located at Jiggig. You must kill your own jubbly bird in order cook it, otherwise you will be unable to cook it due to it not being fresh.
+"Cooked karambwan"|$false|$false|$false|30|F/R|180|M|In order to thoroughly cook it, a player must complete Tai Bwo Wannai Trio and talk to Tiadeche in his hut to learn how.
+"Lobster"|68|74|74|40|F/R|120|F|Stops burning at level 64 with Cooking Gauntlets at Lumbridge Kitchen range.
+"Manta ray"|$false|$false|$false|91|F/R|220|M|With 99 cooking and using cooking gauntlets, a player will still burn approximately 23% of the manta rays cooked.
+"Cooked meat"|$false|$false|$false|1|F/R|30|F|$false
+"Monkfish"|87|90|92|62|F/R|160|M|If using Cooking gauntlets and cooking on a range, it is exceedingly rare to burn a monkfish after level 86 cooking, and impossible to burn them on a range while wearing Cooking gauntlets beginning at level 87.
+"Fried mushrooms"|$false|$false|$false|46|R|50|M|Created by cooking sliced mushrooms.
+"Fried onions"|$false|$false|$false|42|F/R|50|M|Made by cooking chopped onions on a range or fire.
+"Oomlie wrap"|$false|$false|$false|$false|$false|140|M|Wrapped with a Palm Leaf.
+"Burnt pie"|$false|$false|$false|$false|$false|$false|$false|Various burnt pies.
+"Pitta bread"|$false|$false|$false|58|R|$false|M|Used to make kebabs.
+"Plain Pizza"|$false|68|$false|35|R|70x2|F|You stop burning plain pizzas at level 68 Cooking.
+"Meat Pizza"|$false|$false|$false|45|R|160|F|$false
+"Anchovy pizza"|$false|$false|$false|55|R|180|F|$false
+"Pineapple Pizza"|$false|$false|$false|65|R|220|M|$false
+"Baked potato"|$false|$false|$false|7|R|40|M|Using a potato with a different cooking method (like an open fire) will result in the potato being instantly burnt, unlike other range-only foods which say that player must cook it on a range.
+"Cooked rabbit"|$false|$false|$false|1|F/R|50|M|It is used in the quest Regicide to distract the Tyras Guard from watching the catapult which is used to kill King Tyras.
+"Rainbow fish"|$false|57|57|35|F/R|110|Players stop burning Rainbow fish at level 57 Cooking.
+"Red-eye"|$false|$false|$false|10|F/R|50|F|The level at which it stops burning depends on the tier of the fire it is cooked on.
+"Rocktail"|95|$false|$false|93|F/R|230|M|Players stop burning rocktail at level 95 while wearing Cooking gauntlets.
+"Salve eel"|$false|$false|$false|70|F/R|200|M|You will burn a lot unless you cook it on a fire or range made with tier 8 (corpsethorn) branches or better.
+"Sea turtle"|$false|$false|$false|82|F/R|210|M|With level 99 Cooking and Cooking gauntlets, players still burn roughly one out of every four sea turtles. However, cooking them at the Lumbridge Castle cooking range, with level 99 Cooking and using the Cooking cape to temporarily raise Cooking to level 100, players only burn about one out of eight sea turtles.
+"Shark"|94|$false|$false|80|F/R|200|M|Players never stop burning sharks (even with cooking boosted to over 100) unless they are wearing Cooking gauntlets, in which case sharks stop being burned at level 94 cooking.
+"Short finned eel"|$false|$false|$false|40|F/R|120|F|Never burns in free-to-play; The level at which it stops burning depends on the tier of the fire it is cooked on.
+"Shrimp"|$false|33|33|1|F/R|30|F|This may be the fastest way for new players to level Cooking up, because the Cooking Experience is x3 of the Fishing Experience.
+"Burnt snail"|$false|$false|$false|$false|$false|$false|$false|Varies.
+"Burnt spider"|$false|$false|$false|$false|$false|$false|$false|Varies.
+"Stew"|$false|58|58|25|R|110|F|$false
+"Cooked sweetcorn"|$false|$false|$false|$false|F/R|100|M|When eaten, it heals up to 100 lifepoints, or 10% of your total, rounded up.
+"Swordfish"|81|86|86|45|F/R|140|F|$false
+"Cooked turkey"|$false|$false|$false|$false|F/R|30|F|Cooked turkeys could be kept after the event, but players who did not keep any cannot currently get more.
+"Cooked turkey drumstick"|$false|$false|$false|$false|F/R|20|F|Cooked turkey drumsticks can still be eaten today, but only if you picked up raw drumsticks during the 2008 Thanksgiving event.
+"Web snipper"|$false|$false|$false|50|F/R|150|M|It is the first fish from Dungeoneering that is NOT available to free players.
+"Cooked chompy"|$false|$false|$false|30|F|100|M|Use raw chompy meat with an iron spit and then a fire.
+"Stuffed snake"|$false|$false|$false|$false|$false|180|M|Cooked on the snake-shaped rock in dungeon below Temple of Marimbo.
+"Crayfish"|$false|28|28|1|F/R|20|F|$false
+"Anchovies"|$false|34|34|1|F/R|10|F|$false
+"Trout"|$false|50|50|15|F/R|70|F|$false
+"Pike"|$false|64|64|25|F/R|80|F|$false
+"Salmon"|$false|58|58|25|F/R|90|F|$false
+"Cod"|$false|52|52|18|F/R|70|M|$false
+"Herring"|$false|41|41|5|F/R|50|F|$false
+"Mackerel"|$false|20|20|10|F/R|60|M|$false
+"Tuna"|$false|63|64|30|F/R|100|F|Players will rarely burn tuna beginning at level 60 and will stop burning tuna at level 63 cooking (63 on range, 64 on fire).
+"Bass"|$false|70|70|43|F/R|130|Bass give 100 Fishing experience per catch and 130 Cooking experience for each bass successfully cooked.
+"Sardine"|$false|34|34|1|F/R|40|F|$false

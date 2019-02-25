@@ -1,0 +1,31 @@
+Air|5|5*2|1|0
+Mind|5.5|5.5*2|2|0
+Water|6|6*2|5|0
+Earth|6.5|6.5*2|9|0
+Fire|7|7*2|14|0
+Body|7.5|7.5*2|20|0
+Cosmic|8|8*2|27|1
+Astral|8.75|8.75*2|40|1
+Nature|9|9*2|44|1
+Law|9.5|9.5*2|54|1
+Death|10|10*2|65|1
+Blood|10.5|10.5*2|77|1
+Soul|11|11*2|90|1
+Mist (Avg)|8.25|6|1
+Dust (Avg)|8.65|10|1
+Mud (Avg)|9.4|13|1
+Smoke (Avg)|9|15|1
+Steam (Avg)|9.65|19|1
+Lava (Avg)|10.25|23|1
+Air tiara|25|1|1
+Mind tiara|27.5|1|1
+Water tiara|30|1|1
+Earth tiara|32.5|1|1
+Fire tiara|35|1|1
+Body tiara|37.5|1|1
+Cosmic tiara|40|1|1
+Chaos tiara|42.5|1|1
+Nature tiara|45|1|1
+Law tiara|47.5|1|1
+Death tiara|50|1|1
+Blood tiara|52.5|1|1

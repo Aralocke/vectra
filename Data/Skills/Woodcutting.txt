@@ -1,0 +1,15 @@
+Normal|25|1|0
+Achey|25|1|1
+Oak|37.5|15|0
+Willow|67.5|30|0
+Teak|85|35|1
+Maple|100|45|0
+Hollow(No bar)|82.5|45|1
+Hollow(Bark)|357.7|45|1
+Mahogany|125|50|1
+Arctic pine|140.2|54|1
+Eucalyptus|165|58|1
+Yew|175|60|0
+Ivy|332.5|68|1
+Magic|250|75|1
+Cursed Magic|275|82|1

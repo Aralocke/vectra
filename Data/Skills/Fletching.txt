@@ -1,0 +1,68 @@
+Shortbow|10|5|1
+Longbow|20|10|1
+Oak Shortbow|33|20|1
+Oak Longbow|50|25|1
+Willow Shortbow|66.6|35|1
+Willow Longbow|83|40|1
+Maple Shortbow|100|50|1
+Maple Longbow|116.6|55|1
+Yew Shortbow|133|65|1
+Yew Longbow|150|70|1
+Magic Shortbow|166.6|80|1
+Magic Longbow|182|85|1
+Arrow Shafts|5|1|1
+Headless Arrows|15|1|1
+Bronze Arrows|39.5|1|1
+Iron Arrows|57.5|15|1
+Steel Arrows|95|30|1
+Mithril Arrows|132.5|45|1
+Adamant Arrows|165|60|1
+Rune Arrows|207.5|75|1
+Dragon Arrows|225|90|1
+Composite ogre bow|90|30|1
+Ogre Arrow Shafts|1.6|5|1
+Headless Ogre Arrows|0.9|5|1
+Ogre Arrows|1|5|1
+Bronze brutal arrows|1.4|7|1
+Iron brutal arrows|2.6|18|1
+Steel brutal arrows|5.1|33|1
+Black brutal arrows|6.4|38|1
+Mithril brutal arrows|7.6|49|1
+Adamant brutal arrows|10.1|62|1
+Rune brutal arrows|12.6|77|1
+Broad arrows|15|52|1
+Broad-tipped bolts|3|55|1
+Bronze c'bow|18|9|1
+Blurite c'bow|64|24|1
+Iron c'bow|88|39|1
+Steel c'bow|108|46|1
+Mithril c'bow|128|54|1
+Adamant c'bow|164|61|1
+Rune c'bow|200|69|1
+Bronze Dart|1.8|1|1
+Iron Dart|3.2|22|1
+Steel Dart|7.5|37|1
+Mithril Dart|11.2|52|1
+Adamant Dart|15|67|1
+Rune Dart|18.8|81|1
+Dragon Dart|25|95|1
+Bronze bolts|0.5|9|1
+Blurite bolts|1|24|1
+Iron bolts|1.5|39|1
+Silver bolts|2.5|43|1
+Steel bolts|3.5|46|1
+Mithril bolts|5|53|1
+Adamant bolts|7|61|1
+Rune bolts|10|69|1
+Opal bolts|1.6|11|1
+Jade bolts|2.4|26|1
+Pearl bolts|3.2|41|1
+Topaz bolts|3.9|48|1
+Barbed bolts|9.5|51|1
+Sapphire bolts|4.7|56|1
+Emerald bolts|5.5|58|1
+Mith grapple|11|59|1
+Ruby bolts|6.3|63|1
+Diamond bolts|7|65|1
+Dragonstone bolts|8.2|71|1
+Onyx bolts|9.4|73|1
